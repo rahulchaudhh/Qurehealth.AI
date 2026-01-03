@@ -10,17 +10,12 @@ export const AuthProvider = ({ children }) => {
   // Check if user is logged in on mount
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const { data } = await axios.get('/auth/me', {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          setUser(data.data);
-        } catch (error) {
-          console.error('Auth check failed:', error);
-          localStorage.removeItem('token');
-        }
+      try {
+        const { data } = await axios.get('/auth/me');
+        setUser(data.data);
+      } catch (error) {
+        // console.error('Auth check failed:', error);
+        localStorage.removeItem('token'); // Cleanup legacy
       }
       setLoading(false);
     };
@@ -31,8 +26,9 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const { data } = await axios.post('/auth/register', userData);
-      localStorage.setItem('token', data.token);
-      setUser(data.data);
+      if (data) {
+        // Session handles auth
+      }
       return { success: true };
     } catch (error) {
       return {
@@ -45,15 +41,41 @@ export const AuthProvider = ({ children }) => {
   // Login function
   const login = async (credentials) => {
     try {
-      console.log('Sending login request:', credentials);
       const { data } = await axios.post('/auth/login', credentials);
-      console.log('Login response data:', data);
-      localStorage.setItem('token', data.token);
+      // localStorage.setItem('token', data.token); // Removed
       setUser(data.data);
+      return { success: true, data: data.data };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Login failed'
+      };
+    }
+  };
+
+  // Doctor Register function
+  const doctorRegister = async (doctorData) => {
+    try {
+      const { data } = await axios.post('/doctor/register', doctorData);
+      // localStorage.setItem('token', data.token); // Removed
+      setUser({ ...data.data, role: 'doctor' });
       return { success: true };
     } catch (error) {
-      console.error('Login request failed:', error);
-      console.error('Response:', error.response);
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Registration failed'
+      };
+    }
+  };
+
+  // Doctor Login function
+  const doctorLogin = async (credentials) => {
+    try {
+      const { data } = await axios.post('/doctor/login', credentials);
+      // localStorage.setItem('token', data.token); // Removed
+      setUser({ ...data.data, role: 'doctor' });
+      return { success: true };
+    } catch (error) {
       return {
         success: false,
         error: error.response?.data?.error || 'Login failed'
@@ -62,9 +84,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Logout function
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await axios.post('/auth/logout');
+    } catch (err) {
+      console.error('Logout failed', err);
+    }
     localStorage.removeItem('token');
     setUser(null);
+  };
+
+  const updateUserProfile = (updatedData) => {
+    setUser(updatedData);
   };
 
   const value = {
@@ -72,6 +103,9 @@ export const AuthProvider = ({ children }) => {
     loading,
     register,
     login,
+    doctorRegister,
+    doctorLogin,
+    updateUserProfile,
     logout,
     isAuthenticated: !!user
   };

@@ -5,6 +5,7 @@ import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import LandingPage from './components/LandingPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import PatientProfile from './components/PatientProfile';
 
 function App() {
   return (
@@ -20,8 +21,17 @@ function App() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['patient']}>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/patient/profile"
+            element={
+              <ProtectedRoute allowedRoles={['patient']}>
+                <PatientProfile />
               </ProtectedRoute>
             }
           />
