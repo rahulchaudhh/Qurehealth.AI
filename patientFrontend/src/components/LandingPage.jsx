@@ -1,129 +1,153 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/Landing.css';
 
-const LandingPage = () => {
+export default function LandingPage() {
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 20);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
     return (
-        <div className="landing-container">
-            {/* Header */}
-            <header className="landing-header">
-                <div className="landing-logo">
-                    <span className="logo-icon">🏥</span>
-                    Qurehealth
-                </div>
+        <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900 overflow-x-hidden relative">
 
-                <nav className="landing-nav">
-                    <a href="#features" className="nav-link">Features</a>
-                    <a href="#how-it-works" className="nav-link">How it Works</a>
-                    <a href="#testimonials" className="nav-link">Testimonials</a>
-                    <a href="#about" className="nav-link">About Us</a>
-                </nav>
+            {/* Aurora Background Effects */}
+            <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+                {/* Top Left Blob - Blue/Cyan */}
+                <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-200/40 rounded-full blur-[120px] mix-blend-multiply animate-blob"></div>
+                {/* Top Right Blob - Purple/Pink */}
+                <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-purple-200/40 rounded-full blur-[120px] mix-blend-multiply animate-blob animation-delay-2000"></div>
+                {/* Bottom Blob - Teal/Green */}
+                <div className="absolute -bottom-32 left-[20%] w-[60%] h-[60%] bg-teal-200/40 rounded-full blur-[120px] mix-blend-multiply animate-blob animation-delay-4000"></div>
+            </div>
 
-                <div className="auth-buttons">
-                    <Link to="/login" className="btn-secondary">Login</Link>
-                    <Link to="/register" className="btn-primary">Get Started</Link>
+            {/* Navbar - Glassy & Pills */}
+            <nav className={`fixed top-4 left-0 right-0 z-50 transition-all duration-300`}>
+                <div className={`max-w-7xl mx-auto px-6 ${scrolled ? 'py-0' : 'py-2'}`}>
+                    <div className={`backdrop-blur-xl bg-white/70 border border-white/50 shadow-sm rounded-full px-6 py-3 flex justify-between items-center transition-all ${scrolled ? 'shadow-md' : ''}`}>
+
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-9 h-9 bg-gradient-to-tr from-indigo-600 to-violet-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M12 5v14M5 12h14" />
+                                </svg>
+                            </div>
+                            <span className="text-xl font-bold tracking-tight text-slate-800 font-outfit">
+                                Qurehealth<span className="text-indigo-600">.AI</span>
+                            </span>
+                        </div>
+
+                        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+                            <a href="#features" className="hover:text-indigo-600 transition-colors">Features</a>
+                            <a href="#doctors" className="hover:text-indigo-600 transition-colors">Find Doctors</a>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <Link to="/login" className="px-5 py-2 text-sm font-medium text-slate-700 hover:text-indigo-600 transition-colors">
+                                Log in
+                            </Link>
+                            <Link to="/register" className="px-5 py-2 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                                Get Started
+                            </Link>
+                        </div>
+                    </div>
                 </div>
-            </header>
+            </nav>
 
             {/* Hero Section */}
-            <section className="hero-section">
-                <div className="hero-content">
-                    <span className="hero-badge">✨ Revolutionizing Healthcare</span>
-                    <h1 className="hero-title">
-                        Your Health Journey <br />
-                        <span className="title-accent">Simplified by AI</span>
+            <section className="relative pt-48 pb-20 px-6 overflow-hidden">
+                <div className="max-w-5xl mx-auto text-center relative z-10">
+
+                    {/* Badge */}
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-indigo-50 text-indigo-600 text-xs font-bold uppercase tracking-wide mb-8 shadow-sm hover:shadow-md transition-shadow cursor-default">
+                        <span className="relative flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500"></span>
+                        </span>
+                        The Future of Personal Healthcare
+                    </div>
+
+                    {/* Headline */}
+                    <h1 className="text-6xl md:text-8xl font-bold text-slate-900 mb-8 leading-[1] tracking-tight font-outfit">
+                        Health Intelligence <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 animate-gradient-x">
+                            Reimagined.
+                        </span>
                     </h1>
-                    <p className="hero-subtitle">
-                        Access world-class diagnostic tools, schedule appointments with top doctors,
-                        and manage your health records all in one secure platform.
+
+                    <p className="text-xl md:text-2xl text-slate-600 mb-12 max-w-2xl mx-auto leading-relaxed font-light">
+                        Access world-class diagnostics, instant specialist connection, and real-time health monitoring using advanced AI.
                     </p>
-                    <div className="auth-buttons">
-                        <Link to="/register" className="btn-primary">Start Your Journey</Link>
-                        <Link to="/login" className="btn-secondary">Patient Portal</Link>
-                    </div>
+
+
                 </div>
 
-                <div className="hero-image-wrapper">
-                    <img src="/landing_hero.png" alt="Healthcare Platform Interface" />
-                </div>
+
             </section>
 
-            {/* Features Section */}
-            <section className="features-section" id="features">
-                <h2 className="section-title">Why Choose QurehealthAI?</h2>
 
-                <div className="features-grid">
-                    {/* Feature 1 */}
-                    <div className="feature-card">
-                        <div className="feature-icon-wrapper">
-                            ⚡
+
+            {/* Footer - Explicit Addition */}
+            <footer className="bg-slate-50 text-slate-900 py-16 px-6 mt-20 relative z-10 border-t border-slate-200">
+                <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+                    <div className="col-span-1 md:col-span-1">
+                        <div className="flex items-center gap-2 mb-6">
+                            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                                    <path d="M12 5v14M5 12h14" />
+                                </svg>
+                            </div>
+                            <span className="text-xl font-bold font-outfit">Qurehealth.AI</span>
                         </div>
-                        <span className="feature-tag">EFFICIENCY</span>
-                        <h3 className="feature-title">AI-Powered Analysis</h3>
-                        <p className="feature-desc">
-                            Get preliminary diagnostic insights instantly using our advanced machine learning algorithms.
+                        <p className="text-slate-600 text-sm leading-relaxed">
+                            Empowering your health journey with advanced diagnostics and instant specialist care.
                         </p>
                     </div>
 
-                    {/* Feature 2 */}
-                    <div className="feature-card">
-                        <div className="feature-icon-wrapper">
-                            🔒
-                        </div>
-                        <span className="feature-tag">SECURITY</span>
-                        <h3 className="feature-title">Secure Health Records</h3>
-                        <p className="feature-desc">
-                            Your medical data is encrypted and stored with bank-grade security protocols.
-                        </p>
+                    <div>
+                        <h4 className="font-bold text-lg mb-6 font-outfit">Product</h4>
+                        <ul className="space-y-4 text-slate-600 text-sm">
+                            <li><a href="#" className="hover:text-indigo-600 transition-colors">Features</a></li>
+                            <li><a href="#" className="hover:text-indigo-600 transition-colors">Find Doctors</a></li>
+                            <li><a href="#" className="hover:text-indigo-600 transition-colors">AI Diagnostics</a></li>
+                            <li><a href="#" className="hover:text-indigo-600 transition-colors">Security</a></li>
+                        </ul>
                     </div>
 
-                    {/* Feature 3 */}
-                    <div className="feature-card">
-                        <div className="feature-icon-wrapper">
-                            👨‍⚕️
-                        </div>
-                        <span className="feature-tag">EXPERTISE</span>
-                        <h3 className="feature-title">Expert Doctors</h3>
-                        <p className="feature-desc">
-                            Connect with certified specialists for consultations and second opinions.
-                        </p>
+                    <div>
+                        <h4 className="font-bold text-lg mb-6 font-outfit">Company</h4>
+                        <ul className="space-y-4 text-slate-600 text-sm">
+                            <li><a href="#" className="hover:text-indigo-600 transition-colors">About</a></li>
+                            <li><a href="#" className="hover:text-indigo-600 transition-colors">Careers</a></li>
+                            <li><a href="#" className="hover:text-indigo-600 transition-colors">Blog</a></li>
+                            <li><a href="#" className="hover:text-indigo-600 transition-colors">Contact</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 className="font-bold text-lg mb-6 font-outfit">Legal</h4>
+                        <ul className="space-y-4 text-slate-600 text-sm">
+                            <li><a href="#" className="hover:text-indigo-600 transition-colors">Privacy Policy</a></li>
+                            <li><a href="#" className="hover:text-indigo-600 transition-colors">Terms of Service</a></li>
+                            <li><a href="#" className="hover:text-indigo-600 transition-colors">Cookie Policy</a></li>
+                        </ul>
                     </div>
                 </div>
-            </section>
 
-            {/* Footer */}
-            <footer className="landing-footer">
-                <div className="footer-content">
-                    <h2 className="footer-title">Ready to take control?</h2>
-                    <p className="footer-subtitle">Join thousands of patients trusting QurehealthAI.</p>
-
-                    <div className="stats-row">
-                        <div className="stat-item">
-                            <h4>10k+</h4>
-                            <p>Active Patients</p>
-                        </div>
-                        <div className="stat-item">
-                            <h4>500+</h4>
-                            <p>Specialists</p>
-                        </div>
-                        <div className="stat-item">
-                            <h4>98%</h4>
-                            <p>Satisfaction</p>
-                        </div>
-                    </div>
-
-                    <div className="footer-bottom">
-                        <p>&copy; 2024 QurehealthAI. All rights reserved.</p>
-                        <div className="footer-links">
-                            <a href="#" className="footer-link">Privacy Policy</a>
-                            <a href="#" className="footer-link">Terms of Service</a>
-                            <a href="#" className="footer-link">Contact</a>
-                        </div>
+                <div className="max-w-7xl mx-auto pt-8 mt-12 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center text-slate-500 text-sm">
+                    <p>© 2025 Qurehealth AI. All rights reserved.</p>
+                    <div className="flex gap-6 mt-4 md:mt-0">
+                        <a href="#" className="hover:text-indigo-600 transition-colors">Twitter</a>
+                        <a href="#" className="hover:text-indigo-600 transition-colors">LinkedIn</a>
+                        <a href="#" className="hover:text-indigo-600 transition-colors">Instagram</a>
                     </div>
                 </div>
             </footer>
         </div>
     );
-};
-
-export default LandingPage;
+}

@@ -1,20 +1,17 @@
 const jwt = require('jsonwebtoken');
 const Patient = require('../models/Patient');
+const Doctor = require('../models/Doctor');
 
 module.exports = async (req, res, next) => {
-  let token;
+  console.log('--- Auth Middleware ---');
+  console.log('Session ID:', req.sessionID);
+  console.log('Session User:', req.session ? req.session.user : 'No Session');
+  console.log('Cookies:', req.headers.cookie);
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    try {
-      token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.patient = await Patient.findById(decoded.id).select('-password');
-      next();
-    } catch (error) {
-      console.error(error);
-      return res.status(401).json({ error: 'Not authorized' });
-    }
+  if (req.session && req.session.user) {
+    req.user = req.session.user;
+    next();
   } else {
-    return res.status(401).json({ error: 'Not authorized, no token' });
+    return res.status(401).json({ error: 'Not authorized, no session' });
   }
 };
