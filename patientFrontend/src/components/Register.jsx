@@ -5,7 +5,7 @@ import '../styles/Auth.css';
 
 function Register() {
   const navigate = useNavigate();
-  const { register, user, isAuthenticated, loading } = useContext(AuthContext);
+  const { register, doctorRegister, user, isAuthenticated, loading } = useContext(AuthContext);
 
   const [role, setRole] = useState('patient'); // 'patient' or 'doctor'
 
@@ -58,11 +58,13 @@ function Register() {
         setIsSubmitting(false);
         return;
       }
+      /* OPTIONAL
       if (!formData.profilePicture) {
         setError('Please upload a profile picture');
         setIsSubmitting(false);
         return;
       }
+      */
     }
 
     // Create FormData
@@ -82,7 +84,9 @@ function Register() {
       submissionData.append('profilePicture', formData.profilePicture);
     }
 
-    const result = await register(submissionData);
+    const result = role === 'doctor'
+      ? await doctorRegister(submissionData)
+      : await register(submissionData);
 
     setIsSubmitting(false);
 
@@ -94,6 +98,9 @@ function Register() {
           name: '', email: '', password: '', phone: '', dateOfBirth: '', gender: 'male',
           specialization: '', experience: '', profilePicture: null
         });
+        setTimeout(() => {
+          navigate('/');
+        }, 3000);
       } else {
         setSuccessMsg('Registration successful! Please login to continue.');
         setTimeout(() => {
@@ -136,6 +143,19 @@ function Register() {
         </div>
 
         {/* ... Success/Error ... */}
+
+        {/* ... Success/Error ... */}
+        {error && (
+          <div className="auth-error-box">
+            {error}
+          </div>
+        )}
+
+        {successMsg && (
+          <div className="bg-green-50 text-green-700 p-4 rounded-lg mb-6 text-center border border-green-200 font-medium">
+            {successMsg}
+          </div>
+        )}
 
         {!successMsg && (
           <form onSubmit={handleSubmit} className="auth-form" encType="multipart/form-data">
@@ -207,9 +227,9 @@ function Register() {
                     onChange={handleFileChange}
                     accept="image/*"
                     className="auth-input p-2 border border-gray-300 rounded-md"
-                    required
+                  // required - Removed
                   />
-                  <p className="text-xs text-gray-500 mt-1">Upload a professional photo for your profile icon.</p>
+                  <p className="text-xs text-gray-500 mt-1">Upload a professional photo for your profile icon (Optional).</p>
                 </div>
               </>
             )}

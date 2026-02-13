@@ -1,0 +1,7 @@
+fever,cough,fatigue,difficulty_breathing,gender,blood_pressure,cholesterol,disease
+1,1,1,1,Male,High,High,Pneumonia
+0,1,0,1,Female,Normal,High,Common Cold
+1,1,1,0,Male,Normal,Normal,Flu
+0,0,0,0,Female,Normal,Normal,Healthy
+1,0,1,1,Male,High,High,Heart Disease
+0,1,1,0,Female,High,Normal,Bronchitis

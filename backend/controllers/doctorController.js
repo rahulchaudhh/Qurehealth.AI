@@ -16,13 +16,16 @@ exports.registerDoctor = async (req, res) => {
             specialization,
             experience,
             phone,
-            gender
+            gender,
+            profilePicture: req.file
+                ? `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`
+                : ''
         });
 
         if (doctor) {
             const doctorObj = doctor.toObject();
             doctorObj.role = 'doctor';
-            req.session.user = doctorObj;
+            // req.session.user = doctorObj; // Removed to prevent auto-login for pending doctors
 
             res.status(201).json({
                 data: doctorObj
@@ -46,6 +49,14 @@ exports.loginDoctor = async (req, res) => {
         const isMatch = await doctor.matchPassword(password);
         if (!isMatch) {
             return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        if (doctor.status !== 'approved') {
+            return res.status(403).json({
+                error: doctor.status === 'rejected'
+                    ? 'Your account has been rejected. Please contact support.'
+                    : 'Your account is pending approval. Please wait for admin verification.'
+            });
         }
 
         const doctorObj = doctor.toObject();
@@ -133,7 +144,8 @@ exports.getDoctorPatients = async (req, res) => {
 exports.getAllDoctors = async (req, res) => {
     try {
         const Doctor = require('../models/Doctor');
-        const doctors = await Doctor.find({}).select('-password');
+        // Exclude profilePicture from list to speed up loading (base64 images are large)
+        const doctors = await Doctor.find({ status: 'approved' }).select('-password -profilePicture');
         res.json({
             success: true,
             count: doctors.length,
@@ -141,6 +153,51 @@ exports.getAllDoctors = async (req, res) => {
         });
     } catch (error) {
         console.error('Get All Doctors Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// @desc    Get single doctor with profile picture
+// @route   GET /api/doctor/:id
+// @access  Public
+exports.getDoctorById = async (req, res) => {
+    try {
+        const Doctor = require('../models/Doctor');
+        const doctor = await Doctor.findById(req.params.id).select('-password');
+        if (!doctor) {
+            return res.status(404).json({ error: 'Doctor not found' });
+        }
+        res.json({
+            success: true,
+            data: doctor
+        });
+    } catch (error) {
+        console.error('Get Doctor By Id Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// @desc    Delete doctor
+// @route   DELETE /api/doctor/:id
+// @access  Private (Admin)
+exports.deleteDoctor = async (req, res) => {
+    try {
+        const Doctor = require('../models/Doctor');
+        const doctor = await Doctor.findById(req.params.id);
+
+        if (!doctor) {
+            return res.status(404).json({ error: 'Doctor not found' });
+        }
+
+        await doctor.deleteOne(); // Use deleteOne()
+
+        res.json({
+            success: true,
+            data: {},
+            message: 'Doctor deleted successfully'
+        });
+    } catch (error) {
+        console.error('Delete Doctor Error:', error);
         res.status(500).json({ error: error.message });
     }
 };

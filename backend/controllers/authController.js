@@ -19,7 +19,7 @@ exports.register = async (req, res) => {
       // Handle file upload
       let profilePicture = null;
       if (req.file) {
-        profilePicture = req.file.path; // or just the filename depending on how you serve
+        profilePicture = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
       }
 
       const doctor = await Doctor.create({
@@ -235,7 +235,7 @@ exports.updateProfile = async (req, res) => {
     // Handle Profile Picture Upload
     if (req.file) {
       console.log('Detailed File Info:', req.file); // Debugging
-      user.profilePicture = req.file.path;
+      user.profilePicture = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
     }
 
     try {

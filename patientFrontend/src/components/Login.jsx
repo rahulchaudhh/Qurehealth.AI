@@ -18,10 +18,16 @@ function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    console.log("Login Component Mounted. Loading:", loading, "User:", user);
     if (!loading && isAuthenticated && user) {
-      if (user.role === 'admin') navigate('/admin/dashboard');
-      else if (user.role === 'doctor') navigate('/doctor/dashboard');
-      else navigate('/dashboard');
+      console.log("Redirecting to dashboard...");
+      if (user.role === 'admin') {
+        window.location.href = 'http://localhost:5175';
+      } else if (user.role === 'doctor') {
+        window.location.href = 'http://localhost:5174';
+      } else {
+        navigate('/dashboard');
+      }
     }
   }, [isAuthenticated, user, loading, navigate]);
 

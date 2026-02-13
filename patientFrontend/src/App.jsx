@@ -6,6 +6,8 @@ import Dashboard from './components/Dashboard';
 import LandingPage from './components/LandingPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import PatientProfile from './components/PatientProfile';
+import PaymentSuccess from './components/PaymentSuccess';
+import MedicalRecordView from './components/MedicalRecordView';
 
 function App() {
   return (
@@ -32,6 +34,24 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['patient']}>
                 <PatientProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/payment/success"
+            element={
+              <ProtectedRoute allowedRoles={['patient']}>
+                <PaymentSuccess />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/medical-record/:id"
+            element={
+              <ProtectedRoute allowedRoles={['patient']}>
+                <MedicalRecordView />
               </ProtectedRoute>
             }
           />

@@ -2,9 +2,10 @@ import axios from 'axios';
 
 const instance = axios.create({
   baseURL: 'http://localhost:5001/api', // Correct base URL with /api
-  headers: {
-    'Content-Type': 'application/json'
-  },
+  // headers: {
+  //   'Content-Type': 'application/json' 
+  // },
+  // Removed default Content-Type to allow axios to automatically set it to multipart/form-data when sending FormData
   withCredentials: true
 });
 
