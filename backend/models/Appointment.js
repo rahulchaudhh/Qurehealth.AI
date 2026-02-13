@@ -43,6 +43,22 @@ const appointmentSchema = new mongoose.Schema({
     doctorNotes: {
         type: String,
         default: ''
+    },
+    paymentStatus: {
+        type: String,
+        enum: ['pending', 'paid', 'failed'],
+        default: 'pending'
+    },
+    transactionId: {
+        type: String
+    },
+    paymentMethod: {
+        type: String,
+        default: 'esewa'
+    },
+    isVisibleToPatient: {
+        type: Boolean,
+        default: true
     }
 });
 

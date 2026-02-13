@@ -22,7 +22,13 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'secret',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGO_URI,
+    mongoOptions: {
+      tls: true,
+      tlsAllowInvalidCertificates: true
+    }
+  }),
   cookie: {
     maxAge: 1000 * 60 * 60 * 24, // 1 day
     secure: false, // true in production
@@ -32,9 +38,20 @@ app.use(session({
 }));
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+console.log('Attempting to connect to MongoDB...');
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      tls: true,
+      tlsAllowInvalidCertificates: true, // For debugging SSL issues
+    });
+    console.log('MongoDB Connected');
+  } catch (err) {
+    console.error('MongoDB Connection Error:', err);
+    // process.exit(1); // Keep alive to show error
+  }
+};
+connectDB();
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
@@ -49,7 +66,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/payment', require('./routes/paymentRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
+app.use('/api/predict', require('./routes/predictionRoutes'));
 
 // Make uploads folder static
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -57,7 +76,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error('Unhandled Error:', err);
-  res.status(500).json({ error: err.message });
+  const fs = require('fs');
+  const errorMsg = typeof err === 'string' ? err : (err.message || JSON.stringify(err));
+  fs.appendFileSync('error.log', `${new Date().toISOString()} - ${errorMsg}\n`);
+  res.status(500).json({ error: err.message || errorMsg });
 });
 
 // Base route
@@ -65,7 +87,7 @@ app.get("/", (req, res) => {
   res.send("QurehealthAI Backend is running");
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

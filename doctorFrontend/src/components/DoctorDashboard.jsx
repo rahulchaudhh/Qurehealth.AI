@@ -2,9 +2,10 @@ import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import axios from '../api/axios';
+import Toast from './Toast'; // Import Toast component
 
 function DoctorDashboard() {
-    const { user, logout, loading: authLoading } = useContext(AuthContext); // Assuming updateProfile might be needed or we reload
+    const { user, logout, updateUserProfile, loading: authLoading } = useContext(AuthContext); // Assuming updateProfile might be needed or we reload
     const navigate = useNavigate();
     const [stats, setStats] = useState({ patients: 0, appointments: 0, tasks: 0 });
     const [appointments, setAppointments] = useState([]);
@@ -23,6 +24,7 @@ function DoctorDashboard() {
         imageFile: null
     });
     const [previewImage, setPreviewImage] = useState(null);
+    const [toast, setToast] = useState({ message: '', type: '', isVisible: false }); // Toast state
 
     const handleLogout = async () => {
         try {
@@ -32,6 +34,8 @@ function DoctorDashboard() {
         }
         window.location.href = 'http://localhost:5173';
     };
+
+    const runDataFetch_DELETED = null; // Removing this line since it's just context for the replacement
 
     useEffect(() => {
         const fetchData = async () => {
@@ -71,9 +75,10 @@ function DoctorDashboard() {
             setAppointments(appointmentsRes.data.data);
             const statsRes = await axios.get('/doctor/stats');
             setStats(statsRes.data.data);
+            setToast({ message: 'Appointment status updated!', type: 'success', isVisible: true });
         } catch (error) {
             console.error('Error updating status:', error);
-            alert('Failed to update status');
+            setToast({ message: 'Failed to update status', type: 'error', isVisible: true });
         }
     };
 
@@ -105,12 +110,12 @@ function DoctorDashboard() {
             });
 
             if (res.data.success) {
-                alert('Profile updated successfully! PLease refresh to see changes.');
-                // Optionally trigger a user reload logic here if AuthContext supports it
+                updateUserProfile(res.data.data);
+                setToast({ message: 'Profile updated successfully!', type: 'success', isVisible: true });
             }
         } catch (error) {
             console.error('Profile update failed:', error);
-            alert('Failed to update profile');
+            setToast({ message: 'Failed to update profile', type: 'error', isVisible: true });
         }
     };
 
@@ -136,7 +141,7 @@ function DoctorDashboard() {
                         </svg>
                     </div>
                     <span className="text-xl font-bold tracking-tight text-gray-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                        Qurehealth<span className="text-blue-600">.AI</span>
+                        Qurehealth.AI
                     </span>
                 </div>
 
@@ -144,7 +149,13 @@ function DoctorDashboard() {
                     <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden text-blue-600 font-bold">
                             {user?.profilePicture ? (
-                                <img src={`http://localhost:5001/${user.profilePicture}`} alt={user.name} className="w-full h-full object-cover" />
+                                <img
+                                    src={user.profilePicture.startsWith('data:') || user.profilePicture.startsWith('http')
+                                        ? user.profilePicture
+                                        : `http://localhost:5001/${user.profilePicture}`}
+                                    alt={user.name}
+                                    className="w-full h-full object-cover"
+                                />
                             ) : (
                                 <span>{user?.name?.charAt(0) || 'D'}</span>
                             )}
@@ -354,12 +365,13 @@ function DoctorDashboard() {
                                                 </p>
                                             </div>
                                         </div>
-                                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${apt.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                                            apt.status === 'completed' ? 'bg-blue-100 text-blue-700' :
-                                                apt.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                                                    'bg-yellow-100 text-yellow-700'
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${(new Date(apt.date) < new Date().setHours(0, 0, 0, 0) && apt.status === 'pending') ? 'bg-red-100 text-red-700' :
+                                            apt.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                                                apt.status === 'completed' ? 'bg-blue-100 text-blue-700' :
+                                                    apt.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                        'bg-yellow-100 text-yellow-700'
                                             }`}>
-                                            {apt.status}
+                                            {(new Date(apt.date) < new Date().setHours(0, 0, 0, 0) && apt.status === 'pending') ? 'Missed' : apt.status}
                                         </span>
                                     </div>
 
@@ -414,7 +426,13 @@ function DoctorDashboard() {
                                     {previewImage ? (
                                         <img src={previewImage} alt="Preview" className="w-full h-full object-cover" />
                                     ) : user?.profilePicture ? (
-                                        <img src={`http://localhost:5001/${user.profilePicture}`} alt={user.name} className="w-full h-full object-cover" />
+                                        <img
+                                            src={user.profilePicture.startsWith('data:') || user.profilePicture.startsWith('http')
+                                                ? user.profilePicture
+                                                : `http://localhost:5001/${user.profilePicture}`}
+                                            alt={user.name}
+                                            className="w-full h-full object-cover"
+                                        />
                                     ) : (
                                         <span className="text-2xl text-gray-400">📷</span>
                                     )}
@@ -425,8 +443,9 @@ function DoctorDashboard() {
                                         type="file"
                                         accept="image/*"
                                         onChange={handleImageChange}
-                                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mb-2"
                                     />
+                                    <p className="text-xs text-gray-500">Supported: JPG, PNG. Max 2MB.</p>
                                 </div>
                             </div>
 
@@ -533,6 +552,14 @@ function DoctorDashboard() {
                         </form>
                     </div>
                 </div>
+            )}
+            {/* Toast Notification */}
+            {toast.isVisible && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast({ ...toast, isVisible: false })}
+                />
             )}
         </div>
     );

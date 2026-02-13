@@ -15,6 +15,18 @@ exports.bookAppointment = async (req, res) => {
             return res.status(404).json({ error: 'Doctor not found' });
         }
 
+        // Check for existing appointment
+        const existingAppointment = await Appointment.findOne({
+            doctor: doctorId,
+            date,
+            time,
+            status: { $ne: 'cancelled' }
+        });
+
+        if (existingAppointment) {
+            return res.status(400).json({ error: 'Time slot already booked. Please choose another time.' });
+        }
+
         const appointment = await Appointment.create({
             doctor: doctorId,
             patient: req.user._id,
@@ -58,8 +70,11 @@ exports.getDoctorAppointments = async (req, res) => {
 // @access  Private (Patient)
 exports.getMyAppointments = async (req, res) => {
     try {
-        const appointments = await Appointment.find({ patient: req.user._id })
-            .populate('doctor', 'name specialization hospital phone')
+        const appointments = await Appointment.find({
+            patient: req.user._id,
+            isVisibleToPatient: { $ne: false }
+        })
+            .populate('doctor', 'name specialization hospital phone profilePicture')
             .sort({ date: 1, time: 1 });
 
         res.json({
@@ -116,6 +131,89 @@ exports.updateAppointmentStatus = async (req, res) => {
         res.json({ success: true, data: appointment });
     } catch (error) {
         console.error('Update Appointment Status Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// @desc    Cancel appointment (Patient)
+// @route   PUT /api/appointments/:id/cancel
+// @access  Private (Patient)
+exports.cancelAppointment = async (req, res) => {
+    try {
+        const appointment = await Appointment.findById(req.params.id);
+
+        if (!appointment) {
+            return res.status(404).json({ error: 'Appointment not found' });
+        }
+
+        // Ensure authorized patient
+        if (appointment.patient.toString() !== req.user._id.toString()) {
+            return res.status(401).json({ error: 'Not authorized to cancel this appointment' });
+        }
+
+        appointment.status = 'cancelled';
+        await appointment.save();
+
+        res.json({ success: true, data: appointment });
+    } catch (error) {
+        console.error('Cancel Appointment Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// @desc    Soft delete appointment (Patient history)
+// @route   DELETE /api/appointments/:id
+// @access  Private (Patient)
+exports.deleteMyAppointment = async (req, res) => {
+    try {
+        const appointment = await Appointment.findById(req.params.id);
+
+        if (!appointment) {
+            return res.status(404).json({ error: 'Appointment not found' });
+        }
+
+        // Ensure authorized patient
+        if (appointment.patient.toString() !== req.user._id.toString()) {
+            return res.status(401).json({ error: 'Not authorized' });
+        }
+
+        appointment.isVisibleToPatient = false;
+        await appointment.save();
+
+        res.json({ success: true, data: {} });
+    } catch (error) {
+        console.error('Delete Appointment Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// @desc    Get single appointment by ID
+// @route   GET /api/appointments/:id
+// @access  Private
+exports.getAppointmentById = async (req, res) => {
+    try {
+        const appointment = await Appointment.findById(req.params.id)
+            .populate('doctor', 'name specialization hospital phone email')
+            .populate('patient', 'name email phone gender dateOfBirth');
+
+        if (!appointment) {
+            return res.status(404).json({ error: 'Appointment not found' });
+        }
+
+        // Access control: only allow the patient or the doctor involved
+        if (
+            appointment.patient._id.toString() !== req.user._id.toString() &&
+            appointment.doctor._id.toString() !== req.user._id.toString()
+        ) {
+            return res.status(401).json({ error: 'Not authorized to view this appointment' });
+        }
+
+        res.json({
+            success: true,
+            data: appointment
+        });
+    } catch (error) {
+        console.error('Get Appointment Error:', error);
         res.status(500).json({ error: error.message });
     }
 };
