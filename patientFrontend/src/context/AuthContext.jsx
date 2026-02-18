@@ -48,7 +48,20 @@ export const AuthProvider = ({ children }) => {
     const verify = async () => {
       try {
         const { data } = await axios.get('/auth/me', { signal: controller.signal });
-        setUserAndCache(data.data);
+        const verifiedUser = data.data;
+        // Patient app: only cache patient-role users; redirect others cleanly
+        if (verifiedUser && verifiedUser.role !== 'patient') {
+          saveToken(null);
+          setUserAndCache(null);
+          setLoading(false);
+          if (verifiedUser.role === 'admin') {
+            window.location.replace('http://localhost:5175');
+          } else if (verifiedUser.role === 'doctor') {
+            window.location.replace('http://localhost:5174/dashboard');
+          }
+          return;
+        }
+        setUserAndCache(verifiedUser);
       } catch {
         if (!controller.signal.aborted) {
           // Token expired or invalid

@@ -1,45 +1,34 @@
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import '../styles/Auth.css';
 
 function Login() {
   const navigate = useNavigate();
-  const { login, user, isAuthenticated, loading } = useContext(AuthContext);
+  const { login, user, loading } = useContext(AuthContext);
 
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
-
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
 
-  // Redirect helper based on role
-  const redirectByRole = (userData) => {
-    setRedirecting(true);
-    if (userData.role === 'admin') {
-      window.location.href = 'http://localhost:5175';
-    } else if (userData.role === 'doctor') {
-      window.location.href = 'http://localhost:5174';
-    } else {
-      navigate('/dashboard');
-    }
-  };
+  // Guard: only redirect once, avoid infinite re-renders
+  const hasRedirected = useRef(false);
 
-  // If already logged in, redirect immediately
   useEffect(() => {
-    if (!loading && isAuthenticated && user) {
-      redirectByRole(user);
+    if (!loading && user && !hasRedirected.current) {
+      hasRedirected.current = true;
+      if (user.role === 'admin') {
+        window.location.replace('http://localhost:5175');
+      } else if (user.role === 'doctor') {
+        window.location.replace('http://localhost:5174/dashboard');
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     }
-  }, [isAuthenticated, user, loading]);
+  }, [loading, user, navigate]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
@@ -47,36 +36,22 @@ function Login() {
     setError('');
     setIsSubmitting(true);
 
-    if (!formData.email || !formData.password) {
-      setError('Please fill in all fields');
-      setIsSubmitting(false);
-      return;
-    }
-
     const result = await login(formData);
     setIsSubmitting(false);
 
-    if (result.success) {
-      const userData = result.data;
-      if (userData) {
-        redirectByRole(userData);
-      }
-    } else {
-      setError(result.error);
+    if (!result.success) {
+      setError(result.error || 'Login failed');
     }
+    // On success, the useEffect above handles redirect via user state update
   };
 
-  // Show loading spinner instead of blank page while auth check runs
-  if (loading || redirecting) {
+  // Show spinner only while auth check is running (first load with existing token)
+  if (loading) {
     return (
-      <div className="auth-container">
-        <div className="auth-card" style={{ textAlign: 'center' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-            <div style={{ width: '40px', height: '40px', border: '4px solid #e5e7eb', borderTop: '4px solid #2563eb', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
-          </div>
-          <p style={{ color: '#6b7280', fontSize: '14px' }}>
-            {redirecting ? 'Redirecting to your dashboard...' : 'Checking authentication...'}
-          </p>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ width: '40px', height: '40px', border: '4px solid #e5e7eb', borderTop: '4px solid #4f46e5', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }}></div>
+          <p style={{ color: '#6b7280', fontSize: '14px' }}>Checking session...</p>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       </div>
@@ -98,11 +73,7 @@ function Login() {
           </span>
         </div>
 
-        {error && (
-          <div className="auth-error-box">
-            {error}
-          </div>
-        )}
+        {error && <div className="auth-error-box">{error}</div>}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="auth-form-group">
@@ -114,6 +85,7 @@ function Login() {
               onChange={handleChange}
               className="auth-input"
               placeholder="Enter your email"
+              autoComplete="email"
               required
             />
           </div>
@@ -127,6 +99,7 @@ function Login() {
               onChange={handleChange}
               className="auth-input"
               placeholder="Enter your password"
+              autoComplete="current-password"
               required
             />
           </div>
