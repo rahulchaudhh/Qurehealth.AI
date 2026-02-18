@@ -54,12 +54,14 @@ function Login() {
         <div className="auth-container">
             <div className="auth-card">
                 <h2 className="auth-title">Admin Login</h2>
-                <div className="flex items-center justify-center gap-2 mb-6 group">
-                    <div className="w-8 h-8 flex items-center justify-center bg-purple-50 text-purple-600 rounded-lg">
-                        <span className="font-bold text-lg">A</span>
+                <div className="flex items-center justify-center gap-2 mb-6">
+                    <div className="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
                     </div>
-                    <span className="text-xl font-bold tracking-tight text-gray-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                        Qurehealth<span className="text-blue-600">.AI</span>
+                    <span className="text-xl font-bold tracking-tight text-slate-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
+                        Qurehealth<span className="text-slate-900">.AI</span>
                     </span>
                 </div>
 

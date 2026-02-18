@@ -13,23 +13,27 @@ function Login() {
   });
 
   const [error, setError] = useState('');
-  // const [loading, setLoading] = useState(false); // remove local loading state to avoid conflict? No, local loading is for form submission. Let's rename local.
-
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
-  useEffect(() => {
-    console.log("Login Component Mounted. Loading:", loading, "User:", user);
-    if (!loading && isAuthenticated && user) {
-      console.log("Redirecting to dashboard...");
-      if (user.role === 'admin') {
-        window.location.href = 'http://localhost:5175';
-      } else if (user.role === 'doctor') {
-        window.location.href = 'http://localhost:5174';
-      } else {
-        navigate('/dashboard');
-      }
+  // Redirect helper based on role
+  const redirectByRole = (userData) => {
+    setRedirecting(true);
+    if (userData.role === 'admin') {
+      window.location.href = 'http://localhost:5175';
+    } else if (userData.role === 'doctor') {
+      window.location.href = 'http://localhost:5174';
+    } else {
+      navigate('/dashboard');
     }
-  }, [isAuthenticated, user, loading, navigate]);
+  };
+
+  // If already logged in, redirect immediately
+  useEffect(() => {
+    if (!loading && isAuthenticated && user) {
+      redirectByRole(user);
+    }
+  }, [isAuthenticated, user, loading]);
 
   const handleChange = (e) => {
     setFormData({
@@ -53,62 +57,44 @@ function Login() {
     setIsSubmitting(false);
 
     if (result.success) {
-      // User state might not be updated immediately in context, so we might need to fetch it or rely on the logic in AuthContext if we returned the user data.
-      // However, since we updated context state, we can use a small timeout or check explicitly. 
-      // Better approach: Let's assume the context update triggers a re-render or we check the user object directly if we returned it.
-      // But `login` only returns success boolean.
-      // Actually, we can just reload or let a useEffect handle navigation, BUT simpler is to just check the role here if we modified login to return it.
-      // Since I didn't verify if login returns data, I'll rely on the fact that `login` sets the user in context.
-      // Wait a tick for context update is risky.
-      // Let's modify the login in AuthContext to return the user data in the result object for easier navigation.
-
-      // ... WAIT, I can't modify AuthContext again easily without a new tool call.
-      // I'll trust that the user is updated. But `user` from context won't be updated in this function scope immediately.
-      // Basic solution: Navigate to a protected route that handles redirection, OR refresh.
-      // Let's try navigating to /dashboard and let a Redirector component handle it?
-      // No, let's just use window.location.reload() for now to ensure state is fresh? No that's bad UX.
-
-      // Correct approach: The `login` function in AuthContext SHOULD return the user role.
-      // Since I just updated AuthContext without returning data, I will fetch 'me' or just blind navigate.
-
-      // Let's blindly navigate to a "home" route that redirects?
-      // Or better, let's just peek at the localStorage token? No role there.
-
-      // Okay, I will just navigate to '/' and let the LandingPage or a Wrapper handle it?
-      // No, the user wants: "if doctor login open doctor dashboard".
-
-      // I'll assume for now `patient` is default.
-      // Wait, I can decode the token here!
-      // Use the returned user data for redirection
-      const user = result.data;
-      if (user) {
-        if (user.role === 'admin') {
-          window.location.href = 'http://localhost:5175';
-        } else if (user.role === 'doctor') {
-          window.location.href = 'http://localhost:5174';
-        } else {
-          navigate('/dashboard');
-        }
+      const userData = result.data;
+      if (userData) {
+        redirectByRole(userData);
       }
     } else {
       setError(result.error);
     }
   };
 
-  if (loading) return null; // Or a spinner
+  // Show loading spinner instead of blank page while auth check runs
+  if (loading || redirecting) {
+    return (
+      <div className="auth-container">
+        <div className="auth-card" style={{ textAlign: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <div style={{ width: '40px', height: '40px', border: '4px solid #e5e7eb', borderTop: '4px solid #2563eb', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
+          </div>
+          <p style={{ color: '#6b7280', fontSize: '14px' }}>
+            {redirecting ? 'Redirecting to your dashboard...' : 'Checking authentication...'}
+          </p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-container">
       <div className="auth-card">
         <h2 className="auth-title">Login</h2>
-        <div className="flex items-center justify-center gap-2 mb-6 group">
-          <div className="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+        <div className="flex items-center justify-center gap-2 mb-8">
+          <div className="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 5v14M5 12h14" />
             </svg>
           </div>
-          <span className="text-xl font-bold tracking-tight text-gray-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
-            Qurehealth<span className="text-blue-600">.AI</span>
+          <span className="text-xl font-bold tracking-tight text-slate-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
+            Qurehealth<span className="text-slate-900">.AI</span>
           </span>
         </div>
 

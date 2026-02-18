@@ -7,6 +7,7 @@ const {
     updateAppointmentStatus,
     cancelAppointment,
     deleteMyAppointment,
+    deleteDoctorAppointment, // Imported new function
     getAppointmentById
 } = require('../controllers/appointmentController');
 const auth = require('../middleware/auth');
@@ -18,5 +19,6 @@ router.get('/:id', auth, getAppointmentById);
 router.put('/:id/status', auth, updateAppointmentStatus);
 router.put('/:id/cancel', auth, cancelAppointment);
 router.delete('/:id', auth, deleteMyAppointment);
+router.delete('/doctor/:id', auth, deleteDoctorAppointment); // Added doctor delete route
 
 module.exports = router;

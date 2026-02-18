@@ -1,4 +1,9 @@
 const Doctor = require('../models/Doctor');
+const jwt = require('jsonwebtoken');
+
+const signToken = (payload) => {
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
+};
 
 exports.registerDoctor = async (req, res) => {
     try {
@@ -51,7 +56,7 @@ exports.loginDoctor = async (req, res) => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        if (doctor.status !== 'approved') {
+        if (doctor.status !== 'approved' && !doctor.isApproved) {
             return res.status(403).json({
                 error: doctor.status === 'rejected'
                     ? 'Your account has been rejected. Please contact support.'
@@ -61,17 +66,16 @@ exports.loginDoctor = async (req, res) => {
 
         const doctorObj = doctor.toObject();
         doctorObj.role = 'doctor';
-        req.session.user = doctorObj;
 
-        req.session.save(err => {
-            if (err) {
-                console.error('Session save error:', err);
-                return res.status(500).json({ error: 'Session save failed' });
-            }
-            res.json({
-                data: doctorObj
-            });
+        const token = signToken({
+            _id: doctorObj._id,
+            id: doctorObj._id,
+            name: doctorObj.name,
+            email: doctorObj.email,
+            role: 'doctor'
         });
+
+        res.json({ token, data: doctorObj });
     } catch (error) {
         console.error('Doctor login error:', error);
         res.status(500).json({ error: error.message });
@@ -144,12 +148,26 @@ exports.getDoctorPatients = async (req, res) => {
 exports.getAllDoctors = async (req, res) => {
     try {
         const Doctor = require('../models/Doctor');
-        // Exclude profilePicture from list to speed up loading (base64 images are large)
-        const doctors = await Doctor.find({ status: 'approved' }).select('-password -profilePicture');
+        // Fetch matching doctors, exclude password AND profilePicture at DB level
+        // profilePicture contains huge base64 strings that cause massive slowdown
+        const doctors = await Doctor.find({
+            $or: [
+                { status: 'approved' },
+                { isApproved: true }
+            ]
+        }).select('-password -profilePicture').lean();
+
+        // We can't check profilePicture content since we excluded it,
+        // so we just set hasProfilePicture to true for all (the /profile-picture endpoint handles 404s)
+        const results = doctors.map(d => ({
+            ...d,
+            hasProfilePicture: true
+        }));
+
         res.json({
             success: true,
-            count: doctors.length,
-            data: doctors
+            count: results.length,
+            data: results
         });
     } catch (error) {
         console.error('Get All Doctors Error:', error);
@@ -167,9 +185,19 @@ exports.getDoctorById = async (req, res) => {
         if (!doctor) {
             return res.status(404).json({ error: 'Doctor not found' });
         }
+
+        const doctorObj = doctor.toObject();
+        doctorObj.hasProfilePicture = !!doctor.profilePicture;
+        // Don't send the full profile picture data in the main object if it's a large list
+        // But for a single doctor it might be okay. However, for consistency with our 
+        // new endpoint, we'll exclude it if we want to use the /profile-picture endpoint.
+        // Let's keep it simple: if it's a single doctor, we can send it OR use the endpoint.
+        // To keep it consistent with the list, we'll use the endpoint.
+        delete doctorObj.profilePicture;
+
         res.json({
             success: true,
-            data: doctor
+            data: doctorObj
         });
     } catch (error) {
         console.error('Get Doctor By Id Error:', error);
@@ -180,6 +208,35 @@ exports.getDoctorById = async (req, res) => {
 // @desc    Delete doctor
 // @route   DELETE /api/doctor/:id
 // @access  Private (Admin)
+// @desc    Get doctor profile picture
+// @route   GET /api/doctor/:id/profile-picture
+// @access  Public
+exports.getDoctorProfilePicture = async (req, res) => {
+    try {
+        const doctor = await Doctor.findById(req.params.id).select('profilePicture');
+        if (!doctor || !doctor.profilePicture) {
+            return res.status(404).json({ error: 'Profile picture not found' });
+        }
+
+        // Handle data URI format: data:image/jpeg;base64,...
+        const matches = doctor.profilePicture.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
+        if (!matches || matches.length !== 3) {
+            return res.status(400).json({ error: 'Invalid profile picture format' });
+        }
+
+        const contentType = matches[1];
+        const base64Data = matches[2];
+        const buffer = Buffer.from(base64Data, 'base64');
+
+        res.set('Content-Type', contentType);
+        res.set('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
+        res.send(buffer);
+    } catch (error) {
+        console.error('Get Profile Picture Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
 exports.deleteDoctor = async (req, res) => {
     try {
         const Doctor = require('../models/Doctor');
