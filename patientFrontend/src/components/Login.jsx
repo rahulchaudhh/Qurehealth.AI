@@ -61,20 +61,17 @@ function Login() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="w-9 h-9 bg-gradient-to-tr from-indigo-600 to-violet-600 text-white rounded-full flex items-center justify-center shadow-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <h2 className="auth-title">Login</h2>
+        <div className="flex items-center justify-center gap-2 mb-8">
+          <div className="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 5v14M5 12h14" />
             </svg>
           </div>
           <span className="text-xl font-bold tracking-tight text-slate-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
-            Qurehealth.AI
+            Qurehealth<span className="text-slate-900">.AI</span>
           </span>
         </div>
-        <h2 className="auth-title" style={{ fontSize: '22px', marginBottom: '4px' }}>Welcome back</h2>
-        <p style={{ textAlign: 'center', color: '#6b7280', fontSize: '14px', marginBottom: '24px' }}>
-          Sign in as patient, doctor, or admin
-        </p>
 
         {error && <div className="auth-error-box">{error}</div>}
 
