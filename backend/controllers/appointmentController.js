@@ -50,7 +50,10 @@ exports.bookAppointment = async (req, res) => {
 // @access  Private (Doctor)
 exports.getDoctorAppointments = async (req, res) => {
     try {
-        const appointments = await Appointment.find({ doctor: req.user._id })
+        const appointments = await Appointment.find({
+            doctor: req.user._id,
+            isVisibleToDoctor: { $ne: false } // Only fetch visible appointments
+        })
             .populate('patient', 'name email phone gender dateOfBirth profilePicture')
             .sort({ date: 1, time: 1 });
 
@@ -61,6 +64,34 @@ exports.getDoctorAppointments = async (req, res) => {
         });
     } catch (error) {
         console.error('Get Doctor Appointments Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// ...
+
+// @desc    Soft delete appointment for doctor
+// @route   DELETE /api/appointments/doctor/:id
+// @access  Private (Doctor)
+exports.deleteDoctorAppointment = async (req, res) => {
+    try {
+        const appointment = await Appointment.findById(req.params.id);
+
+        if (!appointment) {
+            return res.status(404).json({ error: 'Appointment not found' });
+        }
+
+        // Ensure authorized doctor
+        if (appointment.doctor.toString() !== req.user._id.toString()) {
+            return res.status(401).json({ error: 'Not authorized' });
+        }
+
+        appointment.isVisibleToDoctor = false;
+        await appointment.save();
+
+        res.json({ success: true, data: {} });
+    } catch (error) {
+        console.error('Delete Doctor Appointment Error:', error);
         res.status(500).json({ error: error.message });
     }
 };

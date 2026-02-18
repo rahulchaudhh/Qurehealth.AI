@@ -3,15 +3,20 @@ const Patient = require('../models/Patient');
 const Doctor = require('../models/Doctor');
 
 module.exports = async (req, res, next) => {
-  console.log('--- Auth Middleware ---');
-  console.log('Session ID:', req.sessionID);
-  console.log('Session User:', req.session ? req.session.user : 'No Session');
-  console.log('Cookies:', req.headers.cookie);
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Not authorized, no token' });
+    }
 
-  if (req.session && req.session.user) {
-    req.user = req.session.user;
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Attach decoded user payload to req.user (no DB call needed)
+    req.user = decoded;
     next();
-  } else {
-    return res.status(401).json({ error: 'Not authorized, no session' });
+  } catch (error) {
+    console.error('Auth middleware error:', error.message);
+    return res.status(401).json({ error: 'Not authorized, token invalid' });
   }
 };

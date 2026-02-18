@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { getPendingDoctors, approveDoctor, rejectDoctor, getAllDoctors, getAllPatients, deletePatient, getDashboardStats } = require('../controllers/adminController');
+const {
+    getPendingDoctors, approveDoctor, rejectDoctor, getAllDoctors,
+    getAllPatients, deletePatient, getDashboardStats,
+    broadcast, triggerAlert, getBroadcastHistory, stopBroadcast
+} = require('../controllers/adminController');
 const auth = require('../middleware/auth');
 
 // Middleware to check if user is admin - simple check for now
@@ -19,5 +23,9 @@ router.delete('/delete-patient/:id', auth, adminCheck, deletePatient);
 router.get('/pending-doctors', auth, adminCheck, getPendingDoctors);
 router.put('/approve-doctor/:id', auth, adminCheck, approveDoctor);
 router.put('/reject-doctor/:id', auth, adminCheck, rejectDoctor);
+router.post('/broadcast', auth, adminCheck, broadcast);
+router.post('/trigger-alert', auth, adminCheck, triggerAlert);
+router.get('/broadcast-history', auth, adminCheck, getBroadcastHistory);
+router.delete('/broadcast/:batchId', auth, adminCheck, stopBroadcast);
 
 module.exports = router;

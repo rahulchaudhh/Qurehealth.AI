@@ -59,6 +59,10 @@ const appointmentSchema = new mongoose.Schema({
     isVisibleToPatient: {
         type: Boolean,
         default: true
+    },
+    isVisibleToDoctor: {
+        type: Boolean,
+        default: true
     }
 });
 

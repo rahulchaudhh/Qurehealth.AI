@@ -1,6 +1,11 @@
 const Patient = require('../models/Patient');
 const Doctor = require('../models/Doctor');
-// JWT removed
+const jwt = require('jsonwebtoken');
+
+// Helper: generate a JWT with user payload
+const signToken = (payload) => {
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
+};
 
 exports.register = async (req, res) => {
   try {
@@ -52,9 +57,17 @@ exports.register = async (req, res) => {
 
       const patientObj = patient.toObject();
       patientObj.role = 'patient';
-      req.session.user = patientObj;
+
+      const token = signToken({
+        _id: patientObj._id,
+        id: patientObj._id,
+        name: patientObj.name,
+        email: patientObj.email,
+        role: 'patient'
+      });
 
       res.status(201).json({
+        token,
         data: patientObj
       });
     }
@@ -78,18 +91,16 @@ exports.login = async (req, res) => {
       if (isMatch) {
         const patientObj = patient.toObject();
         patientObj.role = 'patient';
-        req.session.user = patientObj;
 
-        req.session.save(err => {
-          if (err) {
-            console.error('Session save error:', err);
-            return res.status(500).json({ error: 'Session save failed' });
-          }
-          return res.json({
-            data: patientObj
-          });
+        const token = signToken({
+          _id: patientObj._id,
+          id: patientObj._id,
+          name: patientObj.name,
+          email: patientObj.email,
+          role: 'patient'
         });
-        return;
+
+        return res.json({ token, data: patientObj });
       }
     }
 
@@ -98,49 +109,48 @@ exports.login = async (req, res) => {
     if (doctor) {
       const isMatch = await doctor.matchPassword(password);
       if (isMatch) {
-        if (!doctor.isApproved) {
-          return res.status(403).json({ error: 'Your account is pending approval by Admin.' });
+        if (doctor.status !== 'approved' && !doctor.isApproved) {
+          return res.status(403).json({
+            error: doctor.status === 'rejected'
+              ? 'Your account has been rejected. Please contact support.'
+              : 'Your account is pending approval. Please wait for admin verification.'
+          });
         }
 
         const doctorObj = doctor.toObject();
         doctorObj.role = 'doctor';
-        req.session.user = doctorObj;
 
-        req.session.save(err => {
-          if (err) {
-            console.error('Session save error:', err);
-            return res.status(500).json({ error: 'Session save failed' });
-          }
-          return res.json({
-            data: doctorObj
-          });
+        const token = signToken({
+          _id: doctorObj._id,
+          id: doctorObj._id,
+          name: doctorObj.name,
+          email: doctorObj.email,
+          role: 'doctor'
         });
-        return;
+
+        return res.json({ token, data: doctorObj });
       }
     }
 
     // Check Admin (Hardcoded for Demo)
     if (email === 'admin@qurehealth.ai' && password === 'admin123') {
-      // Ideally store in DB, but this works for demo
-      // Ideally store in DB, but this works for demo
       const adminUser = {
         id: 'admin_id',
+        _id: 'admin_id',
         name: 'Admin User',
         email: email,
         role: 'admin'
       };
-      req.session.user = adminUser;
 
-      req.session.save(err => {
-        if (err) {
-          console.error('Session save error:', err);
-          return res.status(500).json({ error: 'Session save failed' });
-        }
-        return res.json({
-          data: adminUser
-        });
+      const token = signToken({
+        _id: 'admin_id',
+        id: 'admin_id',
+        name: 'Admin User',
+        email: email,
+        role: 'admin'
       });
-      return;
+
+      return res.json({ token, data: adminUser });
     }
 
     return res.status(401).json({ error: 'Invalid credentials' });
@@ -152,19 +162,30 @@ exports.login = async (req, res) => {
 };
 
 exports.logout = async (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ error: 'Could not log out' });
-    }
-    res.clearCookie('connect.sid');
-    res.json({ message: 'Logout successful' });
-  });
+  // With JWT, logout is handled client-side by removing the token.
+  // This endpoint exists for API compatibility.
+  res.json({ message: 'Logout successful' });
 };
 
 exports.getMe = async (req, res) => {
   try {
-    // req.user is populated by auth middleware
-    res.json({ data: req.user });
+    // req.user is populated by auth middleware from JWT payload
+    let userData = req.user;
+
+    if (req.user.role === 'patient') {
+      const patient = await Patient.findById(req.user._id).select('-password');
+      if (patient) {
+        userData = { ...patient.toObject(), role: 'patient' };
+      }
+    } else if (req.user.role === 'doctor') {
+      const doctor = await Doctor.findById(req.user._id).select('-password');
+      if (doctor) {
+        userData = { ...doctor.toObject(), role: 'doctor' };
+      }
+    }
+    // For admin, just return the JWT payload
+
+    res.json({ data: userData });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -177,31 +198,16 @@ exports.updateProfile = async (req, res) => {
     console.log('Body:', req.body);
     const { name, phone, dateOfBirth, gender } = req.body;
 
-    // We only allow updating specific fields.
-    // Determine if user is Patient or Doctor based on role in req.user
-    // But req.user is populated by auth middleware.
-
     let user;
     if (req.user.role === 'patient') {
       user = await Patient.findById(req.user._id);
     } else if (req.user.role === 'doctor') {
       user = await Doctor.findById(req.user._id);
     } else if (req.user.role === 'admin') {
-      // Admin is not in DB for this demo/hardcoded implementation
-      // Just update session and return success to avoid error
+      // Admin is hardcoded — just return updated info
       const adminUser = { ...req.user };
       if (name) adminUser.name = name;
-      // Admin might not have phone/DOB/gender fields in this simple demo, but let's allow name update in session
-
-      req.session.user = adminUser;
-
-      return req.session.save(err => {
-        if (err) return res.status(500).json({ error: 'Session save failed' });
-        res.json({
-          success: true,
-          data: adminUser
-        });
-      });
+      return res.json({ success: true, data: adminUser });
     }
 
     if (!user) {
@@ -249,18 +255,20 @@ exports.updateProfile = async (req, res) => {
       ...user.toObject(),
       role: req.user.role
     };
-    req.session.user = updatedUser;
 
-    // Explicitly save session to ensure persistence
-    req.session.save(err => {
-      if (err) {
-        console.error('Session save error in updateProfile:', err);
-        // Don't fail the request if just session save fails, but log it
-      }
-      res.json({
-        success: true,
-        data: updatedUser
-      });
+    // Issue a fresh token with potentially updated name/email
+    const token = signToken({
+      _id: updatedUser._id,
+      id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role
+    });
+
+    res.json({
+      success: true,
+      token,
+      data: updatedUser
     });
 
   } catch (error) {

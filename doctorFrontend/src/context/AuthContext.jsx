@@ -3,37 +3,80 @@ import axios from '../api/axios';
 
 export const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+const CACHE_KEY = 'doctor_user_cache';
 
-    // Check if user is logged in on mount
+const getCachedUser = () => {
+    try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (!raw) return null;
+        const { user, ts } = JSON.parse(raw);
+        if (Date.now() - ts > 3600000) {
+            localStorage.removeItem(CACHE_KEY);
+            return null;
+        }
+        return user;
+    } catch {
+        localStorage.removeItem(CACHE_KEY);
+        return null;
+    }
+};
+
+export const AuthProvider = ({ children }) => {
+    const cachedUser = getCachedUser();
+    const [user, setUser] = useState(cachedUser);
+    const [loading, setLoading] = useState(!cachedUser);
+
+    const setUserAndCache = (userData) => {
+        setUser(userData);
+        if (userData) {
+            localStorage.setItem(CACHE_KEY, JSON.stringify({ user: userData, ts: Date.now() }));
+        } else {
+            localStorage.removeItem(CACHE_KEY);
+        }
+    };
+
+    const saveToken = (token) => {
+        if (token) {
+            localStorage.setItem('token', token);
+        } else {
+            localStorage.removeItem('token');
+        }
+    };
+
+    // Verify token with server in background
     useEffect(() => {
-        const checkAuth = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setUserAndCache(null);
+            setLoading(false);
+            return;
+        }
+
+        const controller = new AbortController();
+        const verify = async () => {
             try {
-                // We might need a specific endpoint for doctor auth check or /auth/me handles it?
-                // In patientFrontend, /auth/me was used and it returned user data.
-                // If /auth/me works for doctors too (based on session), then it's fine.
-                // If not, we might need /doctor/me or similar if backend distinguishes.
-                // Looking at patientFrontend's AuthContext, it uses /auth/me for everyone?
-                // Let's assume /auth/me works for now as the session should hold the user.
-                const { data } = await axios.get('/auth/me');
-                // If the user returned is NOT a doctor, we might want to logout or handle it?
-                // But for now let's trust the backend or handle it in UI (ProtectedRoute).
-                setUser(data.data);
-            } catch (error) {
-                // console.error('Auth check failed:', error);
+                const { data } = await axios.get('/auth/me', { signal: controller.signal });
+                setUserAndCache(data.data);
+            } catch {
+                if (!controller.signal.aborted) {
+                    saveToken(null);
+                    setUserAndCache(null);
+                }
             }
             setLoading(false);
         };
-        checkAuth();
+        verify();
+        return () => controller.abort();
     }, []);
 
     // Doctor Register function (renamed to register for this app)
     const register = async (doctorData) => {
         try {
-            const { data } = await axios.post('/auth/register', { ...doctorData, role: 'doctor' });
-            setUser({ ...data.data, role: 'doctor' });
+            const { data } = await axios.post('/doctor/register', { ...doctorData });
+            if (data.token) {
+                saveToken(data.token);
+            }
+            setUserAndCache({ ...data.data, role: 'doctor' });
             return { success: true };
         } catch (error) {
             return {
@@ -43,11 +86,11 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // Doctor Login function (renamed to login for this app)
     const login = async (credentials) => {
         try {
-            const { data } = await axios.post('/auth/login', credentials);
-            setUser({ ...data.data, role: 'doctor' });
+            const { data } = await axios.post('/doctor/login', credentials);
+            saveToken(data.token);
+            setUserAndCache({ ...data.data, role: 'doctor' });
             return { success: true };
         } catch (error) {
             return {
@@ -57,18 +100,19 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // Logout function
     const logout = async () => {
         try {
             await axios.post('/auth/logout');
         } catch (err) {
             console.error('Logout failed', err);
         }
-        setUser(null);
+        saveToken(null);
+        setUserAndCache(null);
     };
 
-    const updateUserProfile = (updatedData) => {
-        setUser(updatedData);
+    const updateUserProfile = (updatedData, newToken) => {
+        if (newToken) saveToken(newToken);
+        setUserAndCache(updatedData);
     };
 
     const value = {

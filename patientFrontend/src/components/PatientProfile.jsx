@@ -41,8 +41,8 @@ function PatientProfile() {
         try {
             const { data } = await axios.put('/auth/profile', formData);
 
-            // Update context
-            updateUserProfile(data.data);
+            // Update context with fresh token
+            updateUserProfile(data.data, data.token);
 
             setMessage({ type: 'success', text: 'Profile updated successfully!' });
         } catch (error) {

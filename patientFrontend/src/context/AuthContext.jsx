@@ -3,31 +3,72 @@ import axios from '../api/axios';
 
 export const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+// Read cached user from localStorage (instant, no network)
+const getCachedUser = () => {
+  try {
+    const raw = localStorage.getItem('cachedUser');
+    if (raw) return JSON.parse(raw);
+  } catch { /* ignore */ }
+  return null;
+};
 
-  // Check if user is logged in on mount
+export const AuthProvider = ({ children }) => {
+  const cachedUser = getCachedUser();
+  const [user, setUser] = useState(cachedUser);
+  const [loading, setLoading] = useState(!cachedUser);
+
+  const setUserAndCache = (userData) => {
+    setUser(userData);
+    if (userData) {
+      localStorage.setItem('cachedUser', JSON.stringify(userData));
+    } else {
+      localStorage.removeItem('cachedUser');
+    }
+  };
+
+  // Save JWT token to localStorage (axios interceptor reads it)
+  const saveToken = (token) => {
+    if (token) {
+      localStorage.setItem('token', token);
+    } else {
+      localStorage.removeItem('token');
+    }
+  };
+
+  // Verify token with server in background (optional fresh data)
   useEffect(() => {
-    const checkAuth = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setUserAndCache(null);
+      setLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const verify = async () => {
       try {
-        const { data } = await axios.get('/auth/me');
-        setUser(data.data);
-      } catch (error) {
-        // console.error('Auth check failed:', error);
-        localStorage.removeItem('token'); // Cleanup legacy
+        const { data } = await axios.get('/auth/me', { signal: controller.signal });
+        setUserAndCache(data.data);
+      } catch {
+        if (!controller.signal.aborted) {
+          // Token expired or invalid
+          saveToken(null);
+          setUserAndCache(null);
+        }
       }
       setLoading(false);
     };
-    checkAuth();
+    verify();
+    return () => controller.abort();
   }, []);
 
   // Register function
   const register = async (userData) => {
     try {
       const { data } = await axios.post('/auth/register', userData);
-      if (data) {
-        // Session handles auth
+      if (data.token) {
+        saveToken(data.token);
+        setUserAndCache(data.data);
       }
       return { success: true };
     } catch (error) {
@@ -42,8 +83,8 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       const { data } = await axios.post('/auth/login', credentials);
-      // localStorage.setItem('token', data.token); // Removed
-      setUser(data.data);
+      saveToken(data.token);
+      setUserAndCache(data.data);
       return { success: true, data: data.data };
     } catch (error) {
       return {
@@ -57,8 +98,11 @@ export const AuthProvider = ({ children }) => {
   const doctorRegister = async (doctorData) => {
     try {
       const { data } = await axios.post('/doctor/register', doctorData);
-      // localStorage.setItem('token', data.token); // Removed
-      setUser({ ...data.data, role: 'doctor' });
+      if (data.token) {
+        saveToken(data.token);
+      }
+      const doctorUser = { ...data.data, role: 'doctor' };
+      setUserAndCache(doctorUser);
       return { success: true };
     } catch (error) {
       return {
@@ -72,8 +116,9 @@ export const AuthProvider = ({ children }) => {
   const doctorLogin = async (credentials) => {
     try {
       const { data } = await axios.post('/doctor/login', credentials);
-      // localStorage.setItem('token', data.token); // Removed
-      setUser({ ...data.data, role: 'doctor' });
+      saveToken(data.token);
+      const doctorUser = { ...data.data, role: 'doctor' };
+      setUserAndCache(doctorUser);
       return { success: true };
     } catch (error) {
       return {
@@ -90,12 +135,13 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error('Logout failed', err);
     }
-    localStorage.removeItem('token');
-    setUser(null);
+    saveToken(null);
+    setUserAndCache(null);
   };
 
-  const updateUserProfile = (updatedData) => {
-    setUser(updatedData);
+  const updateUserProfile = (updatedData, newToken) => {
+    if (newToken) saveToken(newToken);
+    setUserAndCache(updatedData);
   };
 
   const value = {

@@ -89,9 +89,9 @@
 }
 
 .auth-input:focus {
-    border-color: #007bff;
+    border-color: #4F46E5;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.05);
 }
 
 .auth-textarea {
@@ -102,25 +102,22 @@
 /* Button */
 .auth-button {
     padding: 14px;
-    background: linear-gradient(to bottom, #2563EB, #1D4ED8);
-    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.1), 0 2px 4px -1px rgba(37, 99, 235, 0.06);
+    background: #4F46E5;
+    box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
     margin-top: 10px;
-    transition: background-color 0.2s, transform 0.1s;
+    transition: all 0.2s;
 }
 
 .auth-button:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 10px -1px rgba(37, 99, 235, 0.2), 0 2px 4px -1px rgba(37, 99, 235, 0.1);
-    opacity: 1;
-    /* Reset opacity from previous style */
-    background: linear-gradient(to bottom, #1D4ED8, #1E40AF);
-    /* Slightly darker on hover */
+    box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.3);
+    background: #4338CA;
 }
 
 .auth-button:active {
@@ -141,7 +138,7 @@
 }
 
 .auth-link {
-    color: #007bff;
+    color: #4F46E5;
     text-decoration: none;
     font-weight: 600;
 }

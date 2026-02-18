@@ -2,8 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
-const session = require('express-session');
-const MongoStore = require('connect-mongo').default || require('connect-mongo');
 
 // Load env vars
 dotenv.config();
@@ -16,26 +14,6 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
-
-// Session Middleware
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'secret',
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGO_URI,
-    mongoOptions: {
-      tls: true,
-      tlsAllowInvalidCertificates: true
-    }
-  }),
-  cookie: {
-    maxAge: 1000 * 60 * 60 * 24, // 1 day
-    secure: false, // true in production
-    httpOnly: true,
-    sameSite: 'lax' // necessary for some browsers
-  }
-}));
 
 // Connect to MongoDB
 console.log('Attempting to connect to MongoDB...');

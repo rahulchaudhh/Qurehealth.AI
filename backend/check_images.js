@@ -13,10 +13,10 @@ const checkImages = async () => {
         await mongoose.connect(process.env.MONGO_URI);
         console.log('Connected to DB');
 
-        const patients = await Patient.find({}, 'name profilePicture email').lean();
-        console.log('--- Patients ---');
-        console.log(`Found ${patients.length} patients`);
-        patients.forEach(p => console.log(`${p.name}: ${p.profilePicture} (${typeof p.profilePicture})`));
+        const doctors = await Doctor.find({}, 'name profilePicture email status isApproved').lean();
+        console.log('\n--- Doctors ---');
+        console.log(`Found ${doctors.length} doctors`);
+        doctors.forEach(d => console.log(`${d.name}: IMAGE=${d.profilePicture ? 'YES' : 'NO'}, STATUS=${d.status}, APPROVED=${d.isApproved}`));
 
     } catch (err) {
         console.error(err);

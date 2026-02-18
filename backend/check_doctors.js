@@ -1,29 +1,28 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const path = require('path');
+const Doctor = require('./models/Doctor');
 
-dotenv.config({ path: path.join(__dirname, '.env') });
+dotenv.config({ path: './.env' });
 
-const DoctorSchema = new mongoose.Schema({
-    status: String,
-    specialization: String,
-    name: String
-});
-const Doctor = mongoose.model('Doctor', DoctorSchema);
-
-async function checkDoctors() {
+const checkDoctors = async () => {
     try {
-        await mongoose.connect(process.env.MONGO_URI);
-        console.log('Connected to MongoDB');
+        await mongoose.connect(process.env.MONGO_URI, {
+            tls: true,
+            tlsAllowInvalidCertificates: true,
+        });
+        console.log('MongoDB Connected');
 
-        const doctors = await Doctor.find({ status: 'approved' });
-        console.log('Approved Doctors Specializations:');
-        doctors.forEach(d => console.log(`- ${d.name}: ${d.specialization}`));
+        const doctors = await Doctor.find({}, 'name email status isApproved');
+        console.log('Doctors found:', doctors.length);
+        doctors.forEach(doc => {
+            console.log(`- ${doc.name} (${doc.email}): Status=${doc.status}, isApproved=${doc.isApproved}`);
+        });
 
-        await mongoose.connection.close();
+        process.exit(0);
     } catch (err) {
-        console.error(err);
+        console.error('Error:', err);
+        process.exit(1);
     }
-}
+};
 
 checkDoctors();

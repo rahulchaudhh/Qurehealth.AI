@@ -15,30 +15,30 @@ export default function LandingPage() {
     }, []);
 
     const handleLogin = (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
         navigate('/login');
     };
 
     const handleRegister = (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
         navigate('/register');
     };
 
     return (
         <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900 overflow-x-hidden relative">
 
-            {/* Aurora Background Effects */}
-            <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+            {/* Aurora Background Effects - pointer-events-none ensures clicks pass through */}
+            <div className="fixed inset-0 -z-10 overflow-hidden" style={{ pointerEvents: 'none' }}>
                 {/* Top Left Blob - Blue/Cyan */}
-                <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-200/40 rounded-full blur-[120px] mix-blend-multiply animate-blob"></div>
+                <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-200/40 rounded-full blur-[120px] animate-blob" style={{ pointerEvents: 'none' }}></div>
                 {/* Top Right Blob - Purple/Pink */}
-                <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-purple-200/40 rounded-full blur-[120px] mix-blend-multiply animate-blob animation-delay-2000"></div>
+                <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-purple-200/40 rounded-full blur-[120px] animate-blob animation-delay-2000" style={{ pointerEvents: 'none' }}></div>
                 {/* Bottom Blob - Teal/Green */}
-                <div className="absolute -bottom-32 left-[20%] w-[60%] h-[60%] bg-teal-200/40 rounded-full blur-[120px] mix-blend-multiply animate-blob animation-delay-4000"></div>
+                <div className="absolute -bottom-32 left-[20%] w-[60%] h-[60%] bg-teal-200/40 rounded-full blur-[120px] animate-blob animation-delay-4000" style={{ pointerEvents: 'none' }}></div>
             </div>
 
             {/* Navbar - Glassy & Pills */}
-            <nav className={`fixed top-4 left-0 right-0 z-[9999] transition-all duration-300 pointer-events-auto`}>
+            <nav className="fixed top-4 left-0 right-0 transition-all duration-300" style={{ zIndex: 9999, pointerEvents: 'auto' }}>
                 <div className={`max-w-7xl mx-auto px-6 ${scrolled ? 'py-0' : 'py-2'}`}>
                     <div className={`backdrop-blur-xl bg-white/70 border border-white/50 shadow-sm rounded-full px-6 py-3 flex justify-between items-center transition-all ${scrolled ? 'shadow-md' : ''}`}>
 
@@ -58,16 +58,20 @@ export default function LandingPage() {
                             <a href="#doctors" className="hover:text-indigo-600 transition-colors">Find Doctors</a>
                         </div>
 
-                        <div className="flex items-center gap-3 relative z-[10000]">
+                        <div className="flex items-center gap-3" style={{ position: 'relative', zIndex: 10000 }}>
                             <button
+                                type="button"
                                 onClick={handleLogin}
                                 className="px-5 py-2 text-sm font-medium text-slate-700 hover:text-indigo-600 transition-colors cursor-pointer hover:bg-slate-50 rounded-full"
+                                style={{ position: 'relative', zIndex: 10001 }}
                             >
                                 Log in
                             </button>
                             <button
+                                type="button"
                                 onClick={handleRegister}
                                 className="px-5 py-2 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 cursor-pointer"
+                                style={{ position: 'relative', zIndex: 10001 }}
                             >
                                 Get Started
                             </button>
@@ -111,15 +115,15 @@ export default function LandingPage() {
             <section className="py-10 border-y border-slate-100 bg-white/50 backdrop-blur-sm">
                 <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-slate-100">
                     <div>
-                        <div className="text-3xl md:text-4xl font-bold text-indigo-600 mb-1">98%</div>
+                        <div className="text-3xl md:text-4xl font-bold text-indigo-600 mb-1">95%</div>
                         <div className="text-sm font-medium text-slate-500 uppercase tracking-wide">AI Accuracy</div>
                     </div>
                     <div>
-                        <div className="text-3xl md:text-4xl font-bold text-indigo-600 mb-1">10k+</div>
+                        <div className="text-3xl md:text-4xl font-bold text-indigo-600 mb-1">100+</div>
                         <div className="text-sm font-medium text-slate-500 uppercase tracking-wide">Patients healed</div>
                     </div>
                     <div>
-                        <div className="text-3xl md:text-4xl font-bold text-indigo-600 mb-1">500+</div>
+                        <div className="text-3xl md:text-4xl font-bold text-indigo-600 mb-1">22+</div>
                         <div className="text-sm font-medium text-slate-500 uppercase tracking-wide">Expert Doctors</div>
                     </div>
                     <div>
@@ -189,7 +193,7 @@ export default function LandingPage() {
                                     <div className="w-10 h-10 rounded-full bg-white border-2 border-indigo-100 flex items-center justify-center font-bold text-indigo-600 shrink-0 shadow-sm">1</div>
                                     <div>
                                         <h4 className="text-xl font-bold text-slate-900 mb-2">Describe Symptoms</h4>
-                                        <p className="text-slate-600">Enter your symptoms into our AI chat. It asks relevant questions to understand your condition.</p>
+                                        <p className="text-slate-600">Select your symptoms from the list. It asks relevant questions to understand your condition.</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-4">
