@@ -1,117 +1,34 @@
-import { useState, useContext, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
-import '../styles/Auth.css';
+// Single unified login — redirect to patient portal login page
+// which handles all roles: patient, doctor, admin
+import { useEffect } from 'react';
 
 function Login() {
-    const navigate = useNavigate();
-    const { login, user, isAuthenticated, loading } = useContext(AuthContext);
-
-    const [formData, setFormData] = useState({
-        email: '',
-        password: ''
-    });
-
-    const [error, setError] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
     useEffect(() => {
-        if (!loading && isAuthenticated && user) {
-            navigate('/dashboard');
-        }
-    }, [isAuthenticated, user, loading, navigate]);
-
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setIsSubmitting(true);
-
-        if (!formData.email || !formData.password) {
-            setError('Please fill in all fields');
-            setIsSubmitting(false);
-            return;
-        }
-
-        const result = await login(formData);
-
-        setIsSubmitting(false);
-
-        if (result.success) {
-            navigate('/dashboard');
-        } else {
-            setError(result.error);
-        }
-    };
+        window.location.replace('http://localhost:5173/login');
+    }, []);
 
     return (
-        <div className="auth-container">
-            <div className="auth-card">
-                <h2 className="auth-title">Doctor Login</h2>
-                <div className="flex items-center justify-center gap-3 mb-8">
-                    <div className="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 5v14M5 12h14" />
-                        </svg>
-                    </div>
-                    <span className="text-xl font-bold tracking-tight text-slate-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                        Qurehealth<span className="text-slate-900">.AI</span>
-                    </span>
-                </div>
-
-                {error && (
-                    <div className="auth-error-box">
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="auth-form">
-                    <div className="auth-form-group">
-                        <label className="auth-label">Email</label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            className="auth-input"
-                            placeholder="Enter your email"
-                            required
-                        />
-                    </div>
-
-                    <div className="auth-form-group">
-                        <label className="auth-label">Password</label>
-                        <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            className="auth-input"
-                            placeholder="Enter your password"
-                            required
-                        />
-                    </div>
-
-                    <button
-                        type="submit"
-                        className="auth-button"
-                        disabled={isSubmitting}
-                    >
-                        {isSubmitting ? 'Logging in...' : 'Login'}
-                    </button>
-                </form>
-
-                <p className="auth-footer">
-                    Don't have an account? <Link to="/register" className="auth-link">Register here</Link>
-                </p>
+        <div style={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#f9fafb',
+            fontFamily: 'system-ui, sans-serif'
+        }}>
+            <div style={{ textAlign: 'center' }}>
+                <div style={{
+                    width: '40px', height: '40px',
+                    border: '4px solid #e5e7eb',
+                    borderTop: '4px solid #4f46e5',
+                    borderRadius: '50%',
+                    animation: 'spin 0.8s linear infinite',
+                    margin: '0 auto 12px'
+                }}></div>
+                <p style={{ color: '#6b7280', fontSize: '14px' }}>Redirecting to login...</p>
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
-        </div >
+        </div>
     );
 }
 

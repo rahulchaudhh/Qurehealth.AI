@@ -38,31 +38,14 @@ function App() {
             <Route path="communications" element={<PageWrapper Component={Communications} />} />
           </Route>
 
-          {/* Root redirect */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          {/* Root redirect to login by default */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
-          {/* Catch all - redirect to main login */}
-          <Route path="*" element={<RedirectToMainLogin />} />
+          {/* Catch all - redirect to login */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </AuthProvider>
     </Router>
-  );
-}
-
-function RedirectToMainLogin() {
-  const { loading, user } = useContext(AuthContext);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      window.location.href = 'http://localhost:5173/login';
-    }
-  }, [loading, user]);
-
-  return (
-    <div className="h-screen w-full flex flex-col items-center justify-center bg-slate-50">
-      <div className="w-12 h-12 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
-      <p className="text-slate-500 font-medium font-outfit">Redirecting to login...</p>
-    </div>
   );
 }
 
