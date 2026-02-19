@@ -22,20 +22,42 @@ const connectDB = async () => {
     await mongoose.connect(process.env.MONGO_URI, {
       tls: true,
       tlsAllowInvalidCertificates: true,
-      serverSelectionTimeoutMS: 15000,  // Fail fast if Atlas unreachable
-      socketTimeoutMS: 45000,           // Kill socket if idle >45s (prevents 120s hangs)
-      connectTimeoutMS: 20000,          // 20s to establish connection
-      maxPoolSize: 10,                  // Keep persistent connection pool
-      minPoolSize: 2,                   // Keep at least 2 connections warm
-      heartbeatFrequencyMS: 10000,      // Check connection health every 10s
-      retryWrites: true,                // Auto-retry failed writes
-      retryReads: true,                 // Auto-retry failed reads
+      serverSelectionTimeoutMS: 15000,
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 20000,
+      maxPoolSize: 10,
+      minPoolSize: 2,
+      heartbeatFrequencyMS: 10000,
+      retryWrites: true,
+      retryReads: true,
     });
     console.log('MongoDB Connected');
+    await mongoose.connection.db.admin().ping();
+    console.log('Connection pool warmed up');
+
+    // Keep-alive: ping every 30s to prevent Atlas from dropping idle connections
+    setInterval(async () => {
+      try {
+        await mongoose.connection.db.admin().ping();
+      } catch (e) {
+        console.error('Keep-alive ping failed:', e.message);
+      }
+    }, 30000);
+
   } catch (err) {
     console.error('MongoDB Connection Error:', err.message);
   }
 };
+
+// Auto-reconnect on disconnect
+mongoose.connection.on('disconnected', () => {
+  console.log('MongoDB disconnected — reconnecting in 3s...');
+  setTimeout(connectDB, 3000);
+});
+mongoose.connection.on('error', (err) => {
+  console.error('MongoDB connection error:', err.message);
+});
+
 connectDB();
 
 // Routes
@@ -73,6 +95,6 @@ app.get("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });

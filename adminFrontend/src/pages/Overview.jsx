@@ -73,16 +73,23 @@ function Overview({ stats, searchQuery = '', allDoctors = [], allPatients = [], 
         }
     };
 
+    const [toast, setToast] = useState(null);
+
+    const showToast = (msg, isError = false) => {
+        setToast({ msg, isError });
+        setTimeout(() => setToast(null), 3500);
+    };
+
     const handleAction = async ({ message, target }) => {
         setIsActionLoading(true);
         try {
             const endpoint = modal.type === 'broadcast' ? '/admin/broadcast' : '/admin/trigger-alert';
             await axios.post(endpoint, { message, target });
-            alert(`${modal.type === 'broadcast' ? 'Broadcast' : 'Alert'} sent successfully!`);
             setModal({ isOpen: false, type: null });
+            showToast(`${modal.type === 'broadcast' ? 'Broadcast' : 'Alert'} sent successfully!`);
         } catch (error) {
             console.error(`Error sending ${modal.type}:`, error);
-            alert(`Failed to send ${modal.type}. Please try again.`);
+            showToast(`Failed to send ${modal.type}. ${error.response?.data?.error || 'Please try again.'}`, true);
         } finally {
             setIsActionLoading(false);
         }
@@ -396,6 +403,13 @@ function Overview({ stats, searchQuery = '', allDoctors = [], allPatients = [], 
                 loading={isActionLoading}
                 onAction={handleAction}
             />
+
+            {/* Toast notification */}
+            {toast && (
+                <div className={`fixed bottom-6 right-6 z-[70] px-5 py-3.5 rounded-2xl shadow-xl text-sm font-semibold flex items-center gap-3 animate-in slide-in-from-bottom-4 duration-300 ${toast.isError ? 'bg-rose-600 text-white' : 'bg-slate-900 text-white'}`}>
+                    {toast.isError ? '⚠️' : '✓'} {toast.msg}
+                </div>
+            )}
         </div>
     );
 }
