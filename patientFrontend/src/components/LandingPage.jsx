@@ -1,10 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 import '../styles/Landing.css';
 
 export default function LandingPage() {
     const [scrolled, setScrolled] = useState(false);
     const navigate = useNavigate();
+    const { user, loading } = useContext(AuthContext);
+
+    // If a patient is already logged in, send them straight to their dashboard
+    useEffect(() => {
+        if (!loading && user && user.role === 'patient') {
+            navigate('/dashboard', { replace: true });
+        }
+    }, [loading, user, navigate]);
 
     useEffect(() => {
         const handleScroll = () => {

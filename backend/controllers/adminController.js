@@ -2,7 +2,7 @@ const Doctor = require('../models/Doctor');
 
 exports.getPendingDoctors = async (req, res) => {
     try {
-        const doctors = await Doctor.find({ status: 'pending' }).select('-password');
+        const doctors = await Doctor.find({ status: 'pending' }).select('-password').maxTimeMS(30000);
         res.json({ data: doctors });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -47,7 +47,7 @@ exports.rejectDoctor = async (req, res) => {
 
 exports.getAllDoctors = async (req, res) => {
     try {
-        const doctors = await Doctor.find().select('-password');
+        const doctors = await Doctor.find().select('-password').maxTimeMS(30000);
         res.json({ data: doctors });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -57,7 +57,7 @@ exports.getAllDoctors = async (req, res) => {
 exports.getAllPatients = async (req, res) => {
     try {
         const Patient = require('../models/Patient');
-        const patients = await Patient.find().select('-password');
+        const patients = await Patient.find().select('-password').maxTimeMS(30000);
         res.json({ data: patients });
     } catch (error) {
         res.status(500).json({ error: error.message });

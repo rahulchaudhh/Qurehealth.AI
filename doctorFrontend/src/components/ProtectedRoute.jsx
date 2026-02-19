@@ -15,17 +15,16 @@ function ProtectedRoute({ children, allowedRoles }) {
     }
 
     if (!user) {
-        return <Navigate to="/login" replace />;
+        // Not authenticated → go to unified landing page
+        window.location.replace('http://localhost:5173');
+        return null;
     }
 
     // Doctor frontend only has doctors (and maybe admin?), but mainly doctors.
-    // If we want to strictly enforce 'doctor' role:
     if (allowedRoles && !allowedRoles.includes(user.role)) {
-        // If user is logged in but not a doctor, what to do?
-        // Maybe show unauthorized or logout?
-        // For now, redirect to login might loop if we don't clear session.
-        // Let's assume if they are in doctor app, they should be doctor.
-        return <Navigate to="/login" replace />;
+        // Wrong role → go to landing page
+        window.location.replace('http://localhost:5173');
+        return null;
     }
 
     return children;

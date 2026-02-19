@@ -5,18 +5,13 @@ import Register from './components/Register';
 import DoctorDashboard from './components/DoctorDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 
-const RedirectToMainLogin = () => {
-  window.location.href = 'http://localhost:5173/login';
-  return null;
-};
-
 function App() {
   return (
     <Router>
       <AuthProvider>
         <Routes>
           {/* Public routes */}
-          <Route path="/login" element={<RedirectToMainLogin />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
           {/* Protected routes */}
@@ -29,11 +24,11 @@ function App() {
             }
           />
 
-          {/* Root redirect */}
+          {/* Root redirect to dashboard (ProtectedRoute handles auth check) */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          {/* Catch all - redirect to login */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          {/* Catch all */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </AuthProvider>
     </Router>

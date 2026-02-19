@@ -3,174 +3,92 @@ import axios from '../api/axios';
 
 export const AuthContext = createContext();
 
-// Read cached user from localStorage (instant, no network)
-const getCachedUser = () => {
-  try {
-    const raw = localStorage.getItem('cachedUser');
-    if (raw) return JSON.parse(raw);
-  } catch { /* ignore */ }
-  return null;
-};
-
 export const AuthProvider = ({ children }) => {
-  const cachedUser = getCachedUser();
-  const [user, setUser] = useState(cachedUser);
-  const [loading, setLoading] = useState(!cachedUser);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const setUserAndCache = (userData) => {
-    setUser(userData);
-    if (userData) {
-      localStorage.setItem('cachedUser', JSON.stringify(userData));
-    } else {
-      localStorage.removeItem('cachedUser');
-    }
-  };
-
-  // Save JWT token to localStorage (axios interceptor reads it)
-  const saveToken = (token) => {
-    if (token) {
-      localStorage.setItem('token', token);
-    } else {
-      localStorage.removeItem('token');
-    }
-  };
-
-  // Verify token with server in background (optional fresh data)
+  // On mount: check if we have a valid token for a patient
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) {
-      setUserAndCache(null);
-      setLoading(false);
-      return;
-    }
+    if (!token) { setLoading(false); return; }
 
-    const controller = new AbortController();
-    const verify = async () => {
-      try {
-        const { data } = await axios.get('/auth/me', { signal: controller.signal });
-        const verifiedUser = data.data;
-        // Patient app: only cache patient-role users; redirect others cleanly
-        if (verifiedUser && verifiedUser.role !== 'patient') {
-          saveToken(null);
-          setUserAndCache(null);
-          setLoading(false);
-          if (verifiedUser.role === 'admin') {
-            window.location.replace('http://localhost:5175');
-          } else if (verifiedUser.role === 'doctor') {
-            window.location.replace('http://localhost:5174/dashboard');
-          }
-          return;
+    let cancelled = false;
+    axios.get('/auth/me', { timeout: 60000 })
+      .then(res => {
+        if (cancelled) return;
+        const u = res.data?.data;
+        if (u?.role === 'patient') setUser(u);
+        // Don't remove token for admin/doctor — they need it after redirect
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        // Only clear token on 401 (invalid/expired). Keep it on network/timeout errors.
+        if (err.response?.status === 401) {
+          localStorage.removeItem('token');
         }
-        setUserAndCache(verifiedUser);
-      } catch {
-        if (!controller.signal.aborted) {
-          // Token expired or invalid
-          saveToken(null);
-          setUserAndCache(null);
-        }
-      }
-      setLoading(false);
-    };
-    verify();
-    return () => controller.abort();
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
-  // Register function
+  // Simple login — returns { success, role, error }
+  const login = async (email, password) => {
+    try {
+      const res = await axios.post('/auth/login', { email, password });
+      const { token, data } = res.data;
+      localStorage.setItem('token', token);
+      if (data?.role === 'patient') setUser(data);
+      return { success: true, role: data?.role };
+    } catch (err) {
+      return { success: false, error: err.response?.data?.error || 'Login failed. Check email and password.' };
+    }
+  };
+
+  // Google login
+  const googleLogin = async (credential) => {
+    try {
+      const res = await axios.post('/auth/google', { credential });
+      const { token, data } = res.data;
+      localStorage.setItem('token', token);
+      if (data?.role === 'patient') setUser(data);
+      return { success: true, role: data?.role };
+    } catch (err) {
+      return { success: false, error: err.response?.data?.error || 'Google sign-in failed' };
+    }
+  };
+
+  // Register patient
   const register = async (userData) => {
     try {
-      const { data } = await axios.post('/auth/register', userData);
-      if (data.token) {
-        saveToken(data.token);
-        setUserAndCache(data.data);
+      const res = await axios.post('/auth/register', userData);
+      if (res.data.token) {
+        localStorage.setItem('token', res.data.token);
+        setUser(res.data.data);
       }
       return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.error || 'Registration failed'
-      };
-    }
-  };
-
-  // Login function
-  const login = async (credentials) => {
-    try {
-      const { data } = await axios.post('/auth/login', credentials);
-      saveToken(data.token);
-      setUserAndCache(data.data);
-      return { success: true, data: data.data };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.error || 'Login failed'
-      };
-    }
-  };
-
-  // Doctor Register function
-  const doctorRegister = async (doctorData) => {
-    try {
-      const { data } = await axios.post('/doctor/register', doctorData);
-      if (data.token) {
-        saveToken(data.token);
-      }
-      const doctorUser = { ...data.data, role: 'doctor' };
-      setUserAndCache(doctorUser);
-      return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.error || 'Registration failed'
-      };
-    }
-  };
-
-  // Doctor Login function
-  const doctorLogin = async (credentials) => {
-    try {
-      const { data } = await axios.post('/doctor/login', credentials);
-      saveToken(data.token);
-      const doctorUser = { ...data.data, role: 'doctor' };
-      setUserAndCache(doctorUser);
-      return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.error || 'Login failed'
-      };
-    }
-  };
-
-  // Logout function
-  const logout = async () => {
-    try {
-      await axios.post('/auth/logout');
     } catch (err) {
-      console.error('Logout failed', err);
+      return { success: false, error: err.response?.data?.error || 'Registration failed' };
     }
-    saveToken(null);
-    setUserAndCache(null);
   };
 
+  // Logout
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+    window.location.href = '/';
+  };
+
+  // Update profile
   const updateUserProfile = (updatedData, newToken) => {
-    if (newToken) saveToken(newToken);
-    setUserAndCache(updatedData);
-  };
-
-  const value = {
-    user,
-    loading,
-    register,
-    login,
-    doctorRegister,
-    doctorLogin,
-    updateUserProfile,
-    logout,
-    isAuthenticated: !!user
+    if (newToken) localStorage.setItem('token', newToken);
+    setUser(updatedData);
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{
+      user, loading, login, googleLogin, register, logout,
+      updateUserProfile, isAuthenticated: !!user
+    }}>
       {children}
     </AuthContext.Provider>
   );

@@ -3,130 +3,78 @@ import axios from '../api/axios';
 
 export const AuthContext = createContext();
 
-const CACHE_KEY = 'doctor_user_cache';
-
-const getCachedUser = () => {
-    try {
-        const raw = localStorage.getItem(CACHE_KEY);
-        if (!raw) return null;
-        const { user, ts } = JSON.parse(raw);
-        if (Date.now() - ts > 3600000) {
-            localStorage.removeItem(CACHE_KEY);
-            return null;
-        }
-        return user;
-    } catch {
-        localStorage.removeItem(CACHE_KEY);
-        return null;
-    }
-};
-
 export const AuthProvider = ({ children }) => {
-    const cachedUser = getCachedUser();
-    const [user, setUser] = useState(cachedUser);
-    const [loading, setLoading] = useState(!cachedUser);
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    const setUserAndCache = (userData) => {
-        setUser(userData);
-        if (userData) {
-            localStorage.setItem(CACHE_KEY, JSON.stringify({ user: userData, ts: Date.now() }));
-        } else {
-            localStorage.removeItem(CACHE_KEY);
-        }
-    };
-
-    const saveToken = (token) => {
-        if (token) {
-            localStorage.setItem('token', token);
-        } else {
-            localStorage.removeItem('token');
-        }
-    };
-
-    // Verify token with server in background
     useEffect(() => {
+        // Pick up token passed via URL query param from patient portal login redirect
+        const params = new URLSearchParams(window.location.search);
+        const urlToken = params.get('token');
+        if (urlToken) {
+            localStorage.setItem('token', urlToken);
+            // Clean the token from the URL without reloading
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+
         const token = localStorage.getItem('token');
-        if (!token) {
-            setUserAndCache(null);
-            setLoading(false);
-            return;
-        }
+        if (!token) { setLoading(false); return; }
 
-        const controller = new AbortController();
-        const verify = async () => {
-            try {
-                const { data } = await axios.get('/auth/me', { signal: controller.signal });
-                setUserAndCache(data.data);
-            } catch {
-                if (!controller.signal.aborted) {
-                    saveToken(null);
-                    setUserAndCache(null);
+        let cancelled = false;
+        axios.get('/auth/me', { timeout: 60000 })
+            .then(({ data }) => {
+                if (cancelled) return;
+                const u = data.data;
+                if (u?.role === 'doctor') setUser(u);
+                else localStorage.removeItem('token'); // Wrong role — clear token
+            })
+            .catch((err) => {
+                if (cancelled) return;
+                // Only clear token on 401 (invalid/expired). Keep token on network/timeout errors.
+                if (err.response?.status === 401) {
+                    localStorage.removeItem('token');
                 }
-            }
-            setLoading(false);
-        };
-        verify();
-        return () => controller.abort();
+            })
+            .finally(() => { if (!cancelled) setLoading(false); });
+        return () => { cancelled = true; };
     }, []);
-
-    // Doctor Register function (renamed to register for this app)
-    const register = async (doctorData) => {
-        try {
-            const { data } = await axios.post('/doctor/register', { ...doctorData });
-            if (data.token) {
-                saveToken(data.token);
-            }
-            setUserAndCache({ ...data.data, role: 'doctor' });
-            return { success: true };
-        } catch (error) {
-            return {
-                success: false,
-                error: error.response?.data?.error || 'Registration failed'
-            };
-        }
-    };
 
     const login = async (credentials) => {
         try {
             const { data } = await axios.post('/doctor/login', credentials);
-            saveToken(data.token);
-            setUserAndCache({ ...data.data, role: 'doctor' });
+            localStorage.setItem('token', data.token);
+            setUser({ ...data.data, role: 'doctor' });
             return { success: true };
-        } catch (error) {
-            return {
-                success: false,
-                error: error.response?.data?.error || 'Login failed'
-            };
+        } catch (e) {
+            return { success: false, error: e.response?.data?.error || 'Login failed' };
         }
     };
 
-    const logout = async () => {
+    const register = async (doctorData) => {
         try {
-            await axios.post('/auth/logout');
-        } catch (err) {
-            console.error('Logout failed', err);
+            const { data } = await axios.post('/doctor/register', doctorData);
+            if (data.token) localStorage.setItem('token', data.token);
+            setUser({ ...data.data, role: 'doctor' });
+            return { success: true };
+        } catch (e) {
+            return { success: false, error: e.response?.data?.error || 'Registration failed' };
         }
-        saveToken(null);
-        setUserAndCache(null);
+    };
+
+    const logout = () => {
+        localStorage.removeItem('token');
+        setUser(null);
+        axios.post('/auth/logout').catch(() => {});
+        window.location.replace('http://localhost:5173');
     };
 
     const updateUserProfile = (updatedData, newToken) => {
-        if (newToken) saveToken(newToken);
-        setUserAndCache(updatedData);
-    };
-
-    const value = {
-        user,
-        loading,
-        register,
-        login,
-        updateUserProfile,
-        logout,
-        isAuthenticated: !!user
+        if (newToken) localStorage.setItem('token', newToken);
+        setUser(updatedData);
     };
 
     return (
-        <AuthContext.Provider value={value}>
+        <AuthContext.Provider value={{ user, loading, login, register, logout, updateUserProfile, isAuthenticated: !!user }}>
             {children}
         </AuthContext.Provider>
     );

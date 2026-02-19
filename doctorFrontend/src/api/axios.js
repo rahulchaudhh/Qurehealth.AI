@@ -2,7 +2,8 @@ import axios from 'axios';
 
 const instance = axios.create({
     baseURL: '/api',
-    withCredentials: true
+    timeout: 60000,
+    headers: { 'Content-Type': 'application/json' }
 });
 
 // Attach JWT token to every request
@@ -13,5 +14,16 @@ instance.interceptors.request.use((config) => {
     }
     return config;
 });
+
+// On 401 response, clear token
+instance.interceptors.response.use(
+    (res) => res,
+    (err) => {
+        if (err.response?.status === 401) {
+            localStorage.removeItem('token');
+        }
+        return Promise.reject(err);
+    }
+);
 
 export default instance;

@@ -183,6 +183,7 @@ export default function Dashboard() {
 
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [bookingData, setBookingData] = useState({ date: '', time: '', reason: '' });
+  const [isBooking, setIsBooking] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -389,35 +390,38 @@ export default function Dashboard() {
 
   const handleBookAppointment = async (e) => {
     e.preventDefault();
+
+    // Validate required fields before sending
+    if (!bookingData.time) {
+      toast.error('Please select a time slot.');
+      return;
+    }
+    if (!bookingData.date) {
+      toast.error('Please select a date.');
+      return;
+    }
+    if (!bookingData.reason || !bookingData.reason.trim()) {
+      toast.error('Please enter a reason for your visit.');
+      return;
+    }
+
+    // Support both mapped doctors ({id}) and populated MongoDB objects ({_id})
+    const doctorId = selectedDoctor?.id || selectedDoctor?._id?.toString();
+    if (!doctorId) {
+      toast.error('Doctor information is missing. Please try again.');
+      return;
+    }
+
     try {
-      const axios = (await import('../api/axios')).default;
-      const res = await axios.post('/appointments', {
-        doctorId: selectedDoctor.id,
+      setIsBooking(true);
+      const res = await api.post('/appointments', {
+        doctorId,
         date: bookingData.date,
         time: bookingData.time,
-        reason: bookingData.reason
+        reason: bookingData.reason.trim()
       });
 
-      // Instead of alerting success, we move to payment step
-      // Parse fee from "NPR 1500" -> 1500
-      /* PAYMENT BYPASSED
-      const feeString = selectedDoctor.fee || "1500";
-      const amount = parseInt(feeString.replace(/[^0-9]/g, '')) || 1500;
- 
-      setPendingAppointment({
-        id: res.data.data._id, // Assuming response structure
-        amount: amount
-      });
-      */
-
-      toast.success('Appointment booked successfully!', {
-        position: "top-center",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.success('Appointment booked successfully!');
 
       setSelectedDoctor(null);
       setBookingData({ date: '', time: '', reason: '' });
@@ -426,7 +430,13 @@ export default function Dashboard() {
       setMyAppointments(prev => [...prev, res.data.data]);
     } catch (error) {
       console.error('Booking failed:', error);
-      toast.error(error.response?.data?.error || 'Failed to book appointment');
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        toast.error('Request timed out. Please check your connection and try again.');
+      } else {
+        toast.error(error.response?.data?.error || 'Failed to book appointment');
+      }
+    } finally {
+      setIsBooking(false);
     }
   };
 
@@ -640,9 +650,11 @@ export default function Dashboard() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => navigate('/patient/profile')}>
               <img
-                src={user.profilePicture || `https://ui-avatars.com/api/?name=${user.name.replace(' ', '+')}&background=random`}
+                src={user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff&size=128`}
                 alt="Profile"
                 className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+                referrerPolicy="no-referrer"
+                onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff&size=128`; }}
               />
               <div className="hidden md:block">
                 <p className="text-sm font-bold text-gray-900">{user.name}</p>
@@ -1641,20 +1653,33 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={() => setSelectedDoctor(null)}
-                    className="flex-1 px-5 py-3.5 rounded-xl text-gray-600 font-semibold hover:bg-gray-100 transition-all border border-gray-200 text-sm"
+                    disabled={isBooking}
+                    className="flex-1 px-5 py-3.5 rounded-xl text-gray-600 font-semibold hover:bg-gray-100 transition-all border border-gray-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    disabled={!bookingData.time}
-                    className={`flex-[2] px-5 py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 ${bookingData.time
+                    disabled={!bookingData.time || isBooking}
+                    className={`flex-[2] px-5 py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 ${bookingData.time && !isBooking
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-xl shadow-blue-200/50 active:scale-[0.98]'
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       }`}
                   >
-                    <CheckCircle2 size={18} />
-                    Confirm Booking
+                    {isBooking ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                        Booking...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 size={18} />
+                        Confirm Booking
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
