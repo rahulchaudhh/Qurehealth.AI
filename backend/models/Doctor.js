@@ -44,6 +44,40 @@ const doctorSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    fee: {
+        type: Number,
+        default: 0
+    },
+    availability: {
+        days: {
+            type: [String],
+            default: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+        },
+        startTime: {
+            type: String,
+            default: '09:00'
+        },
+        endTime: {
+            type: String,
+            default: '17:00'
+        },
+        slotDuration: {
+            type: Number,
+            default: 30
+        }
+    },
+    rating: {
+        average: {
+            type: Number,
+            default: 0,
+            min: 0,
+            max: 5
+        },
+        totalReviews: {
+            type: Number,
+            default: 0
+        }
+    },
     createdAt: {
         type: Date,
         default: Date.now

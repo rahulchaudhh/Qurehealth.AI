@@ -156,9 +156,11 @@ exports.getMe = async (req, res) => {
         userData = { ...patient.toObject(), role: 'patient' };
       }
     } else if (req.user.role === 'doctor') {
-      const doctor = await Doctor.findById(req.user._id).select('-password');
+      const doctor = await Doctor.findById(req.user._id).select('-password -profilePicture').maxTimeMS(30000);
       if (doctor) {
-        userData = { ...doctor.toObject(), role: 'doctor' };
+        const doctorObj = doctor.toObject();
+        doctorObj.hasProfilePicture = true;
+        userData = { ...doctorObj, role: 'doctor' };
       }
     }
     // For admin, just return the JWT payload
@@ -233,6 +235,12 @@ exports.updateProfile = async (req, res) => {
       ...user.toObject(),
       role: req.user.role
     };
+
+    // Strip out large profilePicture from response (use /profile-picture endpoint instead)
+    if (updatedUser.profilePicture) {
+      delete updatedUser.profilePicture;
+      updatedUser.hasProfilePicture = true;
+    }
 
     // Issue a fresh token with potentially updated name/email
     const token = signToken({

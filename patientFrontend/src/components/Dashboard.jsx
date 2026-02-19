@@ -1,11 +1,16 @@
 import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jsPDF } from "jspdf";
-import { Bell, Search, UserRound, Calendar, ClipboardList, ExternalLink, Droplets, Apple, Moon, Zap, Clock, ArrowRight, ArrowLeft, X, AlertCircle, Stethoscope, Star, MapPin, Mail, Phone, AlertTriangle, ChevronLeft, CalendarDays, Download, Info, Trash2, Plus, Video, XCircle, CheckCircle2 } from 'lucide-react';
+import { Bell, X, MapPin, Mail, Phone, AlertTriangle, Calendar, Clock, Stethoscope, Star, Download, Trash2, Video, CheckCircle2, Info, XCircle, Shield, CalendarCheck, ChevronRight, User } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api/axios';
 import Toast from './Toast';
 import BroadcastModal from './BroadcastModal';
+import DashboardHome from './DashboardHome';
+import SymptomChecker, { PredictionResults } from './SymptomChecker';
+import FindDoctors from './FindDoctors';
+import Appointments from './Appointments';
+import MedicalHistory from './MedicalHistory';
 
 
 
@@ -140,11 +145,13 @@ export default function Dashboard() {
           id: String(d._id),
           name: d.name,
           specialty: d.specialization || 'General Physician',
-          rating: 4.8,
+          rating: d.rating?.average || 0,
+          ratingCount: d.rating?.totalReviews || 0,
           experience: d.experience || 0,
           hospital: 'Qurehealth Care',
-          available: 'Today, 2:00 PM',
-          fee: 'NPR 1500',
+          available: d.nextAvailableSlot || 'Not available',
+          fee: d.fee ? `NPR ${d.fee}` : 'Free',
+          availability: d.availability || null,
           profilePicture: d.hasProfilePicture
             ? `/api/doctor/${d._id}/profile-picture`
             : null
@@ -184,6 +191,8 @@ export default function Dashboard() {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [bookingData, setBookingData] = useState({ date: '', time: '', reason: '' });
   const [isBooking, setIsBooking] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -193,6 +202,27 @@ export default function Dashboard() {
   const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, recordId: null });
   const [appointmentFilter, setAppointmentFilter] = useState('all');
   const [aptSearch, setAptSearch] = useState('');
+
+  // Fetch available slots when a date is picked in the booking modal
+  useEffect(() => {
+    if (!selectedDoctor || !bookingData.date) {
+      setAvailableSlots([]);
+      return;
+    }
+    const fetchSlots = async () => {
+      setLoadingSlots(true);
+      setBookingData(prev => ({ ...prev, time: '' })); // reset selected time
+      try {
+        const res = await api.get(`/doctor/${selectedDoctor.id}/slots?date=${bookingData.date}`);
+        setAvailableSlots(res.data.data || []);
+      } catch {
+        setAvailableSlots([]);
+      } finally {
+        setLoadingSlots(false);
+      }
+    };
+    fetchSlots();
+  }, [selectedDoctor?.id, bookingData.date]);
 
 
 
@@ -455,6 +485,25 @@ export default function Dashboard() {
     setDeleteConfirmation({ isOpen: true, recordId });
   };
 
+  const handleRateAppointment = async (appointmentId, score, feedback) => {
+    try {
+      const res = await api.put(`/appointments/${appointmentId}/rate`, { score, feedback });
+      // Update the appointment in local state with the new rating
+      setMyAppointments(prev =>
+        prev.map(apt =>
+          apt._id === appointmentId
+            ? { ...apt, rating: res.data.data.rating }
+            : apt
+        )
+      );
+      toast.success('Rating submitted successfully!');
+    } catch (error) {
+      const msg = error.response?.data?.error || 'Failed to submit rating';
+      toast.error(msg);
+      throw new Error(msg);
+    }
+  };
+
   const confirmDelete = async () => {
     if (!deleteConfirmation.recordId) return;
 
@@ -668,873 +717,100 @@ export default function Dashboard() {
 
       {/* Dashboard Page */}
       {currentPage === 'dashboard' && (
-        <main className="max-w-7xl mx-auto py-10 px-5 min-h-[calc(100vh-140px)]">
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-1">Dashboard</h2>
-            <p className="text-gray-500 text-sm">Welcome back, {user.name} — Here's your health overview</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <div
-              className="group relative bg-white p-6 rounded-2xl border border-gray-100 cursor-pointer hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300"
-              onClick={() => setCurrentPage('symptoms')}
-            >
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-5 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
-                <Search size={24} />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1.5">Check Symptoms</h3>
-              <p className="text-xs text-gray-500 leading-relaxed font-medium">AI-powered intelligent disease prediction and analysis</p>
-              <div className="mt-4 flex items-center text-[10px] font-bold text-blue-600 uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-                Start Analysis <ArrowRight size={12} className="ml-1" />
-              </div>
-            </div>
-
-            <div
-              className="group relative bg-white p-6 rounded-2xl border border-gray-100 cursor-pointer hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300"
-              onClick={() => setCurrentPage('doctors')}
-            >
-              <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 mb-5 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
-                <UserRound size={24} />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1.5">Find Doctors</h3>
-              <p className="text-xs text-gray-500 leading-relaxed font-medium">Book consultations with verified top health specialists</p>
-              <div className="mt-4 flex items-center text-[10px] font-bold text-emerald-600 uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-                Find Specialist <ArrowRight size={12} className="ml-1" />
-              </div>
-            </div>
-
-            <div
-              className="group relative bg-white p-6 rounded-2xl border border-gray-100 cursor-pointer hover:border-purple-200 hover:shadow-xl hover:shadow-purple-500/5 transition-all duration-300"
-              onClick={() => setCurrentPage('appointments')}
-            >
-              <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 mb-5 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
-                <Calendar size={24} />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1.5">My Appointments</h3>
-              <p className="text-xs text-gray-500 leading-relaxed font-medium">Manage your upcoming and past medical consultations</p>
-              <div className="mt-4 flex items-center text-[10px] font-bold text-purple-600 uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-                Manage Schedule <ArrowRight size={12} className="ml-1" />
-              </div>
-            </div>
-
-            <div
-              className="group relative bg-white p-6 rounded-2xl border border-gray-100 cursor-pointer hover:border-amber-200 hover:shadow-xl hover:shadow-amber-500/5 transition-all duration-300"
-              onClick={() => setCurrentPage('history')}
-            >
-              <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 mb-5 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300">
-                <ClipboardList size={24} />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1.5">Medical History</h3>
-              <p className="text-xs text-gray-500 leading-relaxed font-medium">Access and download your complete health records</p>
-              <div className="mt-4 flex items-center text-[10px] font-bold text-amber-600 uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-                View Records <ArrowRight size={12} className="ml-1" />
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-
-
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
-                    <Calendar size={18} />
-                  </div>
-                  <h2 className="text-lg font-bold text-gray-900">Upcoming Visits</h2>
-                </div>
-                <button
-                  onClick={() => setCurrentPage('appointments')}
-                  className="text-[10px] font-bold text-blue-600 uppercase tracking-wider hover:underline"
-                >
-                  View All
-                </button>
-              </div>
-              {myAppointments.length === 0 ? (
-                <div className="py-10 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                  <p className="text-gray-400 text-xs font-medium">No upcoming consultations</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {myAppointments.slice(0, 2).map(apt => (
-                    <div
-                      key={apt._id}
-                      className="p-4 bg-white rounded-xl hover:bg-gray-50 transition-all cursor-pointer border border-gray-100 group shadow-sm"
-                      onClick={() => setCurrentPage('appointments')}
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <div className="font-bold text-gray-900 text-sm mb-0.5 group-hover:text-blue-600 transition-colors">{apt.doctor.name}</div>
-                          <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-tight">{apt.doctor.specialization || 'Specialist'}</div>
-                        </div>
-                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${apt.status === 'confirmed'
-                          ? 'text-emerald-700 bg-emerald-50'
-                          : 'text-amber-700 bg-amber-50'
-                          }`}>
-                          {apt.status}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4 text-[11px] text-gray-600 font-medium">
-                        <span className="flex items-center gap-1.5">
-                          <Calendar size={12} className="text-gray-400" />
-                          {new Date(apt.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <Clock size={12} className="text-gray-400" />
-                          {apt.time}
-                        </span>
-                      </div>
-                      {apt.meetingLink && apt.status === 'confirmed' && (
-                        <a
-                          href={apt.meetingLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="mt-4 flex items-center justify-center gap-2 w-full py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-100"
-                        >
-                          Join Consultation <ExternalLink size={12} />
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-amber-50 text-amber-600 rounded-lg">
-                    <Zap size={18} />
-                  </div>
-                  <h2 className="text-lg font-bold text-gray-900">Health Insights</h2>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <a
-                  href="https://www.healthline.com/nutrition/7-health-benefits-of-water"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group block p-4 bg-blue-50/30 rounded-xl border border-blue-50 hover:border-blue-100 hover:bg-blue-50/50 transition-all"
-                >
-                  <div className="flex gap-4 items-center">
-                    <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center shrink-0">
-                      <Droplets size={20} />
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-gray-900 mb-0.5 flex items-center gap-1">
-                        Stay Hydrated
-                        <ExternalLink size={10} className="text-gray-300 group-hover:text-blue-600 transition-colors" />
-                      </div>
-                      <div className="text-[11px] text-gray-500 font-medium">Daily goal: 2.5 - 3 Liters of water</div>
-                    </div>
-                  </div>
-                </a>
-
-                <a
-                  href="https://www.hsph.harvard.edu/nutritionsource/healthy-eating-plate/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group block p-4 bg-emerald-50/30 rounded-xl border border-emerald-50 hover:border-emerald-100 hover:bg-emerald-50/50 transition-all"
-                >
-                  <div className="flex gap-4 items-center">
-                    <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
-                      <Apple size={20} />
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-gray-900 mb-0.5 flex items-center gap-1">
-                        Balanced Diet
-                        <ExternalLink size={10} className="text-gray-300 group-hover:text-emerald-600 transition-colors" />
-                      </div>
-                      <div className="text-[11px] text-gray-500 font-medium">Nutrient-rich seasonal vegetables</div>
-                    </div>
-                  </div>
-                </a>
-
-                <a
-                  href="https://www.sleepfoundation.org/how-sleep-works/how-much-sleep-do-we-really-need"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group block p-4 bg-purple-50/30 rounded-xl border border-purple-50 hover:border-purple-100 hover:bg-purple-50/50 transition-all"
-                >
-                  <div className="flex gap-4 items-center">
-                    <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center shrink-0">
-                      <Moon size={20} />
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-gray-900 mb-0.5 flex items-center gap-1">
-                        Quality Rest
-                        <ExternalLink size={10} className="text-gray-300 group-hover:text-purple-600 transition-colors" />
-                      </div>
-                      <div className="text-[11px] text-gray-500 font-medium">Target 7-9 hours of deep sleep</div>
-                    </div>
-                  </div>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <div className="relative bg-gradient-to-r from-red-500 to-red-600 p-8 rounded-2xl shadow-2xl overflow-hidden">
-            <div className="absolute inset-0 bg-black opacity-10"></div>
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full opacity-10 -mr-32 -mt-32"></div>
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full opacity-10 -ml-24 -mb-24"></div>
-
-            <div className="relative flex flex-col md:flex-row justify-between items-center gap-6">
-              <div className="text-white">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-4xl">🚨</span>
-                  <h2 className="text-2xl font-bold">24/7 Emergency Services</h2>
-                </div>
-                <p className="text-red-100 text-sm mb-2">Immediate medical assistance available anytime</p>
-                <div className="flex gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-white">Helpline:</span>
-                    <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full font-bold">102</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-white">Ambulance:</span>
-                    <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full font-bold">1-4200-1990</span>
-                  </div>
-                </div>
-              </div>
-              <button className="px-8 py-4 bg-white text-red-600 rounded-xl text-base font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-2">
-                <span className="text-xl">📞</span>
-                Call Emergency Now
-              </button>
-            </div>
-          </div>
-        </main>
+        <DashboardHome
+          user={user}
+          myAppointments={myAppointments}
+          setCurrentPage={setCurrentPage}
+        />
       )}
 
       {/* Symptom Checker Page */}
       {currentPage === 'symptoms' && (
-        <main className="max-w-6xl mx-auto py-10 px-5 min-h-[calc(100vh-140px)]">
-          <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg mb-5 text-sm font-semibold text-gray-700 transition-all flex items-center gap-2 group" onClick={() => setCurrentPage('dashboard')}>
-            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-            Back to Dashboard
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Disease Prediction</h1>
-          <p className="text-base text-gray-600 mb-8">Select your symptoms and get instant disease predictions.</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-900 mb-5">Search Symptoms</h2>
-              <input
-                type="text"
-                placeholder="Type to search symptoms..."
-                value={searchSymptom}
-                onChange={(e) => setSearchSymptom(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm mb-5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-900"
-              />
-              <div className="flex flex-wrap gap-2">
-                {symptomList
-                  .filter(s => s.toLowerCase().includes(searchSymptom.toLowerCase()))
-                  .map(symptom => (
-                    <button
-                      key={symptom}
-                      onClick={() => addSymptom(symptom)}
-                      disabled={symptoms.includes(symptom)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${symptoms.includes(symptom)
-                        ? 'bg-blue-100 text-blue-600 border border-blue-200 opacity-50 cursor-not-allowed'
-                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600'
-                        }`}
-                    >
-                      {symptom.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                    </button>
-                  ))}
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl border border-gray-200 h-fit shadow-sm sticky top-24">
-              <h2 className="text-lg font-semibold text-gray-900 mb-5">Selected Symptoms ({symptoms.length})</h2>
-              {symptoms.length === 0 ? (
-                <p className="text-center text-gray-400 text-sm py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">No symptoms selected.</p>
-              ) : (
-                <div className="space-y-2 mb-5">
-                  {symptoms.map(symptom => (
-                    <div key={symptom} className="flex justify-between items-center px-3 py-2 bg-blue-50 border border-blue-100 rounded-md text-sm text-blue-900 animate-fadeIn">
-                      {symptom.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                      <button onClick={() => removeSymptom(symptom)} className="text-red-400 hover:text-red-600 transition-colors">
-                        <X size={16} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <button
-                onClick={analyzeSymptoms}
-                disabled={symptoms.length === 0}
-                className={`w-full py-3 rounded-lg text-sm font-bold uppercase tracking-wide transition-all shadow-md ${symptoms.length > 0
-                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white cursor-pointer hover:shadow-lg hover:from-blue-700 hover:to-blue-800 transform hover:-translate-y-0.5'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
-                  }`}
-              >
-                Analyze Symptoms
-              </button>
-            </div>
-          </div>
-        </main>
+        <SymptomChecker
+          symptoms={symptoms}
+          searchSymptom={searchSymptom}
+          setSearchSymptom={setSearchSymptom}
+          symptomList={symptomList}
+          addSymptom={addSymptom}
+          removeSymptom={removeSymptom}
+          analyzeSymptoms={analyzeSymptoms}
+          setCurrentPage={setCurrentPage}
+        />
       )}
 
       {currentPage === 'prediction' && (
-        <main className="max-w-6xl mx-auto py-10 px-5 min-h-[calc(100vh-140px)]">
-          <button className="px-4 py-2 bg-gray-100 rounded-lg mb-5 text-sm font-semibold text-gray-700 transition-all flex items-center gap-2 group" onClick={() => setCurrentPage('symptoms')}>
-            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-            Back to Symptom Checker
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Prediction Results</h1>
-          <p className="text-base text-gray-600 mb-8">Based on symptoms: <span className="font-medium text-gray-900">{symptoms.join(', ')}</span></p>
-
-          <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg mb-8 shadow-sm">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 text-amber-500">
-                <AlertCircle size={20} />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-amber-700">
-                  <strong>Disclaimer:</strong> This is an AI-based prediction. Consult a professional for diagnosis.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mb-10">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-5">Possible Conditions</h2>
-            {prediction && prediction.map((disease, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-xl border border-gray-200 mb-4 shadow-sm hover:shadow-md transition-shadow">
-                <div className="mb-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-xl font-bold text-gray-900">{disease.name}</h3>
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-bold">{disease.probability}% Match</span>
-                  </div>
-                  <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-600 rounded-full" style={{ width: `${disease.probability}%` }}></div>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600 leading-relaxed">{disease.description}</p>
-              </div>
-            ))}
-          </div>
-          {/* Doctors Section in Prediction */}
-          <div>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-                <Stethoscope size={24} />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900">Recommended Doctors</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {recommendedDoctors.map(doctor => (
-                <div key={doctor.id} className="bg-white p-6 rounded-xl border border-gray-200 text-center hover:shadow-lg transition-all group">
-                  <div className="mb-3 flex justify-center">
-                    {doctor.profilePicture ? (
-                      <img
-                        src={doctor.profilePicture}
-                        alt={doctor.name}
-                        className="w-24 h-24 rounded-full object-cover border-4 border-blue-50 shadow-sm"
-                        onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
-                      />
-                    ) : (
-                      <div className="p-5 bg-blue-50 text-blue-600 rounded-full group-hover:bg-blue-600 group-hover:text-white transition-all">
-                        <Stethoscope size={48} />
-                      </div>
-                    )}
-                    {/* Fallback icon if image fails */}
-                    <div className="p-5 bg-blue-50 text-blue-600 rounded-full group-hover:bg-blue-600 group-hover:text-white transition-all hidden">
-                      <Stethoscope size={48} />
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-1">{doctor.name}</h3>
-                  <p className="text-sm text-blue-600 font-medium mb-3">{doctor.specialty}</p>
-                  <div className="flex justify-center gap-4 mb-3 text-xs">
-                    <div className="text-amber-500 font-bold flex items-center gap-1">
-                      <Star size={12} fill="currentColor" /> {doctor.rating}
-                    </div>
-                    <div className="text-gray-500 font-medium">{doctor.experience} years exp.</div>
-                  </div>
-                  <p className="text-xs text-gray-400 mb-4">{doctor.hospital}</p>
-                  <div className="flex justify-between items-center text-xs text-gray-700 mb-5 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <span className="flex items-center gap-1.5 font-medium">
-                      <Clock size={12} className="text-gray-400" /> {doctor.available}
-                    </span>
-                    <span className="font-bold text-emerald-700">{doctor.fee}</span>
-                  </div>
-                  <button
-                    onClick={() => setSelectedDoctor(doctor)}
-                    className="w-full py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700 shadow-md"
-                  >
-                    Book Appointment
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </main>
-      )
-      }
+        <PredictionResults
+          symptoms={symptoms}
+          prediction={prediction}
+          recommendedDoctors={recommendedDoctors}
+          setCurrentPage={setCurrentPage}
+          setSelectedDoctor={setSelectedDoctor}
+        />
+      )}
 
       {/* Find Doctors Page */}
-      {
-        currentPage === 'doctors' && (
-          <main className="max-w-6xl mx-auto py-10 px-5 min-h-[calc(100vh-140px)]">
-            <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg mb-5 text-sm font-semibold text-gray-700 transition-all flex items-center gap-2 group" onClick={() => setCurrentPage('dashboard')}>
-              <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-              Back to Dashboard
-            </button>
-
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Find & Book Doctors</h1>
-            <p className="text-base text-gray-600 mb-8">Connect with qualified healthcare professionals</p>
-
-            <div className="flex gap-4 mb-6">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="text"
-                  placeholder="Search doctors or specialties..."
-                  className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <select
-                className="px-4 py-3 border border-gray-200 rounded-xl text-sm min-w-[200px] outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium text-gray-700"
-                value={selectedSpecialty}
-                onChange={(e) => setSelectedSpecialty(e.target.value)}
-              >
-                <option>All Specialties</option>
-                <option>Cardiologist</option>
-                <option>General Physician</option>
-                <option>Pulmonologist</option>
-                <option>ENT Specialist</option>
-                <option>Neurologist</option>
-                <option>Dentist</option>
-              </select>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {(() => {
-                const filteredDoctors = doctors.filter(doctor => {
-                  const matchesSearch = doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase());
-                  const matchesSpecialty = selectedSpecialty === 'All Specialties' ||
-                    doctor.specialty === selectedSpecialty;
-                  return matchesSearch && matchesSpecialty;
-                });
-
-                if (filteredDoctors.length > 0) {
-                  return filteredDoctors.map(doctor => (
-                    <div key={doctor.id} className="bg-white p-6 rounded-xl border border-gray-200 text-center hover:shadow-lg transition-all group">
-                      <div className="mb-3 flex justify-center">
-                        {doctor.profilePicture ? (
-                          <img
-                            src={doctor.profilePicture}
-                            alt={doctor.name}
-                            className="w-24 h-24 rounded-full object-cover border-4 border-blue-50 shadow-sm"
-                            onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
-                          />
-                        ) : (
-                          <div className="p-4 bg-blue-50 text-blue-600 rounded-full group-hover:bg-blue-600 group-hover:text-white transition-all">
-                            <Stethoscope size={40} />
-                          </div>
-                        )}
-                        {/* Fallback icon if image fails */}
-                        <div className="p-4 bg-blue-50 text-blue-600 rounded-full hidden">
-                          <Stethoscope size={40} />
-                        </div>
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                        {(() => {
-                          const cleanName = doctor.name.replace(/^(dr\.?)\s*/i, '');
-                          return `Dr. ${cleanName.charAt(0).toUpperCase() + cleanName.slice(1)}`;
-                        })()}
-                      </h3>
-                      <p className="text-sm text-blue-600 mb-3">{doctor.specialty}</p>
-                      <div className="flex justify-center gap-4 mb-3 text-xs">
-                        <div className="text-yellow-600 flex items-center gap-1 font-bold">
-                          <Star size={12} fill="currentColor" /> {doctor.rating}
-                        </div>
-                        <div className="text-gray-600 font-medium">{doctor.experience} years exp.</div>
-                      </div>
-                      <p className="text-xs text-gray-600 mb-3">{doctor.hospital}</p>
-                      <div className="flex justify-between text-xs text-gray-700 mb-4 p-2 bg-gray-50 rounded-md border border-gray-100">
-                        <span className="flex items-center gap-1.5 font-medium">
-                          <Clock size={12} className="text-gray-400" /> {doctor.available}
-                        </span>
-                        <span className="font-bold text-green-700">{doctor.fee}</span>
-                      </div>
-                      <button
-                        onClick={() => setSelectedDoctor(doctor)}
-                        className="w-full py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700 shadow-md transition-shadow"
-                      >
-                        Book Appointment
-                      </button>
-                    </div>
-                  ));
-                } else {
-                  return (
-                    <div className="col-span-full py-20 text-center bg-white rounded-2xl border border-dashed border-gray-200">
-                      <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-5">
-                        <UserRound size={32} className="text-gray-300" />
-                      </div>
-                      <h3 className="text-lg font-bold text-gray-800 mb-1">No doctors found</h3>
-                      <p className="text-gray-500">
-                        {searchTerm ? `We couldn't find any doctors matching "${searchTerm}"` : "We couldn't find any available doctors at the moment."}
-                      </p>
-                      {searchTerm && (
-                        <button
-                          onClick={() => { setSearchTerm(''); setSelectedSpecialty('All Specialties'); }}
-                          className="mt-4 text-blue-600 font-semibold hover:underline"
-                        >
-                          Clear filters
-                        </button>
-                      )}
-                    </div>
-                  );
-                }
-              })()}
-            </div>
-          </main>
-        )
-      }
+      {currentPage === 'doctors' && (
+        <FindDoctors
+          doctors={doctors}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          selectedSpecialty={selectedSpecialty}
+          setSelectedSpecialty={setSelectedSpecialty}
+          setSelectedDoctor={setSelectedDoctor}
+          setCurrentPage={setCurrentPage}
+        />
+      )}
 
       {/* Appointments Page */}
-      {
-        currentPage === 'appointments' && (() => {
-          const now = new Date();
-          const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-          const enriched = myAppointments.map(apt => {
-            const isMissed = new Date(apt.date) < todayStart && apt.status === 'pending';
-            const effectiveStatus = isMissed ? 'missed' : apt.status;
-            const isUpcoming = (effectiveStatus === 'confirmed' || effectiveStatus === 'pending') && new Date(apt.date) >= todayStart;
-            return { ...apt, effectiveStatus, isUpcoming };
-          });
-
-          const counts = {
-            all: enriched.length,
-            upcoming: enriched.filter(a => a.isUpcoming).length,
-            completed: enriched.filter(a => a.effectiveStatus === 'completed').length,
-            cancelled: enriched.filter(a => a.effectiveStatus === 'cancelled' || a.effectiveStatus === 'missed').length,
-          };
-
-
-          const filtered = enriched.filter(a => {
-            const matchesFilter = appointmentFilter === 'all' ? true
-              : appointmentFilter === 'upcoming' ? a.isUpcoming
-                : appointmentFilter === 'completed' ? a.effectiveStatus === 'completed'
-                  : (a.effectiveStatus === 'cancelled' || a.effectiveStatus === 'missed');
-
-            const matchesSearch = a.doctor.name.toLowerCase().includes(aptSearch.toLowerCase()) ||
-              (a.reason && a.reason.toLowerCase().includes(aptSearch.toLowerCase()));
-
-            return matchesFilter && matchesSearch;
-          });
-
-          const badgeStyle = {
-            confirmed: 'text-emerald-600',
-            completed: 'text-blue-600',
-            cancelled: 'text-gray-400',
-            pending: 'text-amber-600',
-            missed: 'text-red-500'
-          };
-
-          const filterTabs = [
-            { key: 'all', label: 'All', count: counts.all },
-            { key: 'upcoming', label: 'Upcoming', count: counts.upcoming },
-            { key: 'completed', label: 'Completed', count: counts.completed },
-            { key: 'cancelled', label: 'Cancelled', count: counts.cancelled },
-          ];
-
-          return (
-            <main className="max-w-6xl mx-auto py-10 px-5 min-h-[calc(100vh-140px)]">
-
-              {/* Header */}
-              <div className="mb-10">
-                <button className="text-xs font-semibold text-neutral-400 hover:text-black transition-colors mb-6 flex items-center gap-1.5 group" onClick={() => setCurrentPage('dashboard')}>
-                  <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
-                  Back to Dashboard
-                </button>
-
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-                  <div>
-                    <h1 className="text-4xl font-bold tracking-tight text-black mb-2">My Appointments</h1>
-                    <p className="text-sm font-medium text-neutral-400">Manage and track your consultations</p>
-                  </div>
-                  <button
-                    onClick={() => setCurrentPage('doctors')}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-full text-sm font-bold shadow-lg shadow-blue-200/50 hover:bg-blue-700 transition-all active:scale-[0.98]"
-                  >
-                    <Plus size={18} strokeWidth={3} />
-                    Book Appointment
-                  </button>
-                </div>
-              </div>
-
-              {/* Filter + Search */}
-              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between mb-8">
-                <div className="flex gap-1 bg-neutral-100 rounded-full p-1 w-fit">
-                  {filterTabs.map(tab => (
-                    <button
-                      key={tab.key}
-                      onClick={() => setAppointmentFilter(tab.key)}
-                      className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${appointmentFilter === tab.key
-                        ? 'bg-white text-black shadow-sm'
-                        : 'text-neutral-500 hover:text-black'
-                        }`}
-                    >
-                      {tab.label}
-                      <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${appointmentFilter === tab.key
-                        ? 'bg-neutral-100 text-black'
-                        : 'bg-neutral-200/50 text-neutral-400'
-                        }`}>
-                        {tab.count}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="relative w-full md:w-64">
-                  <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
-                  <input
-                    type="text"
-                    placeholder="Search doctors..."
-                    value={aptSearch}
-                    onChange={e => setAptSearch(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 text-xs bg-neutral-50 border border-neutral-200 rounded-full focus:outline-none focus:ring-2 focus:ring-neutral-100 focus:border-neutral-300 transition-all placeholder:text-neutral-400 font-medium"
-                  />
-                </div>
-              </div>
-
-              {/* Appointments List */}
-              {filtered.length === 0 ? (
-                <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
-                  <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-5">
-                    <CalendarDays size={32} className="text-gray-300" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-800 mb-1">
-                    {appointmentFilter === 'all' ? 'No appointments yet' : `No ${appointmentFilter} appointments`}
-                  </h3>
-                  <p className="text-gray-400 text-sm mb-6 max-w-xs mx-auto">
-                    {appointmentFilter === 'all' ? 'Book your first consultation with a specialist' : 'Check back later or try a different filter'}
-                  </p>
-                  {appointmentFilter === 'all' && (
-                    <button onClick={() => setCurrentPage('doctors')} className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 shadow-lg shadow-blue-200/50 transition-all">
-                      Find a Doctor
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-0 divide-y divide-neutral-100">
-                  {filtered.map(apt => {
-                    const statusLabel = apt.isMissed ? 'MISSED' : apt.status.toUpperCase();
-                    const aptDate = new Date(apt.date);
-                    const isToday = aptDate.toDateString() === now.toDateString();
-                    const isTomorrow = aptDate.toDateString() === new Date(now.getTime() + 86400000).toDateString();
-                    const dateLabel = isToday ? 'Today' : isTomorrow ? 'Tomorrow' : aptDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-
-                    return (
-                      <div key={apt._id} className="group py-6 first:pt-0 last:pb-0">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-start gap-4">
-                            {/* Doctor initials/avatar */}
-                            <div className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500 font-bold text-sm flex-shrink-0">
-                              {apt.doctor.name?.charAt(0) || 'D'}
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="text-sm font-bold text-black">{apt.doctor.name}</h3>
-                                {isToday && apt.effectiveStatus === 'confirmed' && (
-                                  <span className="flex items-center gap-1 text-[10px] font-bold text-black">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-black"></span>
-                                    Today
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-3 text-xs text-neutral-400 font-medium lowercase">
-                                <span className="flex items-center gap-1.5">
-                                  <Calendar size={12} strokeWidth={2.5} />
-                                  {dateLabel}
-                                </span>
-                                <span className="flex items-center gap-1.5">
-                                  <Clock size={12} strokeWidth={2.5} />
-                                  {apt.time}
-                                </span>
-                              </div>
-                              {apt.reason && (
-                                <p className="text-xs text-neutral-500 mt-2 line-clamp-1">{apt.reason}</p>
-                              )}
-                            </div>
-                          </div>
-
-                          <span className={`text-[10px] font-bold tracking-widest ${badgeStyle[apt.effectiveStatus] || 'text-neutral-400'}`}>
-                            {statusLabel}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between pl-14">
-                          <div className="flex items-center gap-1.5">
-                            {apt.effectiveStatus === 'confirmed' && (
-                              <>
-                                <button
-                                  onClick={() => {/* Existing Start logic */ }}
-                                  className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-full text-[10px] font-bold shadow-md shadow-blue-100 hover:bg-blue-700 transition-all"
-                                >
-                                  <Stethoscope size={12} strokeWidth={3} />
-                                  Start Consultation
-                                </button>
-                                {apt.meetingLink && (
-                                  <a
-                                    href={apt.meetingLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-full text-[10px] font-bold shadow-md shadow-emerald-100 hover:bg-emerald-700 transition-all"
-                                  >
-                                    <Video size={12} strokeWidth={3} />
-                                    Join Meeting
-                                  </a>
-                                )}
-                              </>
-                            )}
-                            <button
-                              onClick={() => setViewAppointment(apt)}
-                              className="flex items-center gap-1.5 px-3 py-1.5 text-neutral-400 hover:text-black transition-colors text-[10px] font-bold"
-                            >
-                              <Info size={12} strokeWidth={2.5} />
-                              VIEW DETAILS
-                            </button>
-                          </div>
-
-                          {apt.effectiveStatus !== 'cancelled' && apt.effectiveStatus !== 'completed' && !apt.isMissed && (
-                            <button
-                              onClick={() => handleCancelAppointment(apt._id)}
-                              className="text-[10px] font-bold text-neutral-400 hover:text-red-500 transition-colors uppercase tracking-tight flex items-center gap-1.5"
-                            >
-                              <XCircle size={12} strokeWidth={2.5} />
-                              Cancel appointment
-                            </button>
-                          )}
-                          {(apt.effectiveStatus === 'cancelled' || apt.effectiveStatus === 'completed' || apt.isMissed) && (
-                            <button
-                              onClick={() => handleDeleteRecord(apt._id)}
-                              className="text-[10px] font-bold text-neutral-400 hover:text-red-500 transition-colors uppercase tracking-tight flex items-center gap-1.5"
-                            >
-                              <Trash2 size={12} strokeWidth={2.5} />
-                              Remove
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </main>
-          );
-        })()
-      }
+      {currentPage === 'appointments' && (
+        <Appointments
+          myAppointments={myAppointments}
+          appointmentFilter={appointmentFilter}
+          setAppointmentFilter={setAppointmentFilter}
+          aptSearch={aptSearch}
+          setAptSearch={setAptSearch}
+          setCurrentPage={setCurrentPage}
+          setViewAppointment={setViewAppointment}
+          handleCancelAppointment={handleCancelAppointment}
+          handleDeleteRecord={handleDeleteRecord}
+          onRateAppointment={handleRateAppointment}
+        />
+      )}
 
       {/* Medical History Page */}
-      {
-        currentPage === 'history' && (
-          <main className="max-w-6xl mx-auto py-10 px-5 min-h-[calc(100vh-140px)]">
-            <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg mb-5 text-sm font-semibold text-gray-700 transition-all flex items-center gap-2 group" onClick={() => setCurrentPage('dashboard')}>
-              <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-              Back to Dashboard
-            </button>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Medical History</h1>
-            <p className="text-base text-gray-600 mb-8">Your complete health records and past consultations</p>
-
-            <div className="space-y-4">
-              {medicalHistory.length === 0 ? (
-                <div className="p-10 text-center bg-white rounded-xl border border-gray-200 text-gray-500">
-                  No medical history records found.
-                </div>
-              ) : (
-                <div className="relative border-l-2 border-gray-100 ml-4 space-y-8 pb-8">
-                  {medicalHistory.map((record) => (
-                    <div key={record._id} className="relative pl-8 group">
-                      {/* Timeline Dot */}
-                      <div className="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-blue-600 border-4 border-white shadow-sm ring-1 ring-blue-100"></div>
-
-                      {/* Date Header */}
-                      <div className="text-sm font-semibold text-gray-400 mb-2 font-mono tracking-wide">
-                        {new Date(record.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
-                      </div>
-
-                      {/* Content Card */}
-                      <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-start gap-4">
-                          <div className="flex-1">
-                            <h3 className="text-lg font-bold text-gray-900 mb-1">{record.diagnosis || record.reason}</h3>
-                            <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                              <span className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">
-                                Dr. {record.doctor.name}
-                              </span>
-                              <span className="text-gray-300">•</span>
-                              <span>{record.doctor.specialization}</span>
-                            </div>
-
-                            <div className="flex gap-2 mt-4">
-                              <button
-                                onClick={() => navigate(`/medical-record/${record._id}`)}
-                                className="px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
-                              >
-                                View Details
-                              </button>
-                              <button
-                                onClick={() => generatePDF(record)}
-                                className="px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-100 flex items-center gap-1.5"
-                              >
-                                <Download size={12} strokeWidth={2} />
-                                Download Report
-                              </button>
-                            </div>
-                          </div>
-
-                          <div className="flex flex-col items-end gap-2">
-                            <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wider rounded-full border border-blue-100">
-                              Completed
-                            </span>
-                            <button
-                              onClick={() => handleDeleteRecord(record._id)}
-                              className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-all mt-1"
-                              title="Delete Record"
-                            >
-                              <Trash2 size={16} strokeWidth={2} />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </main>
-        )
-      }
+      {currentPage === 'history' && (
+        <MedicalHistory
+          medicalHistory={medicalHistory}
+          setCurrentPage={setCurrentPage}
+          generatePDF={generatePDF}
+          handleDeleteRecord={handleDeleteRecord}
+        />
+      )}
 
       {/* Booking Modal */}
       {
         selectedDoctor && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4" onClick={(e) => e.target === e.currentTarget && setSelectedDoctor(null)}>
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden" style={{ animation: 'fadeInScale 0.3s ease-out' }}>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={(e) => e.target === e.currentTarget && setSelectedDoctor(null)}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden" style={{ animation: 'fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}>
 
-              {/* Gradient Header with Doctor Info */}
-              <div className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-6 py-6 text-white overflow-hidden">
-                {/* Decorative circles */}
-                <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12"></div>
+              {/* Clean Header */}
+              <div className="px-6 pt-6 pb-0">
+                <div className="flex items-start justify-between mb-5">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900 tracking-tight">Book Appointment</h2>
+                    <p className="text-xs text-gray-400 font-medium mt-0.5">Complete the steps below to confirm</p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedDoctor(null)}
+                    className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors -mr-1 -mt-1"
+                  >
+                    <X size={18} strokeWidth={2} />
+                  </button>
+                </div>
 
-                <button
-                  onClick={() => setSelectedDoctor(null)}
-                  className="absolute top-4 right-4 p-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
-                >
-                  <X size={18} strokeWidth={2.5} />
-                </button>
-
-                <div className="relative flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-white/30 shadow-lg flex-shrink-0 bg-white/10">
+                {/* Doctor Card */}
+                <div className="flex items-center gap-3.5 p-3.5 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-gray-200">
                     {selectedDoctor.profilePicture ? (
                       <img
                         src={selectedDoctor.profilePicture}
@@ -1543,42 +819,33 @@ export default function Dashboard() {
                         onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-white/50">
-                        <Stethoscope size={32} />
+                      <div className="w-full h-full flex items-center justify-center bg-blue-50 text-blue-600">
+                        <User size={22} />
                       </div>
                     )}
-                    {/* Fallback icon if image fails */}
-                    <div className="w-full h-full flex-items-center justify-center text-white/50 hidden">
-                      <Stethoscope size={32} />
+                    <div className="w-full h-full items-center justify-center bg-blue-50 text-blue-600 hidden">
+                      <User size={22} />
                     </div>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold">{selectedDoctor.name}</h3>
-                    <p className="text-blue-200 text-sm font-medium">{selectedDoctor.specialty}</p>
-                    <div className="flex items-center gap-3 mt-1.5">
-                      <span className="text-xs bg-white/15 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                        <Clock size={10} /> {selectedDoctor.experience} yrs exp
-                      </span>
-                      <span className="text-xs bg-white/15 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                        <Star size={10} fill="currentColor" /> {selectedDoctor.rating}
-                      </span>
-                    </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-bold text-gray-900 truncate">{selectedDoctor.name}</h3>
+                    <p className="text-xs text-gray-500 font-medium">{selectedDoctor.specialty}</p>
                   </div>
-                  <div className="text-right bg-white/10 px-4 py-2.5 rounded-xl">
-                    <span className="block text-[10px] text-blue-200 uppercase tracking-widest font-bold">Fee</span>
-                    <span className="text-xl font-bold">{selectedDoctor.fee}</span>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <div className="flex items-center gap-1 text-xs text-gray-500 font-medium">
+                      <Star size={11} fill="currentColor" className="text-amber-400" /> {selectedDoctor.rating}
+                    </div>
+                    <div className="h-4 w-px bg-gray-200"></div>
+                    <div className="text-sm font-bold text-gray-900">{selectedDoctor.fee}</div>
                   </div>
                 </div>
               </div>
 
-              <form onSubmit={handleBookAppointment} className="p-6">
+              <form onSubmit={handleBookAppointment} className="p-6 pt-5">
 
-                {/* Step 1: Select Date */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">1</span>
-                    <label className="text-sm font-bold text-gray-900">Select Date</label>
-                  </div>
+                {/* Date */}
+                <div className="mb-5">
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">When</label>
                   <input
                     type="date"
                     required
@@ -1586,97 +853,119 @@ export default function Dashboard() {
                     value={bookingData.date}
                     onChange={(e) => setBookingData({ ...bookingData, date: e.target.value })}
                     onClick={(e) => e.target.showPicker && e.target.showPicker()}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition-all bg-gray-50/50 text-gray-800 font-medium text-sm hover:border-gray-200 cursor-pointer"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all bg-white text-gray-800 font-medium text-sm cursor-pointer hover:border-gray-300"
                   />
                 </div>
 
-                {/* Step 2: Select Time Slot */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">2</span>
-                    <label className="text-sm font-bold text-gray-900">Select Time Slot</label>
-                  </div>
-                  <div className="grid grid-cols-4 gap-2">
-                    {['09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'].map(time => (
-                      <button
-                        key={time}
-                        type="button"
-                        onClick={() => setBookingData({ ...bookingData, time })}
-                        className={`py-2.5 px-2 rounded-xl text-sm font-semibold transition-all duration-200 border-2 ${bookingData.time === time
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 scale-105'
-                          : 'bg-white text-gray-700 border-gray-100 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700'
-                          }`}
-                      >
-                        {time}
-                      </button>
-                    ))}
-                  </div>
-                  {/* Hidden input for form validation */}
+                {/* Time Slots — dynamic from doctor schedule */}
+                <div className="mb-5">
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Time Slot</label>
+                  {!bookingData.date ? (
+                    <p className="text-xs text-gray-400 italic py-3">Pick a date first to see available slots</p>
+                  ) : loadingSlots ? (
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {[1,2,3,4].map(i => <div key={i} className="h-10 bg-gray-100 rounded-lg animate-pulse" />)}
+                    </div>
+                  ) : availableSlots.length === 0 ? (
+                    <div className="text-center py-4 bg-red-50 rounded-xl border border-red-100">
+                      <p className="text-xs text-red-600 font-medium">No available slots on this date</p>
+                      <p className="text-[10px] text-red-400 mt-0.5">The doctor is either off or fully booked. Try another date.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {availableSlots.map(slot => (
+                        <button
+                          key={slot.time12}
+                          type="button"
+                          onClick={() => setBookingData({ ...bookingData, time: slot.time12 })}
+                          className={`py-2.5 rounded-lg text-xs font-semibold transition-all duration-150 ${bookingData.time === slot.time12
+                            ? 'bg-gray-900 text-white shadow-md'
+                            : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-100'
+                            }`}
+                        >
+                          {slot.time12}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <input type="hidden" required value={bookingData.time} />
                 </div>
 
-                {/* Step 3: Reason */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">3</span>
-                    <label className="text-sm font-bold text-gray-900">Reason for Visit</label>
-                  </div>
+                {/* Reason */}
+                <div className="mb-5">
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Reason for Visit</label>
                   <textarea
                     required
                     value={bookingData.reason}
                     onChange={(e) => setBookingData({ ...bookingData, reason: e.target.value })}
-                    placeholder="Briefly describe your symptoms or concern..."
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-blue-500 outline-none transition-all bg-gray-50/50 text-gray-800 text-sm min-h-[80px] resize-none hover:border-gray-200 placeholder:text-gray-400"
+                    placeholder="Describe your symptoms or concern..."
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all bg-white text-gray-800 text-sm min-h-[72px] resize-none hover:border-gray-300 placeholder:text-gray-300"
                   ></textarea>
                 </div>
 
-                {/* Summary Bar */}
+                {/* Summary */}
                 {bookingData.date && bookingData.time && (
-                  <div className="mb-5 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 flex items-center justify-between">
-                    <div className="flex items-center gap-3 text-sm">
-                      <Calendar size={14} className="text-blue-600" />
-                      <span className="text-gray-700 font-medium">
-                        {new Date(bookingData.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                      </span>
-                      <span className="text-gray-300">|</span>
-                      <span className="flex items-center gap-1.5 text-gray-700 font-medium">
-                        <Clock size={14} className="text-blue-600" /> {bookingData.time}
+                  <div className="mb-5 p-3.5 bg-blue-50/50 rounded-xl border border-blue-100/60">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-5 text-sm">
+                        <span className="flex items-center gap-1.5 text-gray-700 font-medium">
+                          <Calendar size={13} className="text-blue-500" />
+                          {new Date(bookingData.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                        </span>
+                        <span className="flex items-center gap-1.5 text-gray-700 font-medium">
+                          <Clock size={13} className="text-blue-500" /> {bookingData.time}
+                        </span>
+                      </div>
+                      <span className="flex items-center gap-1 text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold border border-emerald-100">
+                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                        Available
                       </span>
                     </div>
-                    <span className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-bold">Available</span>
                   </div>
                 )}
 
-                {/* Action Buttons */}
-                <div className="flex gap-3">
+                {/* Trust Indicators */}
+                <div className="flex items-center gap-4 mb-5 px-1">
+                  <span className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium">
+                    <Shield size={11} className="text-gray-300" />
+                    Free cancellation 24h before
+                  </span>
+                  <span className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium">
+                    <CalendarCheck size={11} className="text-gray-300" />
+                    Instant confirmation
+                  </span>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2.5">
                   <button
                     type="button"
                     onClick={() => setSelectedDoctor(null)}
                     disabled={isBooking}
-                    className="flex-1 px-5 py-3.5 rounded-xl text-gray-600 font-semibold hover:bg-gray-100 transition-all border border-gray-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-5 py-3 rounded-xl text-gray-500 font-semibold hover:bg-gray-50 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={!bookingData.time || isBooking}
-                    className={`flex-[2] px-5 py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 ${bookingData.time && !isBooking
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-xl shadow-blue-200/50 active:scale-[0.98]'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    className={`flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 ${bookingData.time && !isBooking
+                      ? 'bg-gray-900 hover:bg-black text-white shadow-lg shadow-gray-900/20 active:scale-[0.98]'
+                      : 'bg-gray-100 text-gray-300 cursor-not-allowed'
                       }`}
                   >
                     {isBooking ? (
                       <>
-                        <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg className="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                         </svg>
-                        Booking...
+                        Confirming...
                       </>
                     ) : (
                       <>
-                        <CheckCircle2 size={18} />
                         Confirm Booking
+                        <ChevronRight size={16} strokeWidth={2.5} />
                       </>
                     )}
                   </button>
