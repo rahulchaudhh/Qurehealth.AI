@@ -22,7 +22,8 @@ import {
     ArrowUpRight,
     X,
     ClipboardList,
-    Stethoscope
+    Stethoscope,
+    Plus
 } from 'lucide-react';
 import {
     AreaChart,
@@ -80,6 +81,17 @@ function DoctorDashboard() {
     const [profileData, setProfileData]   = useState({ name: '', phone: '', specialization: '', gender: 'other', imageFile: null });
     const [previewImage, setPreviewImage] = useState(null);
     const [toast, setToast]               = useState({ message: '', type: '', isVisible: false });
+
+    // Schedule state
+    const ALL_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const [scheduleData, setScheduleData] = useState({
+        fee: 0,
+        days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30
+    });
+    const [savingSchedule, setSavingSchedule] = useState(false);
     const [broadcastModal, setBroadcastModal] = useState({ isOpen: false, message: '', type: 'broadcast' });
     const [notifications, setNotifications]   = useState([]);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -151,6 +163,18 @@ function DoctorDashboard() {
             fetchAll();
             checkNotifications();
             setProfileData({ name: user.name || '', phone: user.phone || '', specialization: user.specialization || '', gender: user.gender || 'other', imageFile: null });
+            // Load schedule from user object (comes from /doctor/me)
+            if (user.availability) {
+                setScheduleData({
+                    fee: user.fee || 0,
+                    days: user.availability.days || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+                    startTime: user.availability.startTime || '09:00',
+                    endTime: user.availability.endTime || '17:00',
+                    slotDuration: user.availability.slotDuration || 30
+                });
+            } else {
+                setScheduleData(s => ({ ...s, fee: user.fee || 0 }));
+            }
             const iv = setInterval(checkNotifications, 15000);
             return () => clearInterval(iv);
         }
@@ -212,6 +236,34 @@ function DoctorDashboard() {
         if (f) { setProfileData(p => ({ ...p, imageFile: f })); setPreviewImage(URL.createObjectURL(f)); }
     };
 
+    const handleSaveSchedule = async (e) => {
+        e.preventDefault();
+        if (scheduleData.days.length === 0) { showToast('Select at least one working day.', 'error'); return; }
+        if (scheduleData.startTime >= scheduleData.endTime) { showToast('End time must be after start time.', 'error'); return; }
+        setSavingSchedule(true);
+        try {
+            const res = await axios.put('/doctor/schedule', {
+                fee: scheduleData.fee,
+                days: scheduleData.days,
+                startTime: scheduleData.startTime,
+                endTime: scheduleData.endTime,
+                slotDuration: scheduleData.slotDuration
+            });
+            if (res.data.success) showToast('Schedule saved successfully!');
+        } catch (err) {
+            showToast(err.response?.data?.error || 'Failed to save schedule', 'error');
+        } finally {
+            setSavingSchedule(false);
+        }
+    };
+
+    const toggleDay = (day) => {
+        setScheduleData(s => ({
+            ...s,
+            days: s.days.includes(day) ? s.days.filter(d => d !== day) : [...s.days, day]
+        }));
+    };
+
     const handleLogout = () => { window.location.href = 'http://localhost:5173'; };
     const pendingCount = appointments.filter(a => a.status === 'pending').length;
 
@@ -225,6 +277,7 @@ function DoctorDashboard() {
         { id: 'dashboard',    label: 'Dashboard',    icon: <LayoutDashboard size={16} /> },
         { id: 'patients',     label: 'My Patients',  icon: <Users size={16} /> },
         { id: 'appointments', label: 'Appointments', icon: <CalendarDays size={16} />, badge: pendingCount },
+        { id: 'schedule',     label: 'Schedule & Fee', icon: <Clock size={16} /> },
         { id: 'profile',      label: 'Edit Profile', icon: <UserCircle size={16} /> },
     ];
 
@@ -293,7 +346,7 @@ function DoctorDashboard() {
                 {/* Top bar */}
                 <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-10">
                     <h1 className="text-sm font-semibold text-gray-900">
-                        {view === 'dashboard' ? 'Overview' : view === 'patients' ? 'My Patients' : view === 'appointments' ? 'Schedule' : 'Edit Profile'}
+                        {view === 'dashboard' ? 'Overview' : view === 'patients' ? 'My Patients' : view === 'appointments' ? 'Schedule' : view === 'schedule' ? 'Schedule & Fee' : 'Edit Profile'}
                     </h1>
                     <div className="flex items-center gap-3">
                         <span className="text-xs text-gray-400 hidden sm:block">
@@ -563,6 +616,112 @@ function DoctorDashboard() {
                                         ))}
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* SCHEDULE & FEE */}
+                    {view === 'schedule' && (
+                        <div className="max-w-lg">
+                            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                                <div className="px-6 py-4 border-b border-gray-100">
+                                    <p className="text-sm font-medium text-gray-900">Schedule & Fee Settings</p>
+                                    <p className="text-xs text-gray-400 mt-0.5">Set your availability and consultation fee</p>
+                                </div>
+                                <form onSubmit={handleSaveSchedule} className="p-6 space-y-5">
+                                    {/* Fee */}
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1.5">Consultation Fee (NPR)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="50"
+                                            value={scheduleData.fee}
+                                            onChange={e => setScheduleData(s => ({ ...s, fee: e.target.value }))}
+                                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder="e.g. 1500"
+                                        />
+                                    </div>
+
+                                    {/* Working Days */}
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-2">Working Days</label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {ALL_DAYS.map(day => (
+                                                <button
+                                                    key={day}
+                                                    type="button"
+                                                    onClick={() => toggleDay(day)}
+                                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
+                                                        scheduleData.days.includes(day)
+                                                            ? 'bg-blue-600 text-white border-blue-600'
+                                                            : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
+                                                    }`}
+                                                >
+                                                    {day.slice(0, 3)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Time Range */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-600 mb-1.5">Start Time</label>
+                                            <input
+                                                type="time"
+                                                value={scheduleData.startTime}
+                                                onChange={e => setScheduleData(s => ({ ...s, startTime: e.target.value }))}
+                                                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-600 mb-1.5">End Time</label>
+                                            <input
+                                                type="time"
+                                                value={scheduleData.endTime}
+                                                onChange={e => setScheduleData(s => ({ ...s, endTime: e.target.value }))}
+                                                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Slot Duration */}
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1.5">Slot Duration (minutes)</label>
+                                        <select
+                                            value={scheduleData.slotDuration}
+                                            onChange={e => setScheduleData(s => ({ ...s, slotDuration: Number(e.target.value) }))}
+                                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                                        >
+                                            <option value={15}>15 minutes</option>
+                                            <option value={20}>20 minutes</option>
+                                            <option value={30}>30 minutes</option>
+                                            <option value={45}>45 minutes</option>
+                                            <option value={60}>60 minutes</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Preview */}
+                                    <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                                        <p className="text-xs text-blue-700 font-medium mb-1">Preview</p>
+                                        <p className="text-xs text-blue-600">
+                                            {scheduleData.days.length > 0
+                                                ? `${scheduleData.days.map(d => d.slice(0, 3)).join(', ')} · ${scheduleData.startTime} – ${scheduleData.endTime} · ${scheduleData.slotDuration}min slots · NPR ${scheduleData.fee || 0}`
+                                                : 'No working days selected'}
+                                        </p>
+                                    </div>
+
+                                    <div className="flex justify-end pt-1">
+                                        <button
+                                            type="submit"
+                                            disabled={savingSchedule}
+                                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-60 transition-colors"
+                                        >
+                                            {savingSchedule ? 'Saving…' : 'Save Schedule'}
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     )}

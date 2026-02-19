@@ -63,6 +63,24 @@ const appointmentSchema = new mongoose.Schema({
     isVisibleToDoctor: {
         type: Boolean,
         default: true
+    },
+    rating: {
+        score: {
+            type: Number,
+            min: 1,
+            max: 5
+        },
+        feedback: {
+            type: String,
+            default: ''
+        },
+        isRated: {
+            type: Boolean,
+            default: false
+        },
+        givenAt: {
+            type: Date
+        }
     }
 });
 
