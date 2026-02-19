@@ -2,8 +2,9 @@ const Doctor = require('../models/Doctor');
 
 exports.getPendingDoctors = async (req, res) => {
     try {
-        const doctors = await Doctor.find({ status: 'pending' }).select('-password').maxTimeMS(30000);
-        res.json({ data: doctors });
+        const doctors = await Doctor.find({ status: 'pending' }).select('-password -profilePicture').lean().maxTimeMS(30000);
+        const results = doctors.map(d => ({ ...d, hasProfilePicture: true }));
+        res.json({ data: results });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -47,8 +48,9 @@ exports.rejectDoctor = async (req, res) => {
 
 exports.getAllDoctors = async (req, res) => {
     try {
-        const doctors = await Doctor.find().select('-password').maxTimeMS(30000);
-        res.json({ data: doctors });
+        const doctors = await Doctor.find().select('-password -profilePicture').lean().maxTimeMS(30000);
+        const results = doctors.map(d => ({ ...d, hasProfilePicture: true }));
+        res.json({ data: results });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -57,8 +59,9 @@ exports.getAllDoctors = async (req, res) => {
 exports.getAllPatients = async (req, res) => {
     try {
         const Patient = require('../models/Patient');
-        const patients = await Patient.find().select('-password').maxTimeMS(30000);
-        res.json({ data: patients });
+        const patients = await Patient.find().select('-password -profilePicture').lean().maxTimeMS(30000);
+        const results = patients.map(p => ({ ...p, hasProfilePicture: true }));
+        res.json({ data: results });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -88,14 +91,24 @@ exports.getDashboardStats = async (req, res) => {
         const now = new Date();
         const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-        // Fetch current totals
-        const totalDoctors = await Doctor.countDocuments();
-        const totalPatients = await Patient.countDocuments();
-        const totalAppointments = await Appointment.countDocuments();
-
-        // Fetch counts from 7 days ago to calculate growth
-        const doctorsSevenDaysAgo = await Doctor.countDocuments({ createdAt: { $lt: sevenDaysAgo } });
-        const patientsSevenDaysAgo = await Patient.countDocuments({ createdAt: { $lt: sevenDaysAgo } });
+        // Run all queries in parallel with maxTimeMS to avoid sequential blocking
+        const [
+            totalDoctors,
+            totalPatients,
+            totalAppointments,
+            doctorsSevenDaysAgo,
+            patientsSevenDaysAgo,
+            appointmentStats
+        ] = await Promise.all([
+            Doctor.countDocuments().maxTimeMS(30000),
+            Patient.countDocuments().maxTimeMS(30000),
+            Appointment.countDocuments().maxTimeMS(30000),
+            Doctor.countDocuments({ createdAt: { $lt: sevenDaysAgo } }).maxTimeMS(30000),
+            Patient.countDocuments({ createdAt: { $lt: sevenDaysAgo } }).maxTimeMS(30000),
+            Appointment.aggregate([
+                { $group: { _id: '$status', count: { $sum: 1 } } }
+            ]).option({ maxTimeMS: 30000 })
+        ]);
 
         const calculateGrowth = (current, previous) => {
             if (previous === 0) return current > 0 ? 100 : 0;
@@ -104,15 +117,6 @@ exports.getDashboardStats = async (req, res) => {
 
         const doctorGrowth = calculateGrowth(totalDoctors, doctorsSevenDaysAgo);
         const patientGrowth = calculateGrowth(totalPatients, patientsSevenDaysAgo);
-
-        const appointmentStats = await Appointment.aggregate([
-            {
-                $group: {
-                    _id: '$status',
-                    count: { $sum: 1 }
-                }
-            }
-        ]);
 
         const stats = {
             doctors: totalDoctors,
@@ -137,19 +141,23 @@ exports.getDashboardStats = async (req, res) => {
 exports.broadcast = async (req, res) => {
     try {
         const { message, target } = req.body; // target: 'all', 'doctors', 'patients'
+        if (!message || !message.trim()) {
+            return res.status(400).json({ error: 'Message is required' });
+        }
         const Notification = require('../models/Notification');
         const Doctor = require('../models/Doctor');
         const Patient = require('../models/Patient');
 
-        let recipients = [];
-        if (target === 'all' || target === 'doctors') {
-            const doctors = await Doctor.find().select('_id');
-            recipients = [...recipients, ...doctors.map(d => ({ id: d._id, model: 'Doctor' }))];
-        }
-        if (target === 'all' || target === 'patients') {
-            const patients = await Patient.find().select('_id');
-            recipients = [...recipients, ...patients.map(p => ({ id: p._id, model: 'Patient' }))];
-        }
+        // Run recipient queries in parallel for speed
+        const [doctors, patients] = await Promise.all([
+            (target === 'all' || target === 'doctors') ? Doctor.find().select('_id').lean().maxTimeMS(15000) : Promise.resolve([]),
+            (target === 'all' || target === 'patients') ? Patient.find().select('_id').lean().maxTimeMS(15000) : Promise.resolve([]),
+        ]);
+
+        const recipients = [
+            ...doctors.map(d => ({ id: d._id, model: 'Doctor' })),
+            ...patients.map(p => ({ id: p._id, model: 'Patient' })),
+        ];
 
         const batchId = `bc_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
         const notifications = recipients.map(r => ({
@@ -176,8 +184,10 @@ exports.triggerAlert = async (req, res) => {
         const Doctor = require('../models/Doctor');
         const Patient = require('../models/Patient');
 
-        const doctors = await Doctor.find().select('_id');
-        const patients = await Patient.find().select('_id');
+        const [doctors, patients] = await Promise.all([
+            Doctor.find().select('_id').maxTimeMS(30000),
+            Patient.find().select('_id').maxTimeMS(30000),
+        ]);
 
         const recipients = [
             ...doctors.map(d => ({ id: d._id, model: 'Doctor' })),

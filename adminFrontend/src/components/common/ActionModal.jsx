@@ -9,15 +9,22 @@ const ActionModal = ({ isOpen, onClose, type, onAction, loading }) => {
 
     const isBroadcast = type === 'broadcast';
 
+    const handleClose = () => {
+        setMessage('');
+        setTarget('all');
+        onClose();
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         onAction({ message, target });
         setMessage('');
+        setTarget('all');
     };
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+        <div onClick={handleClose} className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
+            <div onClick={e => e.stopPropagation()} className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
                 {/* Header: Soft and Airy */}
                 <div className={`p-8 flex justify-between items-center ${isBroadcast ? 'bg-amber-50/40' : 'bg-rose-50/40'}`}>
                     <div className="flex items-center gap-4">
@@ -34,7 +41,7 @@ const ActionModal = ({ isOpen, onClose, type, onAction, loading }) => {
                         </div>
                     </div>
                     <button
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="p-2.5 hover:bg-white/80 rounded-full transition-colors text-slate-300 hover:text-slate-600"
                     >
                         <X size={18} />
@@ -99,7 +106,7 @@ const ActionModal = ({ isOpen, onClose, type, onAction, loading }) => {
                     <div className="flex gap-4">
                         <button
                             type="button"
-                            onClick={onClose}
+                            onClick={handleClose}
                             className="px-6 py-4 rounded-2xl text-xs font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all"
                         >
                             Cancel

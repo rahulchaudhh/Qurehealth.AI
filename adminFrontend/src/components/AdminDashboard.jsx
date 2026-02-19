@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useCallback } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import axios from '../api/axios';
 import { Outlet } from 'react-router-dom';
@@ -11,6 +11,7 @@ function AdminDashboard() {
     const [allDoctors, setAllDoctors] = useState([]);
     const [allPatients, setAllPatients] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [fetchError, setFetchError] = useState(null);
     const [actionLoading, setActionLoading] = useState(null);
     const [stats, setStats] = useState(null);
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -22,7 +23,7 @@ function AdminDashboard() {
     const fetchPendingDoctors = async () => {
         try {
             const { data } = await axios.get('/admin/pending-doctors');
-            setPendingDoctors(data.data);
+            setPendingDoctors(data.data ?? []);
         } catch (error) {
             console.error('Error fetching pending doctors:', error);
         }
@@ -31,16 +32,17 @@ function AdminDashboard() {
     const fetchAllDoctors = async () => {
         try {
             const { data } = await axios.get('/admin/doctors');
-            setAllDoctors(data.data);
+            setAllDoctors(data.data ?? []);
         } catch (error) {
             console.error('Error fetching all doctors:', error);
+            setFetchError('Failed to load doctors. Please refresh.');
         }
     };
 
     const fetchAllPatients = async () => {
         try {
             const { data } = await axios.get('/admin/patients');
-            setAllPatients(data.data);
+            setAllPatients(data.data ?? []);
         } catch (error) {
             console.error('Error fetching all patients:', error);
         }
@@ -55,15 +57,14 @@ function AdminDashboard() {
         }
     };
 
-    const loadData = useCallback(async () => {
-        setLoading(true);
-        await Promise.all([fetchPendingDoctors(), fetchAllDoctors(), fetchAllPatients(), fetchStats()]);
+    useEffect(() => {
+        // Fire all requests independently — UI renders immediately, each section updates as its data arrives
+        fetchPendingDoctors();
+        fetchAllDoctors();
+        fetchAllPatients();
+        fetchStats();
         setLoading(false);
     }, []);
-
-    useEffect(() => {
-        loadData();
-    }, [loadData]);
 
     const handleApprove = async (id) => {
         setActionLoading(id);
@@ -204,6 +205,17 @@ function AdminDashboard() {
                 />
 
                 <main className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                    {fetchError && (
+                        <div className="mb-4 px-4 py-3 bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium rounded-xl flex items-center justify-between">
+                            <span>⚠️ {fetchError}</span>
+                            <button
+                                onClick={() => { setFetchError(null); fetchAllDoctors(); fetchAllPatients(); fetchPendingDoctors(); fetchStats(); }}
+                                className="ml-4 text-xs font-bold underline hover:text-rose-900"
+                            >
+                                Retry
+                            </button>
+                        </div>
+                    )}
                     <Outlet context={{
                         stats,
                         pendingDoctors: filteredPendingDoctors,

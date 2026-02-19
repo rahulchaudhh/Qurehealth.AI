@@ -237,10 +237,10 @@ function DoctorDashboard() {
             <aside className="w-56 bg-white border-r border-gray-200 hidden md:flex flex-col fixed h-full z-20">
                 <div className="h-14 flex items-center px-4 border-b border-gray-100">
                     <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center">
-                            <Stethoscope size={14} className="text-white" />
+                        <div className="w-7 h-7 bg-blue-50 rounded-md flex items-center justify-center">
+                            <Plus size={14} className="text-blue-600" strokeWidth={3} />
                         </div>
-                        <span className="text-sm font-semibold text-gray-900">Qurehealth<span className="text-blue-600">.AI</span></span>
+                        <span className="text-sm font-semibold text-gray-900">Qurehealth.AI</span>
                     </div>
                 </div>
 

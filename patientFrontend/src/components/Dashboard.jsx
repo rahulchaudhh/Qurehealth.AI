@@ -580,12 +580,13 @@ export default function Dashboard() {
       {/* Header */}
       <header className="bg-white px-10 py-4 flex justify-between items-center border-b border-gray-200 shadow-sm sticky top-0 z-50">
         <div className="flex items-center gap-2 cursor-pointer group" onClick={() => navigate('/')}>
-          <div className="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+          <div className="w-9 h-9 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-100 transition-all duration-300">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 5v14M5 12h14" />
             </svg>
           </div>
-          <span className="text-xl font-bold tracking-tight text-gray-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
+          <span className="text-xl font-bold tracking-tight text-gray-900">
+            Qurehealth.AI
           </span>
         </div>
         <nav className="flex gap-8 hidden md:flex">
@@ -669,10 +670,8 @@ export default function Dashboard() {
       {currentPage === 'dashboard' && (
         <main className="max-w-7xl mx-auto py-10 px-5 min-h-[calc(100vh-140px)]">
           <div className="mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              Welcome, {user.name}
-            </h1>
-            <p className="text-gray-600">Here's your health overview for today</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-1">Dashboard</h2>
+            <p className="text-gray-500 text-sm">Welcome back, {user.name} — Here's your health overview</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
