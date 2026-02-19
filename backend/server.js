@@ -21,12 +21,19 @@ const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
       tls: true,
-      tlsAllowInvalidCertificates: true, // For debugging SSL issues
+      tlsAllowInvalidCertificates: true,
+      serverSelectionTimeoutMS: 15000,  // Fail fast if Atlas unreachable
+      socketTimeoutMS: 45000,           // Kill socket if idle >45s (prevents 120s hangs)
+      connectTimeoutMS: 20000,          // 20s to establish connection
+      maxPoolSize: 10,                  // Keep persistent connection pool
+      minPoolSize: 2,                   // Keep at least 2 connections warm
+      heartbeatFrequencyMS: 10000,      // Check connection health every 10s
+      retryWrites: true,                // Auto-retry failed writes
+      retryReads: true,                 // Auto-retry failed reads
     });
     console.log('MongoDB Connected');
   } catch (err) {
-    console.error('MongoDB Connection Error:', err);
-    // process.exit(1); // Keep alive to show error
+    console.error('MongoDB Connection Error:', err.message);
   }
 };
 connectDB();

@@ -16,8 +16,8 @@ function App() {
     <Router>
       <AuthProvider>
         <Routes>
-          {/* Public routes - Redirect to Main Login */}
-          <Route path="/login" element={<RedirectToMainLogin />} />
+          {/* Login redirects to unified login on patient portal */}
+          <Route path="/login" element={<Login />} />
 
           {/* Protected routes */}
           <Route
@@ -38,11 +38,11 @@ function App() {
             <Route path="communications" element={<PageWrapper Component={Communications} />} />
           </Route>
 
-          {/* Root redirect to login by default */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          {/* Root → if authenticated go to dashboard, else go to login */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          {/* Catch all - redirect to login */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          {/* Catch all */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </AuthProvider>
     </Router>

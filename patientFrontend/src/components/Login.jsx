@@ -5,53 +5,89 @@ import '../styles/Auth.css';
 
 function Login() {
   const navigate = useNavigate();
-  const { login, user, loading } = useContext(AuthContext);
+  const { login, googleLogin, user, loading } = useContext(AuthContext);
 
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const googleBtnRef = useRef(null);
 
-  // Guard: only redirect once, avoid infinite re-renders
-  const hasRedirected = useRef(false);
-
+  // If already logged in as patient, go to dashboard
   useEffect(() => {
-    if (!loading && user && !hasRedirected.current) {
-      hasRedirected.current = true;
-      if (user.role === 'admin') {
-        window.location.replace('http://localhost:5175');
-      } else if (user.role === 'doctor') {
-        window.location.replace('http://localhost:5174/dashboard');
-      } else {
-        navigate('/dashboard', { replace: true });
-      }
+    if (!loading && user?.role === 'patient') {
+      navigate('/dashboard', { replace: true });
     }
   }, [loading, user, navigate]);
 
-  const handleChange = (e) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  // Google Sign-In button init
+  useEffect(() => {
+    if (loading) return;
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId || !googleBtnRef.current) return;
 
-  const handleSubmit = async (e) => {
+    const tryInit = () => {
+      if (!window.google?.accounts?.id) return false;
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: async (response) => {
+          setError('');
+          setSubmitting(true);
+          const result = await googleLogin(response.credential);
+          setSubmitting(false);
+          if (!result.success) {
+            setError(result.error);
+          } else {
+            redirectByRole(result.role);
+          }
+        },
+      });
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        theme: 'outline', size: 'large', width: 400, text: 'signin_with_google', locale: 'en',
+      });
+      return true;
+    };
+
+    if (!tryInit()) {
+      const t = setInterval(() => { if (tryInit()) clearInterval(t); }, 300);
+      return () => clearInterval(t);
+    }
+  }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Redirect based on role after login
+  function redirectByRole(role) {
+    const token = localStorage.getItem('token');
+    if (role === 'admin') {
+      window.location.href = `http://localhost:5175/dashboard?token=${token}`;
+    } else if (role === 'doctor') {
+      window.location.href = `http://localhost:5174/dashboard?token=${token}`;
+    } else {
+      navigate('/dashboard', { replace: true });
+    }
+  }
+
+  // Form submit
+  async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    setIsSubmitting(true);
+    setSubmitting(true);
 
-    const result = await login(formData);
-    setIsSubmitting(false);
+    const result = await login(email, password);
+    setSubmitting(false);
 
     if (!result.success) {
-      setError(result.error || 'Login failed');
+      setError(result.error);
+    } else {
+      redirectByRole(result.role);
     }
-    // On success, the useEffect above handles redirect via user state update
-  };
+  }
 
-  // Show spinner only while auth check is running (first load with existing token)
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ width: '40px', height: '40px', border: '4px solid #e5e7eb', borderTop: '4px solid #4f46e5', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }}></div>
-          <p style={{ color: '#6b7280', fontSize: '14px' }}>Checking session...</p>
+          <p style={{ color: '#6b7280', fontSize: '14px' }}>Loading...</p>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       </div>
@@ -80,12 +116,10 @@ function Login() {
             <label className="auth-label">Email</label>
             <input
               type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               className="auth-input"
               placeholder="Enter your email"
-              autoComplete="email"
               required
             />
           </div>
@@ -94,24 +128,27 @@ function Login() {
             <label className="auth-label">Password</label>
             <input
               type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
               className="auth-input"
               placeholder="Enter your password"
-              autoComplete="current-password"
               required
             />
           </div>
 
-          <button
-            type="submit"
-            className="auth-button"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Logging in...' : 'Login'}
+          <button type="submit" className="auth-button" disabled={submitting}>
+            {submitting ? 'Logging in...' : 'Login'}
           </button>
         </form>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0' }}>
+          <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }}></div>
+          <span style={{ color: '#9ca3af', fontSize: '13px' }}>or</span>
+          <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }}></div>
+        </div>
+
+        {/* Google Sign-In */}
+        <div ref={googleBtnRef} style={{ width: '100%', marginBottom: '20px' }}></div>
 
         <p className="auth-footer">
           Don't have an account? <Link to="/register" className="auth-link">Register here</Link>

@@ -9,19 +9,24 @@ exports.bookAppointment = async (req, res) => {
     try {
         const { doctorId, date, time, reason } = req.body;
 
-        // Verify doctor exists
-        const doctor = await Doctor.findById(doctorId);
+        if (!doctorId || !date || !time || !reason) {
+            return res.status(400).json({ error: 'doctorId, date, time, and reason are all required.' });
+        }
+
+        // Run doctor lookup and duplicate check in parallel to halve DB wait time
+        const [doctor, existingAppointment] = await Promise.all([
+            Doctor.findById(doctorId).select('_id name').maxTimeMS(30000),
+            Appointment.findOne({
+                doctor: doctorId,
+                date,
+                time,
+                status: { $in: ['pending', 'confirmed'] }
+            }).select('_id').maxTimeMS(30000)
+        ]);
+
         if (!doctor) {
             return res.status(404).json({ error: 'Doctor not found' });
         }
-
-        // Check for existing appointment
-        const existingAppointment = await Appointment.findOne({
-            doctor: doctorId,
-            date,
-            time,
-            status: { $ne: 'cancelled' }
-        });
 
         if (existingAppointment) {
             return res.status(400).json({ error: 'Time slot already booked. Please choose another time.' });
@@ -55,7 +60,8 @@ exports.getDoctorAppointments = async (req, res) => {
             isVisibleToDoctor: { $ne: false } // Only fetch visible appointments
         })
             .populate('patient', 'name email phone gender dateOfBirth profilePicture')
-            .sort({ date: 1, time: 1 });
+            .sort({ date: 1, time: 1 })
+            .maxTimeMS(30000);
 
         res.json({
             success: true,
@@ -106,7 +112,8 @@ exports.getMyAppointments = async (req, res) => {
             isVisibleToPatient: { $ne: false }
         })
             .populate('doctor', 'name specialization hospital phone profilePicture')
-            .sort({ date: 1, time: 1 });
+            .sort({ date: 1, time: 1 })
+            .maxTimeMS(30000);
 
         res.json({
             success: true,
@@ -126,7 +133,7 @@ exports.updateAppointmentStatus = async (req, res) => {
     try {
         const { status, diagnosis, prescription, doctorNotes } = req.body; // 'confirmed', 'completed', 'cancelled'
 
-        let appointment = await Appointment.findById(req.params.id);
+        let appointment = await Appointment.findById(req.params.id).maxTimeMS(30000);
 
         if (!appointment) {
             return res.status(404).json({ error: 'Appointment not found' });
@@ -153,7 +160,8 @@ exports.updateAppointmentStatus = async (req, res) => {
             else if (status === 'completed') message = `Your appointment with Dr. ${req.user.name} has been marked as completed.`;
 
             await Notification.create({
-                recipient: appointment.patient._id, // Ensure patient is populated or accessed via appointment.patient if it's an ID
+                recipient: appointment.patient,
+                recipientModel: 'Patient',
                 message: message,
                 type: 'appointment_status'
             });

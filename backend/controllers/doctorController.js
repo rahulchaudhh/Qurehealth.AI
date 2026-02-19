@@ -46,12 +46,13 @@ exports.loginDoctor = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        const doctor = await Doctor.findOne({ email }).select('+password');
+        const doctor = await Doctor.findOne({ email }).select('+password').lean();
         if (!doctor) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        const isMatch = await doctor.matchPassword(password);
+        const bcrypt = require('bcryptjs');
+        const isMatch = await bcrypt.compare(password, doctor.password);
         if (!isMatch) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
@@ -64,8 +65,7 @@ exports.loginDoctor = async (req, res) => {
             });
         }
 
-        const doctorObj = doctor.toObject();
-        doctorObj.role = 'doctor';
+        const doctorObj = { ...doctor, role: 'doctor' };
 
         const token = signToken({
             _id: doctorObj._id,

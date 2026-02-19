@@ -1,6 +1,6 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { Component } from 'react';
+import { Component, useEffect } from 'react';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
@@ -10,7 +10,18 @@ import PatientProfile from './components/PatientProfile';
 import PaymentSuccess from './components/PaymentSuccess';
 import MedicalRecordView from './components/MedicalRecordView';
 
-// Error Boundary to catch crashes and show a helpful message instead of white screen
+// Clears all localStorage and redirects to home
+function ClearAndRedirect() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    navigate('/', { replace: true });
+  }, [navigate]);
+  return null;
+}
+
+// Error Boundary to catch crashes
 class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
@@ -51,6 +62,8 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          {/* Emergency: visit /clear to wipe stuck localStorage token */}
+          <Route path="/clear" element={<ClearAndRedirect />} />
 
           {/* Protected routes */}
           <Route

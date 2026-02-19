@@ -14,7 +14,7 @@ const patientSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Please add a password'],
+    required: false,
     minlength: 6,
     select: false
   },
@@ -25,6 +25,11 @@ const patientSchema = new mongoose.Schema({
     enum: ['male', 'female', 'other']
   },
   address: String,
+  googleId: {
+    type: String,
+    sparse: true
+  },
+  profilePicture: String,
   createdAt: {
     type: Date,
     default: Date.now

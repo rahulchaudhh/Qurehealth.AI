@@ -15,12 +15,15 @@ function ProtectedRoute({ children, allowedRoles }) {
     }
 
     if (!user) {
-        return <Navigate to="/login" replace />;
+        // Not authenticated → go to unified landing page
+        window.location.replace('http://localhost:5173');
+        return null;
     }
 
     if (allowedRoles && !allowedRoles.includes(user.role)) {
-        // If user is not admin, redirect to login or show error
-        return <Navigate to="/login" replace />;
+        // Wrong role → go to landing page
+        window.location.replace('http://localhost:5173');
+        return null;
     }
 
     return children;
