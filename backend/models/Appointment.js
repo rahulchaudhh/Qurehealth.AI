@@ -44,6 +44,10 @@ const appointmentSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    meetingLink: {
+        type: String,
+        default: ''
+    },
     paymentStatus: {
         type: String,
         enum: ['pending', 'paid', 'failed'],

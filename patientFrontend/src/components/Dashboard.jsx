@@ -1053,7 +1053,8 @@ export default function Dashboard() {
                           action: 'TEMPLATE',
                           text: `Consultation with ${viewAppointment.doctor.name}`,
                           dates: `${fmt(startDt)}/${fmt(endDt)}`,
-                          details: `Appointment with ${viewAppointment.doctor.name} (${viewAppointment.doctor.specialization || 'Specialist'})\nReason: ${viewAppointment.reason || 'Consultation'}`,
+                          details: `Appointment with ${viewAppointment.doctor.name} (${viewAppointment.doctor.specialization || 'Specialist'})\nReason: ${viewAppointment.reason || 'Consultation'}${viewAppointment.meetingLink ? '\nMeeting Link: ' + viewAppointment.meetingLink : ''}`,
+                          ...(viewAppointment.meetingLink ? { location: viewAppointment.meetingLink } : {}),
                         });
                         window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, '_blank');
                       }}
