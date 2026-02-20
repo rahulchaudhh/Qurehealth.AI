@@ -23,7 +23,9 @@ import {
     X,
     ClipboardList,
     Stethoscope,
-    Plus
+    Plus,
+    Video,
+    Link
 } from 'lucide-react';
 import {
     AreaChart,
@@ -77,6 +79,11 @@ function DoctorDashboard() {
     const [completionModal, setCompletionModal]   = useState({ isOpen: false, appointmentId: null });
     const [consultationData, setConsultationData] = useState({ diagnosis: '', prescription: '', doctorNotes: '' });
     const [savingConsultation, setSavingConsultation] = useState(false);
+
+    // Accept appointment modal state (for Google Meet link)
+    const [acceptModal, setAcceptModal] = useState({ isOpen: false, appointmentId: null });
+    const [meetingLink, setMeetingLink] = useState('');
+    const [savingAccept, setSavingAccept] = useState(false);
 
     const [profileData, setProfileData]   = useState({ name: '', phone: '', specialization: '', gender: 'other', imageFile: null });
     const [previewImage, setPreviewImage] = useState(null);
@@ -215,6 +222,14 @@ function DoctorDashboard() {
         setSavingConsultation(false);
         setCompletionModal({ isOpen: false, appointmentId: null });
         setConsultationData({ diagnosis: '', prescription: '', doctorNotes: '' });
+    };
+
+    const handleAcceptAppointment = async () => {
+        setSavingAccept(true);
+        await updateAppointmentStatus(acceptModal.appointmentId, 'confirmed', { meetingLink: meetingLink.trim() });
+        setSavingAccept(false);
+        setAcceptModal({ isOpen: false, appointmentId: null });
+        setMeetingLink('');
     };
 
     const handleProfileUpdate = async (e) => {
@@ -580,7 +595,7 @@ function DoctorDashboard() {
                                                         {apt.status === 'pending' && (
                                                             <>
                                                                 <button
-                                                                    onClick={() => updateAppointmentStatus(apt._id, 'confirmed')}
+                                                                    onClick={() => { setAcceptModal({ isOpen: true, appointmentId: apt._id }); setMeetingLink(''); }}
                                                                     className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded hover:bg-green-100 transition-colors"
                                                                 >
                                                                     <CheckCircle2 size={12} /> Accept
@@ -594,12 +609,25 @@ function DoctorDashboard() {
                                                             </>
                                                         )}
                                                         {apt.status === 'confirmed' && (
-                                                            <button
-                                                                onClick={() => setCompletionModal({ isOpen: true, appointmentId: apt._id })}
-                                                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
-                                                            >
-                                                                <ClipboardList size={12} /> Complete
-                                                            </button>
+                                                            <>
+                                                                {apt.meetingLink && (
+                                                                    <a
+                                                                        href={apt.meetingLink}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors"
+                                                                        title="Open Meeting"
+                                                                    >
+                                                                        <Video size={12} /> Meet
+                                                                    </a>
+                                                                )}
+                                                                <button
+                                                                    onClick={() => setCompletionModal({ isOpen: true, appointmentId: apt._id })}
+                                                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
+                                                                >
+                                                                    <ClipboardList size={12} /> Complete
+                                                                </button>
+                                                            </>
                                                         )}
                                                         {['completed', 'cancelled'].includes(apt.status) && (
                                                             <button
@@ -795,6 +823,70 @@ function DoctorDashboard() {
                     )}
                 </main>
             </div>
+
+            {/* Accept Appointment Modal (Google Meet Link) */}
+            {acceptModal.isOpen && (
+                <div
+                    className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+                    onClick={e => e.target === e.currentTarget && setAcceptModal({ isOpen: false, appointmentId: null })}
+                >
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                            <div>
+                                <h2 className="text-sm font-semibold text-gray-900">Accept Appointment</h2>
+                                <p className="text-xs text-gray-400 mt-0.5">Add a Google Meet link for the consultation</p>
+                            </div>
+                            <button
+                                onClick={() => setAcceptModal({ isOpen: false, appointmentId: null })}
+                                className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                                    <div className="flex items-center gap-1.5">
+                                        <Video size={13} className="text-blue-600" />
+                                        Google Meet Link <span className="text-gray-400 font-normal">(optional)</span>
+                                    </div>
+                                </label>
+                                <div className="relative">
+                                    <Link size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        type="url"
+                                        placeholder="https://meet.google.com/xxx-xxxx-xxx"
+                                        value={meetingLink}
+                                        onChange={e => setMeetingLink(e.target.value)}
+                                        className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    />
+                                </div>
+                                <p className="text-xs text-gray-400 mt-1.5">
+                                    Create a meeting at <a href="https://meet.google.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">meet.google.com</a> and paste the link here. The patient will see it in their dashboard.
+                                </p>
+                            </div>
+                            <div className="flex justify-end gap-2 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setAcceptModal({ isOpen: false, appointmentId: null })}
+                                    className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleAcceptAppointment}
+                                    disabled={savingAccept}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-60 transition-colors inline-flex items-center gap-1.5"
+                                >
+                                    <CheckCircle2 size={14} />
+                                    {savingAccept ? 'Confirming…' : 'Confirm & Accept'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Consultation Modal */}
             {completionModal.isOpen && (

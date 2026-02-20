@@ -140,7 +140,7 @@ exports.getMyAppointments = async (req, res) => {
 // @access  Private (Doctor)
 exports.updateAppointmentStatus = async (req, res) => {
     try {
-        const { status, diagnosis, prescription, doctorNotes } = req.body; // 'confirmed', 'completed', 'cancelled'
+        const { status, diagnosis, prescription, doctorNotes, meetingLink } = req.body; // 'confirmed', 'completed', 'cancelled'
 
         let appointment = await Appointment.findById(req.params.id).maxTimeMS(30000);
 
@@ -157,6 +157,7 @@ exports.updateAppointmentStatus = async (req, res) => {
         if (diagnosis) appointment.diagnosis = diagnosis;
         if (prescription) appointment.prescription = prescription;
         if (doctorNotes) appointment.doctorNotes = doctorNotes;
+        if (meetingLink) appointment.meetingLink = meetingLink;
 
         await appointment.save();
 
@@ -164,7 +165,10 @@ exports.updateAppointmentStatus = async (req, res) => {
         if (status === 'confirmed' || status === 'cancelled' || status === 'completed') {
             const Notification = require('../models/Notification');
             let message = '';
-            if (status === 'confirmed') message = `Your appointment with Dr. ${req.user.name} on ${new Date(appointment.date).toLocaleDateString()} has been accepted and confirmed.`;
+            if (status === 'confirmed') {
+                message = `Your appointment with Dr. ${req.user.name} on ${new Date(appointment.date).toLocaleDateString()} has been accepted and confirmed.`;
+                if (meetingLink) message += ` Join via: ${meetingLink}`;
+            }
             else if (status === 'cancelled') message = `Your appointment with Dr. ${req.user.name} has been cancelled.`;
             else if (status === 'completed') message = `Your appointment with Dr. ${req.user.name} has been marked as completed.`;
 
