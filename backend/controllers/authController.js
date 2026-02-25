@@ -1,7 +1,9 @@
 const Patient = require('../models/Patient');
 const Doctor = require('../models/Doctor');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
+const sendEmail = require('../utils/sendEmail');
 
 // Helper: generate a JWT with user payload
 const signToken = (payload) => {
@@ -311,5 +313,134 @@ exports.googleAuth = async (req, res) => {
   } catch (error) {
     console.error('Google auth error:', error);
     res.status(401).json({ error: 'Google sign-in failed. Please try again.' });
+  }
+};
+
+// @desc    Forgot password — send reset email
+// @route   POST /api/auth/forgot-password
+// @access  Public
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Please provide an email address.' });
+
+    // Search both Patient and Doctor
+    const [patient, doctor] = await Promise.all([
+      Patient.findOne({ email }),
+      Doctor.findOne({ email })
+    ]);
+
+    const user = patient || doctor;
+
+    if (!user) {
+      // Don't reveal whether email exists — always return success
+      return res.json({ success: true, message: 'If that email is registered, a reset link has been sent.' });
+    }
+
+    // Check if user signed up via Google (no password to reset)
+    if (patient && patient.googleId && !patient.password) {
+      return res.status(400).json({ error: 'This account uses Google Sign-In. Please login via Google.' });
+    }
+
+    // Generate random token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+
+    // Hash the token before storing (security best practice)
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 minutes
+    await user.save({ validateBeforeSave: false });
+
+    // Build reset URL (always point to patient frontend which handles all login)
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
+
+    const html = `
+      <div style="font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px; background: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h2 style="color: #1e293b; margin: 0 0 4px;">QureHealth.AI</h2>
+          <p style="color: #64748b; font-size: 14px; margin: 0;">Password Reset Request</p>
+        </div>
+        <p style="color: #334155; font-size: 15px; line-height: 1.6;">
+          Hi <strong>${user.name}</strong>,
+        </p>
+        <p style="color: #334155; font-size: 15px; line-height: 1.6;">
+          We received a request to reset your password. Click the button below to set a new one. This link expires in <strong>15 minutes</strong>.
+        </p>
+        <div style="text-align: center; margin: 28px 0;">
+          <a href="${resetUrl}" style="display: inline-block; padding: 14px 32px; background: #4F46E5; color: white; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px;">
+            Reset Password
+          </a>
+        </div>
+        <p style="color: #94a3b8; font-size: 13px; line-height: 1.5;">
+          If you didn't request this, you can safely ignore this email. Your password won't be changed.
+        </p>
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+        <p style="color: #94a3b8; font-size: 11px; text-align: center;">
+          If the button doesn't work, copy and paste this link:<br/>
+          <a href="${resetUrl}" style="color: #4F46E5; word-break: break-all;">${resetUrl}</a>
+        </p>
+      </div>
+    `;
+
+    await sendEmail({
+      to: user.email,
+      subject: 'QureHealth.AI — Password Reset',
+      html
+    });
+
+    res.json({ success: true, message: 'If that email is registered, a reset link has been sent.' });
+
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ error: 'Failed to send reset email. Please try again later.' });
+  }
+};
+
+// @desc    Reset password using token
+// @route   POST /api/auth/reset-password/:token
+// @access  Public
+exports.resetPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const { token } = req.params;
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    }
+
+    // Hash the incoming token to compare with stored hash
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Search both collections for matching token that hasn't expired
+    const [patient, doctor] = await Promise.all([
+      Patient.findOne({
+        resetPasswordToken: hashedToken,
+        resetPasswordExpire: { $gt: Date.now() }
+      }).select('+password'),
+      Doctor.findOne({
+        resetPasswordToken: hashedToken,
+        resetPasswordExpire: { $gt: Date.now() }
+      }).select('+password')
+    ]);
+
+    const user = patient || doctor;
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired reset token. Please request a new one.' });
+    }
+
+    // Set new password (the pre-save hook in the model will hash it)
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    res.json({ success: true, message: 'Password has been reset successfully. You can now log in.' });
+
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ error: 'Failed to reset password. Please try again.' });
   }
 };

@@ -1,34 +1,769 @@
-[dotenv@17.2.3] injecting env (8) from .env -- tip: 📡 add observability to secrets: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (13) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
 Attempting to connect to MongoDB...
-[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
 Server running on port 5001
 MongoDB Connected
 Connection pool warmed up
 Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: getaddrinfo ENOTFOUND ac-jcocgck-shard-00-01.wpprnkb.mongodb.net
+Keep-alive ping failed: getaddrinfo ENOTFOUND ac-jcocgck-shard-00-01.wpprnkb.mongodb.net
+Keep-alive ping failed: getaddrinfo ENOTFOUND ac-jcocgck-shard-00-01.wpprnkb.mongodb.net
 Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
 MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection 8 to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: connection 8 to 159.41.183.76:27017 timed out
+MongoDB Connected
+Connection pool warmed up
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
 MongoDB Connected
 Connection pool warmed up
 Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
 Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
 MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: connection <monitor> to 159.41.183.61:27017 timed out
+Keep-alive ping failed: connection <monitor> to 159.41.183.61:27017 timed out
+Keep-alive ping failed: connection <monitor> to 159.41.183.61:27017 timed out
 MongoDB Connected
 Connection pool warmed up
+MongoDB disconnected — reconnecting in 3s...
 Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
 Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+MongoDB disconnected — reconnecting in 3s...
+Connection pool warmed up
+MongoDB Connected
+Connection pool warmed up
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
 Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
 Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
-Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
-Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
-BACKEND: getBroadcastHistory called
-BACKEND: Returning 2 pulses
-BACKEND: getBroadcastHistory called
-BACKEND: getBroadcastHistory called
-BACKEND: Returning 2 pulses
-BACKEND: Returning 2 pulses
-Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+Connection pool warmed up
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
 Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
 Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
 MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB disconnected — reconnecting in 3s...
+MongoDB Connected
+MongoDB disconnected — reconnecting in 3s...
+Connection pool warmed up
+MongoDB Connected
+Connection pool warmed up
+MongoDB Connected
+Connection pool warmed up
+MongoDB Connected
+Connection pool warmed up
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: connection <monitor> to 159.41.183.61:27017 timed out
+Keep-alive ping failed: connection <monitor> to 159.41.183.61:27017 timed out
+Keep-alive ping failed: connection <monitor> to 159.41.183.61:27017 timed out
+Keep-alive ping failed: connection <monitor> to 159.41.183.61:27017 timed out
+Keep-alive ping failed: connection <monitor> to 159.41.183.61:27017 timed out
+Keep-alive ping failed: connection <monitor> to 159.41.183.61:27017 timed out
+Keep-alive ping failed: connection <monitor> to 159.41.183.61:27017 timed out
+Keep-alive ping failed: connection <monitor> to 159.41.183.61:27017 timed out
+Keep-alive ping failed: connection <monitor> to 159.41.183.61:27017 timed out
+Keep-alive ping failed: connection <monitor> to 159.41.183.61:27017 timed out
+Keep-alive ping failed: connection <monitor> to 159.41.183.61:27017 timed out
+MongoDB Connected
+Connection pool warmed up
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+MongoDB disconnected — reconnecting in 3s...
+Connection pool warmed up
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+Connection pool warmed up
+MongoDB disconnected — reconnecting in 3s...
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+MongoDB disconnected — reconnecting in 3s...
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+MongoDB Connected
+MongoDB disconnected — reconnecting in 3s...
+Connection pool warmed up
+Connection pool warmed up
+MongoDB Connected
+Connection pool warmed up
+MongoDB Connected
+Connection pool warmed up
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+Connection pool warmed up
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+MongoDB disconnected — reconnecting in 3s...
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+MongoDB disconnected — reconnecting in 3s...
+Connection pool warmed up
+MongoDB Connected
+Connection pool warmed up
+MongoDB Connected
+Connection pool warmed up
+MongoDB Connected
+Connection pool warmed up
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connection Error: connection 10 to 159.41.183.76:27017 timed out
+MongoDB Connected
+Connection pool warmed up
+MongoDB disconnected — reconnecting in 3s...
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+MongoDB Connected
+MongoDB disconnected — reconnecting in 3s...
+Connection pool warmed up
+Connection pool warmed up
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+Connection pool warmed up
+MongoDB disconnected — reconnecting in 3s...
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+MongoDB Connected
+MongoDB disconnected — reconnecting in 3s...
+Connection pool warmed up
+Connection pool warmed up
+MongoDB Connected
+Connection pool warmed up
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+Connection pool warmed up
+MongoDB disconnected — reconnecting in 3s...
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB disconnected — reconnecting in 3s...
+MongoDB Connected
+MongoDB Connected
+MongoDB disconnected — reconnecting in 3s...
+Connection pool warmed up
+Connection pool warmed up
+MongoDB Connected
+Connection pool warmed up
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+Connection pool warmed up
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+MongoDB disconnected — reconnecting in 3s...
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+MongoDB disconnected — reconnecting in 3s...
+Connection pool warmed up
+MongoDB Connected
+MongoDB Connected
+Connection pool warmed up
+Connection pool warmed up
+MongoDB Connected
+Connection pool warmed up
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+MongoDB disconnected — reconnecting in 3s...
+Connection pool warmed up
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+Connection pool warmed up
+MongoDB disconnected — reconnecting in 3s...
+MongoDB disconnected — reconnecting in 3s...
+MongoDB disconnected — reconnecting in 3s...
+MongoDB disconnected — reconnecting in 3s...
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+MongoDB Connected
+MongoDB Connected
+MongoDB Connected
+MongoDB Connected
+MongoDB disconnected — reconnecting in 3s...
+Connection pool warmed up
+Connection pool warmed up
+Connection pool warmed up
+Connection pool warmed up
+Connection pool warmed up
+MongoDB Connected
+Connection pool warmed up
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB Connected
+Connection pool warmed up
+MongoDB disconnected — reconnecting in 3s...
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout
+MongoDB disconnected — reconnecting in 3s...
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+Keep-alive ping failed: Connection pool for ac-jcocgck-shard-00-02.wpprnkb.mongodb.net:27017 was cleared because another operation failed with: "connection <monitor> to 159.41.183.76:27017 timed out"
+MongoDB disconnected — reconnecting in 3s...
+MongoDB Connected
+MongoDB Connected
+MongoDB disconnected — reconnecting in 3s...
+Connection pool warmed up
+Connection pool warmed up
+MongoDB Connected
+Connection pool warmed up
+MongoDB Connected
+Connection pool warmed up
+MongoDB Connected
+Connection pool warmed up
+[dotenv@17.2.3] injecting env (13) from .env -- tip: 🔑 add access controls to secrets: https://dotenvx.com/ops
+Attempting to connect to MongoDB...
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+Server running on port 5001
 MongoDB Connected
 Connection pool warmed up

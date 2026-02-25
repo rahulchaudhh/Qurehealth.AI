@@ -30,6 +30,8 @@ const patientSchema = new mongoose.Schema({
     sparse: true
   },
   profilePicture: String,
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
   createdAt: {
     type: Date,
     default: Date.now

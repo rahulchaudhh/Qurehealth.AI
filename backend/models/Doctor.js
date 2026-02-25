@@ -81,7 +81,9 @@ const doctorSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
-    }
+    },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date
 });
 
 doctorSchema.pre('save', async function () {
