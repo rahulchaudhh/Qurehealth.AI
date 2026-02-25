@@ -9,6 +9,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import PatientProfile from './components/PatientProfile';
 import PaymentSuccess from './components/PaymentSuccess';
 import MedicalRecordView from './components/MedicalRecordView';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 
 // Clears all localStorage and redirects to home
 function ClearAndRedirect() {
@@ -62,6 +64,8 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           {/* Emergency: visit /clear to wipe stuck localStorage token */}
           <Route path="/clear" element={<ClearAndRedirect />} />
 
