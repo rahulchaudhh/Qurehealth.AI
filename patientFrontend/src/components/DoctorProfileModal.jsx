@@ -1,314 +1,275 @@
 import { useEffect, useState } from 'react';
 import {
-  X, Star, Stethoscope, Calendar, Clock, Award, Phone,
-  ChevronLeft, ChevronRight, MessageSquare, CheckCircle2, User
+  ArrowLeft, Star, Stethoscope, Calendar, Clock, Award, Phone,
+  CheckCircle2, MapPin, Share2, Heart
 } from 'lucide-react';
 import api from '../api/axios';
+import ReviewsSection from './reviews/ReviewsSection';
 
-const STAR_LABELS = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
-
-function StarRow({ score, size = 14 }) {
-  return (
-    <span className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map(s => (
-        <Star
-          key={s}
-          size={size}
-          className={s <= score ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200 fill-gray-200'}
-        />
-      ))}
-    </span>
-  );
-}
-
-function RatingBar({ label, count, total, color }) {
-  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-  return (
-    <div className="flex items-center gap-2 text-xs">
-      <span className="w-16 text-gray-500 shrink-0">{label}</span>
-      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%`, transition: 'width 0.6s ease' }} />
-      </div>
-      <span className="w-6 text-gray-400 text-right shrink-0">{count}</span>
-    </div>
-  );
-}
-
-export default function DoctorProfileModal({ doctor, onClose, onBook }) {
+export default function DoctorProfileModal({ doctor, onClose, onBook, currentUserId }) {
   const [reviews, setReviews] = useState([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
-  const [reviewPage, setReviewPage] = useState(0);
-  const REVIEWS_PER_PAGE = 3;
+  const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
+  const fetchReviews = () => {
     if (!doctor?.id) return;
     setLoadingReviews(true);
     api.get(`/doctor/${doctor.id}/reviews`)
       .then(res => setReviews(res.data.data || []))
       .catch(() => setReviews([]))
       .finally(() => setLoadingReviews(false));
+  };
+
+  useEffect(() => {
+    fetchReviews();
   }, [doctor?.id]);
 
-  // Close on backdrop click
-  const handleBackdrop = (e) => {
-    if (e.target === e.currentTarget) onClose();
-  };
+  // Lock body scroll when profile is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
 
   if (!doctor) return null;
 
   const cleanName = doctor.name.replace(/^(dr\.?)\s*/i, '');
   const displayName = `Dr. ${cleanName.charAt(0).toUpperCase() + cleanName.slice(1)}`;
-
-  // Rating distribution
-  const dist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-  reviews.forEach(r => { if (r.score >= 1 && r.score <= 5) dist[r.score]++; });
-
-  // Paginated reviews
-  const totalPages = Math.ceil(reviews.length / REVIEWS_PER_PAGE);
-  const visibleReviews = reviews.slice(reviewPage * REVIEWS_PER_PAGE, (reviewPage + 1) * REVIEWS_PER_PAGE);
-
   const avatarInitial = cleanName.charAt(0).toUpperCase();
   const ratingAvg = doctor.rating > 0 ? doctor.rating.toFixed(1) : null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
-      onClick={handleBackdrop}
-    >
-      <div
-        className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
-        style={{ animation: 'modalIn 0.22s cubic-bezier(.4,0,.2,1)' }}
-      >
-        {/* ── Hero Header ── */}
-        <div className="relative bg-gradient-to-br from-blue-600 to-blue-700 px-6 pt-8 pb-16 shrink-0">
+    <div className="fixed inset-0 z-50 bg-white flex flex-col" style={{ animation: 'pageSlideIn 0.28s cubic-bezier(.4,0,.2,1)' }}>
+
+      {/* ── Sticky Top Bar (Google-style) ── */}
+      <header className="sticky top-0 z-30 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+            className="p-2 -ml-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
+            aria-label="Go back"
           >
-            <X size={16} />
+            <ArrowLeft size={20} strokeWidth={2} />
           </button>
+          <div className="min-w-0">
+            <h1 className="text-sm font-bold text-gray-900 truncate">{displayName}</h1>
+            <p className="text-[11px] text-gray-400 font-medium truncate">{doctor.specialty}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setSaved(!saved)}
+            className={`p-2 rounded-full transition-colors ${saved ? 'text-red-500 bg-red-50' : 'text-gray-400 hover:bg-gray-100'}`}
+            aria-label="Save doctor"
+          >
+            <Heart size={18} className={saved ? 'fill-red-500' : ''} />
+          </button>
+          <button
+            onClick={() => { navigator.clipboard?.writeText(window.location.href); }}
+            className="p-2 rounded-full text-gray-400 hover:bg-gray-100 transition-colors"
+            aria-label="Share"
+          >
+            <Share2 size={18} />
+          </button>
+        </div>
+      </header>
 
-          <div className="flex items-end gap-4">
+      {/* ── Scrollable Full Page Content ── */}
+      <div className="flex-1 overflow-y-auto overscroll-contain">
+
+        {/* Hero Banner */}
+        <div className="relative bg-gradient-to-br from-blue-600 via-blue-600 to-blue-700 px-6 sm:px-10 pt-8 sm:pt-10 pb-20 sm:pb-24">
+          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-start sm:items-end gap-5">
             {/* Avatar */}
-            <div className="w-20 h-20 rounded-2xl border-4 border-white/30 overflow-hidden bg-blue-500 flex items-center justify-center shrink-0 shadow-lg">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white/25 overflow-hidden bg-blue-500 flex items-center justify-center shrink-0 shadow-xl">
               <img
                 src={`/api/doctor/${doctor.id}/profile-picture`}
                 alt={displayName}
                 className="w-full h-full object-cover"
                 onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
               />
-              <div className="w-full h-full hidden items-center justify-center text-white text-2xl font-bold">
+              <div className="w-full h-full hidden items-center justify-center text-white text-3xl font-bold">
                 {avatarInitial}
               </div>
             </div>
 
-            {/* Name / specialty */}
+            {/* Name / Specialty / Rating */}
             <div className="pb-1 min-w-0">
-              <h2 className="text-xl font-bold text-white leading-tight truncate">{displayName}</h2>
-              <p className="text-blue-100 text-sm mt-0.5">{doctor.specialty}</p>
-              <div className="flex items-center gap-3 mt-2">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight truncate">{displayName}</h2>
+              <p className="text-blue-100 text-sm sm:text-base mt-1">{doctor.specialty}</p>
+              <div className="flex flex-wrap items-center gap-3 mt-3">
                 {ratingAvg ? (
-                  <span className="flex items-center gap-1 text-yellow-300 text-sm font-bold">
-                    <Star size={13} fill="currentColor" />
+                  <span className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm font-bold text-white">
+                    <Star size={14} fill="currentColor" className="text-yellow-300" />
                     {ratingAvg}
-                    <span className="text-blue-200 font-normal text-xs">({doctor.ratingCount} reviews)</span>
+                    <span className="text-blue-200 font-normal text-xs ml-0.5">({doctor.ratingCount} reviews)</span>
                   </span>
                 ) : (
-                  <span className="text-blue-200 text-xs font-medium">No reviews yet</span>
+                  <span className="text-blue-200 text-xs font-medium bg-white/10 px-3 py-1.5 rounded-full">No reviews yet</span>
                 )}
-                <span className="flex items-center gap-1 text-blue-100 text-xs">
-                  <CheckCircle2 size={12} className="text-green-300" />
-                  Verified
+                <span className="flex items-center gap-1.5 text-white/90 text-xs bg-white/10 px-3 py-1.5 rounded-full">
+                  <CheckCircle2 size={13} className="text-green-300" />
+                  Verified Doctor
+                </span>
+                <span className="flex items-center gap-1.5 text-white/90 text-xs bg-white/10 px-3 py-1.5 rounded-full">
+                  <MapPin size={13} className="text-blue-200" />
+                  {doctor.hospital}
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* ── Stat Strip ── */}
-        <div className="-mt-8 mx-5 bg-white rounded-xl shadow-md border border-gray-100 grid grid-cols-3 divide-x divide-gray-100 shrink-0 relative z-10">
-          {[
-            { icon: <Award size={15} className="text-blue-500" />, label: 'Experience', value: `${doctor.experience} yrs` },
-            { icon: <Clock size={15} className="text-green-500" />, label: 'Available', value: doctor.available },
-            { icon: <Calendar size={15} className="text-purple-500" />, label: 'Consult Fee', value: doctor.fee },
-          ].map((s, i) => (
-            <div key={i} className="flex flex-col items-center py-3 px-2 gap-1">
-              <div className="flex items-center gap-1.5">
-                {s.icon}
-                <span className="text-xs text-gray-400 font-medium">{s.label}</span>
+        {/* Stat Strip — overlapping hero */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-8 -mt-12 sm:-mt-14 relative z-10">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 grid grid-cols-3 divide-x divide-gray-100">
+            {[
+              { icon: <Award size={18} className="text-blue-500" />, label: 'Experience', value: `${doctor.experience} yrs` },
+              { icon: <Clock size={18} className="text-emerald-500" />, label: 'Available', value: doctor.available },
+              { icon: <Calendar size={18} className="text-purple-500" />, label: 'Consult Fee', value: doctor.fee },
+            ].map((s, i) => (
+              <div key={i} className="flex flex-col items-center py-5 px-3 gap-1.5">
+                <div className="flex items-center gap-2">
+                  {s.icon}
+                  <span className="text-xs text-gray-400 font-medium">{s.label}</span>
+                </div>
+                <span className="text-base font-bold text-gray-900">{s.value}</span>
               </div>
-              <span className="text-sm font-bold text-gray-800">{s.value}</span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* ── Scrollable Body ── */}
-        <div className="overflow-y-auto flex-1 px-5 py-5 space-y-6">
+        {/* Main Content — 2-column on desktop like Google */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          {/* About */}
-          <section>
-            <h3 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
-              <Stethoscope size={14} className="text-blue-500" /> About
-            </h3>
-            <p className="text-sm text-gray-500 leading-relaxed">
-              {displayName} is a qualified <span className="font-medium text-gray-700">{doctor.specialty}</span> with{' '}
-              <span className="font-medium text-gray-700">{doctor.experience} years</span> of clinical experience at{' '}
-              <span className="font-medium text-gray-700">{doctor.hospital}</span>. Committed to delivering compassionate,
-              evidence-based care to every patient.
-            </p>
-          </section>
+            {/* Left Column — Main content (2/3) */}
+            <div className="lg:col-span-2 space-y-8">
 
-          {/* Tags */}
-          <section>
-            <h3 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
-              <Award size={14} className="text-blue-500" /> Specializations
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {[doctor.specialty, 'Consultations', 'Diagnosis', 'Patient Care', 'Follow-ups'].map(tag => (
-                <span key={tag} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-100">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </section>
+              {/* About */}
+              <section>
+                <h3 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <Stethoscope size={16} className="text-blue-500" /> About
+                </h3>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  {displayName} is a qualified <span className="font-medium text-gray-700">{doctor.specialty}</span> with{' '}
+                  <span className="font-medium text-gray-700">{doctor.experience} years</span> of clinical experience at{' '}
+                  <span className="font-medium text-gray-700">{doctor.hospital}</span>. Committed to delivering compassionate,
+                  evidence-based care to every patient.
+                </p>
+              </section>
 
-          {/* Info row */}
-          <section className="bg-gray-50 rounded-xl p-4 grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-white rounded-lg shadow-sm flex items-center justify-center shrink-0">
-                <Phone size={13} className="text-blue-500" />
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">Hospital</p>
-                <p className="text-xs font-semibold text-gray-700">{doctor.hospital}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-white rounded-lg shadow-sm flex items-center justify-center shrink-0">
-                <Calendar size={13} className="text-green-500" />
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">Next Slot</p>
-                <p className="text-xs font-semibold text-gray-700">{doctor.available}</p>
-              </div>
-            </div>
-          </section>
-
-          {/* Reviews Section */}
-          <section>
-            <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-              <MessageSquare size={14} className="text-blue-500" />
-              Patient Reviews
-              {reviews.length > 0 && (
-                <span className="ml-auto text-xs text-gray-400 font-normal">{reviews.length} total</span>
-              )}
-            </h3>
-
-            {loadingReviews ? (
-              <div className="space-y-2">
-                {[1, 2].map(i => (
-                  <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />
-                ))}
-              </div>
-            ) : reviews.length === 0 ? (
-              <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                <Star size={24} className="text-gray-200 mx-auto mb-2" />
-                <p className="text-sm text-gray-400 font-medium">No reviews yet</p>
-                <p className="text-xs text-gray-300 mt-0.5">Be the first to share your experience</p>
-              </div>
-            ) : (
-              <>
-                {/* Rating summary */}
-                <div className="flex gap-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 mb-4 border border-blue-100/60">
-                  <div className="text-center shrink-0">
-                    <p className="text-4xl font-black text-blue-600">{ratingAvg || '—'}</p>
-                    <StarRow score={Math.round(doctor.rating)} size={12} />
-                    <p className="text-[10px] text-gray-400 mt-1">{reviews.length} reviews</p>
-                  </div>
-                  <div className="flex-1 flex flex-col justify-center gap-1.5">
-                    {[
-                      { label: '5 stars', count: dist[5], color: 'bg-green-400' },
-                      { label: '4 stars', count: dist[4], color: 'bg-lime-400' },
-                      { label: '3 stars', count: dist[3], color: 'bg-yellow-400' },
-                      { label: '2 stars', count: dist[2], color: 'bg-orange-400' },
-                      { label: '1 star',  count: dist[1], color: 'bg-red-400' },
-                    ].map(b => (
-                      <RatingBar key={b.label} label={b.label} count={b.count} total={reviews.length} color={b.color} />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Review Cards */}
-                <div className="space-y-3">
-                  {visibleReviews.map((r, i) => (
-                    <div key={i} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
-                      <div className="flex items-start gap-3">
-                        {/* Avatar */}
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${r.patientGender === 'female' ? 'bg-pink-400' : 'bg-blue-400'}`}>
-                          {r.patientName?.charAt(0).toUpperCase() || <User size={14} />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="text-sm font-semibold text-gray-800 truncate">{r.patientName}</p>
-                            <span className="text-[10px] text-gray-400 shrink-0">
-                              {r.givenAt ? new Date(r.givenAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <StarRow score={r.score} size={11} />
-                            <span className="text-[10px] text-gray-400 font-medium">{STAR_LABELS[r.score]}</span>
-                          </div>
-                          {r.feedback && (
-                            <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">"{r.feedback}"</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+              {/* Specializations */}
+              <section>
+                <h3 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <Award size={16} className="text-blue-500" /> Specializations
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {[doctor.specialty, 'Consultations', 'Diagnosis', 'Patient Care', 'Follow-ups'].map(tag => (
+                    <span key={tag} className="px-4 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold border border-blue-100">
+                      {tag}
+                    </span>
                   ))}
                 </div>
+              </section>
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-3 mt-3">
-                    <button
-                      onClick={() => setReviewPage(p => Math.max(0, p - 1))}
-                      disabled={reviewPage === 0}
-                      className="p-1.5 rounded-lg border border-gray-200 disabled:opacity-30 hover:bg-gray-50 transition-colors"
-                    >
-                      <ChevronLeft size={14} className="text-gray-500" />
-                    </button>
-                    <span className="text-xs text-gray-500 font-medium">
-                      {reviewPage + 1} / {totalPages}
+              {/* Reviews Section — Premium */}
+              <section>
+                <ReviewsSection
+                  reviews={reviews}
+                  rating={doctor.rating || 0}
+                  reviewCount={doctor.ratingCount || reviews.length}
+                  loading={loadingReviews}
+                  currentUserId={currentUserId}
+                  onReviewUpdated={fetchReviews}
+                />
+              </section>
+            </div>
+
+            {/* Right Column — Sidebar (1/3) */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-[65px] space-y-5">
+
+                {/* Book CTA Card */}
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-md p-5">
+                  <h4 className="text-sm font-bold text-gray-900 mb-1">Book an Appointment</h4>
+                  <p className="text-xs text-gray-400 mb-4">Choose a convenient time & get confirmed instantly</p>
+                  <button
+                    onClick={() => { onBook(doctor); onClose(); }}
+                    className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-200 transition-all"
+                  >
+                    Book Appointment
+                  </button>
+                  <div className="flex items-center justify-center gap-4 mt-3">
+                    <span className="text-[10px] text-gray-400 font-medium flex items-center gap-1">
+                      <CheckCircle2 size={10} className="text-emerald-500" />
+                      Instant confirmation
                     </span>
-                    <button
-                      onClick={() => setReviewPage(p => Math.min(totalPages - 1, p + 1))}
-                      disabled={reviewPage === totalPages - 1}
-                      className="p-1.5 rounded-lg border border-gray-200 disabled:opacity-30 hover:bg-gray-50 transition-colors"
-                    >
-                      <ChevronRight size={14} className="text-gray-500" />
-                    </button>
+                    <span className="text-[10px] text-gray-400 font-medium flex items-center gap-1">
+                      <Clock size={10} className="text-gray-300" />
+                      Free cancellation
+                    </span>
                   </div>
-                )}
-              </>
-            )}
-          </section>
-        </div>
+                </div>
 
-        {/* ── Footer CTA ── */}
-        <div className="px-5 py-4 border-t border-gray-100 bg-white shrink-0">
-          <button
-            onClick={() => { onBook(doctor); onClose(); }}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-200 transition-all"
-          >
-            Book Appointment with {displayName}
-          </button>
+                {/* Info Card */}
+                <div className="bg-gray-50 rounded-2xl border border-gray-100 p-5 space-y-4">
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Practice Info</h4>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center shrink-0 mt-0.5">
+                      <MapPin size={14} className="text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-700">{doctor.hospital}</p>
+                      <p className="text-[11px] text-gray-400">Kathmandu, Nepal</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center shrink-0 mt-0.5">
+                      <Phone size={14} className="text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-700">Contact via Platform</p>
+                      <p className="text-[11px] text-gray-400">Available through Qurehealth.AI</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center shrink-0 mt-0.5">
+                      <Calendar size={14} className="text-emerald-500" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-700">Next Available</p>
+                      <p className="text-[11px] text-emerald-600 font-semibold">{doctor.available}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fee Card */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-100/60 p-5">
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Consultation Fee</h4>
+                  <p className="text-2xl font-extrabold text-gray-900">{doctor.fee}</p>
+                  <p className="text-[11px] text-gray-400 mt-1">Per consultation · Inclusive of platform fees</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
 
+      {/* ── Mobile-only Sticky Bottom CTA ── */}
+      <div className="lg:hidden sticky bottom-0 bg-white border-t border-gray-200 px-4 py-3 shrink-0 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+        <button
+          onClick={() => { onBook(doctor); onClose(); }}
+          className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2"
+        >
+          Book Appointment with {displayName}
+        </button>
+      </div>
+
       <style>{`
-        @keyframes modalIn {
-          from { opacity: 0; transform: scale(0.95) translateY(10px); }
-          to   { opacity: 1; transform: scale(1) translateY(0); }
+        @keyframes pageSlideIn {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>

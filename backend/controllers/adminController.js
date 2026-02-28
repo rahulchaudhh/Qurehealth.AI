@@ -2,8 +2,11 @@ const Doctor = require('../models/Doctor');
 
 exports.getPendingDoctors = async (req, res) => {
     try {
-        const doctors = await Doctor.find({ status: 'pending' }).select('-password -profilePicture').lean().maxTimeMS(30000);
-        const results = doctors.map(d => ({ ...d, hasProfilePicture: true }));
+        const doctors = await Doctor.find({ status: 'pending' }).select('-password').lean().maxTimeMS(30000);
+        const results = doctors.map(d => {
+            const { profilePicture, ...rest } = d;
+            return { ...rest, hasProfilePicture: !!profilePicture };
+        });
         res.json({ data: results });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -48,8 +51,11 @@ exports.rejectDoctor = async (req, res) => {
 
 exports.getAllDoctors = async (req, res) => {
     try {
-        const doctors = await Doctor.find().select('-password -profilePicture').lean().maxTimeMS(30000);
-        const results = doctors.map(d => ({ ...d, hasProfilePicture: true }));
+        const doctors = await Doctor.find().select('-password').lean().maxTimeMS(30000);
+        const results = doctors.map(d => {
+            const { profilePicture, ...rest } = d;
+            return { ...rest, hasProfilePicture: !!profilePicture };
+        });
         res.json({ data: results });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -59,8 +65,11 @@ exports.getAllDoctors = async (req, res) => {
 exports.getAllPatients = async (req, res) => {
     try {
         const Patient = require('../models/Patient');
-        const patients = await Patient.find().select('-password -profilePicture').lean().maxTimeMS(30000);
-        const results = patients.map(p => ({ ...p, hasProfilePicture: true }));
+        const patients = await Patient.find().select('-password').lean().maxTimeMS(30000);
+        const results = patients.map(p => {
+            const { profilePicture, ...rest } = p;
+            return { ...rest, hasProfilePicture: !!profilePicture };
+        });
         res.json({ data: results });
     } catch (error) {
         res.status(500).json({ error: error.message });

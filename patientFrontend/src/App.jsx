@@ -11,6 +11,7 @@ import PaymentSuccess from './components/PaymentSuccess';
 import MedicalRecordView from './components/MedicalRecordView';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
+import GoogleAuthSuccess from './components/GoogleAuthSuccess';
 
 // Clears all localStorage and redirects to home
 function ClearAndRedirect() {
@@ -66,6 +67,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
           {/* Emergency: visit /clear to wipe stuck localStorage token */}
           <Route path="/clear" element={<ClearAndRedirect />} />
 

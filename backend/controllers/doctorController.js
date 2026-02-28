@@ -324,10 +324,12 @@ exports.getDoctorReviews = async (req, res) => {
             .populate('patient', 'name gender')
             .select('rating patient createdAt')
             .sort({ 'rating.givenAt': -1 })
-            .limit(20)
+            .limit(50)
             .maxTimeMS(15000);
 
         const formatted = reviews.map(r => ({
+            appointmentId: r._id,
+            patientId: r.patient?._id?.toString() || null,
             score: r.rating.score,
             feedback: r.rating.feedback,
             givenAt: r.rating.givenAt || r.createdAt,

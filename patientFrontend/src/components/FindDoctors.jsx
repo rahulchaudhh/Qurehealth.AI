@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Search, UserRound, ChevronLeft, Clock, Star, Stethoscope } from 'lucide-react';
 import DoctorProfileModal from './DoctorProfileModal';
+import { AuthContext } from '../context/AuthContext';
 
 export default function FindDoctors({
   doctors,
@@ -12,6 +13,7 @@ export default function FindDoctors({
   setCurrentPage,
 }) {
   const [profileDoctor, setProfileDoctor] = useState(null);
+  const { user } = useContext(AuthContext);
   return (
     <main className="max-w-6xl mx-auto py-10 px-5 min-h-[calc(100vh-140px)]">
       <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg mb-5 text-sm font-semibold text-gray-700 transition-all flex items-center gap-2 group" onClick={() => setCurrentPage('dashboard')}>
@@ -144,6 +146,7 @@ export default function FindDoctors({
           doctor={profileDoctor}
           onClose={() => setProfileDoctor(null)}
           onBook={(doc) => setSelectedDoctor(doc)}
+          currentUserId={user?._id || user?.id}
         />
       )}
     </main>

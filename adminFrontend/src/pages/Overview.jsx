@@ -5,11 +5,9 @@ import {
 } from 'recharts';
 import {
     Users, UserCheck, Calendar, ArrowUpRight, Download, Filter,
-    Plus, Radio, Bell, History, ClipboardCheck, ArrowRight
+    ArrowRight, ClipboardCheck
 } from 'lucide-react';
 import HighlightText from '../components/common/HighlightText';
-import ActionModal from '../components/common/ActionModal';
-import axios from '../api/axios';
 
 const formatTimeAgo = (date) => {
     if (!date) return 'Some time ago';
@@ -29,8 +27,6 @@ const formatTimeAgo = (date) => {
 
 function Overview({ stats, searchQuery = '', allDoctors = [], allPatients = [], pendingDoctors = [] }) {
     const [viewAll, setViewAll] = useState(false);
-    const [modal, setModal] = useState({ isOpen: false, type: null });
-    const [isActionLoading, setIsActionLoading] = useState(false);
     const [filterCategory, setFilterCategory] = useState('all'); // 'all', 'doctor', 'patient', 'application'
 
     const handleExport = () => {
@@ -70,28 +66,6 @@ function Overview({ stats, searchQuery = '', allDoctors = [], allPatients = [], 
         } catch (error) {
             console.error('Export error:', error);
             alert('Failed to export analytics. Please try again.');
-        }
-    };
-
-    const [toast, setToast] = useState(null);
-
-    const showToast = (msg, isError = false) => {
-        setToast({ msg, isError });
-        setTimeout(() => setToast(null), 3500);
-    };
-
-    const handleAction = async ({ message, target }) => {
-        setIsActionLoading(true);
-        try {
-            const endpoint = modal.type === 'broadcast' ? '/admin/broadcast' : '/admin/trigger-alert';
-            await axios.post(endpoint, { message, target });
-            setModal({ isOpen: false, type: null });
-            showToast(`${modal.type === 'broadcast' ? 'Broadcast' : 'Alert'} sent successfully!`);
-        } catch (error) {
-            console.error(`Error sending ${modal.type}:`, error);
-            showToast(`Failed to send ${modal.type}. ${error.response?.data?.error || 'Please try again.'}`, true);
-        } finally {
-            setIsActionLoading(false);
         }
     };
 
@@ -171,51 +145,11 @@ function Overview({ stats, searchQuery = '', allDoctors = [], allPatients = [], 
                     <div className="flex items-center gap-6 mb-1">
                         <h1 className="text-2xl font-bold text-slate-900 tracking-tight font-outfit">Platform Overview</h1>
 
-                        <div className="flex items-center gap-4">
-                            <button
-                                onClick={() => setModal({ isOpen: true, type: 'broadcast' })}
-                                className="flex items-center gap-2 px-1 py-1 text-slate-500 hover:text-amber-600 transition-all group"
-                            >
-                                <Radio size={16} className="text-slate-400 group-hover:text-amber-500 transition-colors" strokeWidth={2} />
-                                <span className="text-xs font-semibold">Broadcast</span>
-                            </button>
-
-                            <button
-                                onClick={() => setModal({ isOpen: true, type: 'alert' })}
-                                className="flex items-center gap-2 px-1 py-1 text-slate-500 hover:text-rose-600 transition-all group"
-                            >
-                                <Bell size={16} className="text-slate-400 group-hover:text-rose-500 transition-colors" strokeWidth={2} />
-                                <span className="text-xs font-semibold">Alerts</span>
-                            </button>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-bold">
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                            LIVE
-                        </div>
+                        
                     </div>
                     <p className="text-slate-500 text-sm">Welcome back. Here's what's happening today.</p>
                 </div>
                 <div className="flex gap-3">
-                    <div className="relative group/filter">
-                        <button className={`flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-semibold transition-all shadow-sm ${filterCategory !== 'all' ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
-                            <Filter size={16} /> {filterCategory === 'all' ? 'Filters' : `Filtered: ${filterCategory}`}
-                        </button>
-
-                        {/* Filter Dropdown */}
-                        <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-xl opacity-0 invisible group-hover/filter:opacity-100 group-hover/filter:visible transition-all z-50 p-1">
-                            {['all', 'doctor', 'patient', 'application'].map(cat => (
-                                <button
-                                    key={cat}
-                                    onClick={() => setFilterCategory(cat)}
-                                    className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-colors ${filterCategory === cat ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-50'}`}
-                                >
-                                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
                     <button
                         onClick={handleExport}
                         className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20 active:scale-95"
@@ -361,12 +295,32 @@ function Overview({ stats, searchQuery = '', allDoctors = [], allPatients = [], 
                         <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
                         Recent Activity
                     </h3>
-                    <button
-                        onClick={() => setViewAll(!viewAll)}
-                        className="text-indigo-600 text-xs font-bold hover:underline flex items-center gap-1"
-                    >
-                        {viewAll ? 'Show Less' : 'View All'} <ArrowRight size={12} className={`transition-transform duration-300 ${viewAll ? 'rotate-90' : ''}`} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        {/* Filter Dropdown */}
+                        <div className="relative group/filter">
+                            <button className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-xs font-semibold transition-all shadow-sm ${filterCategory !== 'all' ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+                                <Filter size={13} /> {filterCategory === 'all' ? 'Filter' : filterCategory.charAt(0).toUpperCase() + filterCategory.slice(1)}
+                            </button>
+                            <div className="absolute right-0 mt-2 w-44 bg-white border border-slate-100 rounded-xl shadow-xl opacity-0 invisible group-hover/filter:opacity-100 group-hover/filter:visible transition-all z-50 p-1">
+                                {['all', 'doctor', 'patient', 'application'].map(cat => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => setFilterCategory(cat)}
+                                        className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-colors ${filterCategory === cat ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-50'}`}
+                                    >
+                                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => setViewAll(!viewAll)}
+                            className="text-indigo-600 text-xs font-bold hover:underline flex items-center gap-1"
+                        >
+                            {viewAll ? 'Show Less' : 'View All'} <ArrowRight size={12} className={`transition-transform duration-300 ${viewAll ? 'rotate-90' : ''}`} />
+                        </button>
+                    </div>
                 </div>
                 <div className="space-y-4">
                     {displayedActivities.length === 0 ? (
@@ -395,21 +349,6 @@ function Overview({ stats, searchQuery = '', allDoctors = [], allPatients = [], 
                     )}
                 </div>
             </div>
-
-            <ActionModal
-                isOpen={modal.isOpen}
-                onClose={() => setModal({ isOpen: false, type: null })}
-                type={modal.type}
-                loading={isActionLoading}
-                onAction={handleAction}
-            />
-
-            {/* Toast notification */}
-            {toast && (
-                <div className={`fixed bottom-6 right-6 z-[70] px-5 py-3.5 rounded-2xl shadow-xl text-sm font-semibold flex items-center gap-3 animate-in slide-in-from-bottom-4 duration-300 ${toast.isError ? 'bg-rose-600 text-white' : 'bg-slate-900 text-white'}`}>
-                    {toast.isError ? '⚠️' : '✓'} {toast.msg}
-                </div>
-            )}
         </div>
     );
 }

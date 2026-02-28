@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import '../styles/Auth.css';
@@ -24,6 +24,7 @@ function Register() {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const successTimerRef = useRef(null);
 
   useEffect(() => {
     if (!loading && isAuthenticated && user) {
@@ -98,9 +99,9 @@ function Register() {
           name: '', email: '', password: '', phone: '', dateOfBirth: '', gender: 'male',
           specialization: '', experience: '', profilePicture: null
         });
-        setTimeout(() => {
+        successTimerRef.current = setTimeout(() => {
           navigate('/');
-        }, 3000);
+        }, 5000);
       } else {
         setSuccessMsg('Registration successful! Please login to continue.');
         setTimeout(() => {
@@ -152,8 +153,30 @@ function Register() {
         )}
 
         {successMsg && (
-          <div className="bg-green-50 text-green-700 p-4 rounded-lg mb-6 text-center border border-green-200 font-medium">
-            {successMsg}
+          <div className="bg-green-50 text-green-700 p-4 rounded-lg mb-6 text-center border border-green-200 font-medium relative overflow-hidden">
+            <button
+              onClick={() => {
+                clearTimeout(successTimerRef.current);
+                setSuccessMsg('');
+              }}
+              className="absolute top-2 right-2 text-green-500 hover:text-green-800 font-bold text-lg leading-none"
+              title="Dismiss"
+            >
+              ✕
+            </button>
+            <p className="pr-4">{successMsg}</p>
+            <div className="mt-3 h-1 bg-green-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-green-500 rounded-full"
+                style={{ animation: 'shrink 5s linear forwards' }}
+              />
+            </div>
+            <style>{`
+              @keyframes shrink {
+                from { width: 100%; }
+                to   { width: 0%; }
+              }
+            `}</style>
           </div>
         )}
 
@@ -161,7 +184,7 @@ function Register() {
           <form onSubmit={handleSubmit} className="auth-form" encType="multipart/form-data">
             {/* ... Name, Email, Password ... */}
             <div className="auth-form-group">
-              <label className="auth-label">Full Name*</label>
+              <label className="auth-label">Full Name</label>
               <input
                 type="text"
                 name="name"
@@ -173,7 +196,7 @@ function Register() {
             </div>
 
             <div className="auth-form-group">
-              <label className="auth-label">Email*</label>
+              <label className="auth-label">Email</label>
               <input
                 type="email"
                 name="email"
@@ -185,7 +208,7 @@ function Register() {
             </div>
 
             <div className="auth-form-group">
-              <label className="auth-label">Password*</label>
+              <label className="auth-label">Password</label>
               <input
                 type="password"
                 name="password"
@@ -199,7 +222,7 @@ function Register() {
             {role === 'doctor' && (
               <>
                 <div className="auth-form-group">
-                  <label className="auth-label">Specialization*</label>
+                  <label className="auth-label">Specialization</label>
                   <input
                     type="text"
                     name="specialization"
@@ -210,17 +233,19 @@ function Register() {
                   />
                 </div>
                 <div className="auth-form-group">
-                  <label className="auth-label">Experience (Years)*</label>
+                  <label className="auth-label">Experience (Years)</label>
                   <input
                     type="number"
                     name="experience"
                     value={formData.experience}
                     onChange={handleChange}
                     className="auth-input"
+                    min="0"
+                    onKeyDown={(e) => ['-', '+', 'e', 'E'].includes(e.key) && e.preventDefault()}
                   />
                 </div>
                 <div className="auth-form-group">
-                  <label className="auth-label">Profile Picture*</label>
+                  <label className="auth-label">Profile Picture</label>
                   <input
                     type="file"
                     name="profilePicture"

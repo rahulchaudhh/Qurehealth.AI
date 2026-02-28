@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { History, Radio, Bell, Trash2, Clock, Users, ArrowUpRight, Search, Filter } from 'lucide-react';
+import { History, Radio, Bell, Trash2, Clock, Users, ArrowUpRight, Search, Filter, Plus } from 'lucide-react';
 import axios from '../api/axios';
+import ActionModal from '../components/common/ActionModal';
 
 const formatTimeAgo = (date) => {
     if (!date) return 'Some time ago';
@@ -22,6 +23,30 @@ export default function Communications() {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [modal, setModal] = useState({ isOpen: false, type: null });
+    const [isActionLoading, setIsActionLoading] = useState(false);
+    const [toast, setToast] = useState(null);
+
+    const showToast = (msg, isError = false) => {
+        setToast({ msg, isError });
+        setTimeout(() => setToast(null), 3500);
+    };
+
+    const handleAction = async ({ message, target }) => {
+        setIsActionLoading(true);
+        try {
+            const endpoint = modal.type === 'broadcast' ? '/admin/broadcast' : '/admin/trigger-alert';
+            await axios.post(endpoint, { message, target });
+            setModal({ isOpen: false, type: null });
+            showToast(`${modal.type === 'broadcast' ? 'Broadcast' : 'Alert'} sent successfully!`);
+            fetchHistory();
+        } catch (error) {
+            console.error(`Error sending ${modal.type}:`, error);
+            showToast(`Failed to send ${modal.type}. ${error.response?.data?.error || 'Please try again.'}`, true);
+        } finally {
+            setIsActionLoading(false);
+        }
+    };
 
     useEffect(() => {
         fetchHistory();
@@ -63,6 +88,13 @@ export default function Communications() {
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Toast */}
+            {toast && (
+                <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-2xl shadow-xl text-sm font-semibold flex items-center gap-2 animate-in slide-in-from-top-4 duration-300 ${toast.isError ? 'bg-rose-600 text-white' : 'bg-slate-900 text-white'}`}>
+                    {toast.isError ? '⚠️' : '✅'} {toast.msg}
+                </div>
+            )}
+
             <div className="flex justify-between items-end">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 tracking-tight font-outfit mb-1">Communication Management</h1>
@@ -80,8 +112,28 @@ export default function Communications() {
                             className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all w-64"
                         />
                     </div>
+                    <button
+                        onClick={() => setModal({ isOpen: true, type: 'broadcast' })}
+                        className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-semibold hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20 active:scale-95"
+                    >
+                        <Radio size={15} /> New Broadcast
+                    </button>
+                    <button
+                        onClick={() => setModal({ isOpen: true, type: 'alert' })}
+                        className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-xl text-sm font-semibold hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/20 active:scale-95"
+                    >
+                        <Bell size={15} /> Send Alert
+                    </button>
                 </div>
             </div>
+
+            <ActionModal
+                isOpen={modal.isOpen}
+                onClose={() => setModal({ isOpen: false, type: null })}
+                type={modal.type}
+                onAction={handleAction}
+                loading={isActionLoading}
+            />
 
             <div className="bg-white rounded-[2rem] border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.02)] overflow-hidden">
                 <div className="p-6 border-b border-slate-50 flex justify-between items-center">
@@ -100,7 +152,7 @@ export default function Communications() {
                             <tr className="bg-slate-50/50">
                                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Message Pulse</th>
                                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Type</th>
-                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Impact</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Recipients</th>
                                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Sent</th>
                                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                             </tr>
@@ -141,15 +193,16 @@ export default function Communications() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-6">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex -space-x-2">
-                                                {[1, 2, 3].map(i => (
-                                                    <div key={i} className="w-6 h-6 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center text-[8px] font-bold text-slate-400">
-                                                        {i}
-                                                    </div>
-                                                ))}
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center">
+                                                <Users size={13} className="text-indigo-500" />
                                             </div>
-                                            <span className="text-xs font-bold text-slate-600">{item.recipientCount} Recipients</span>
+                                            <span className="text-sm font-bold text-slate-700">
+                                                {item.recipientCount ?? 0}
+                                            </span>
+                                            <span className="text-xs text-slate-400 font-medium">
+                                                {item.recipientCount === 1 ? 'user' : 'users'}
+                                            </span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-6">
@@ -164,7 +217,7 @@ export default function Communications() {
                                             className="inline-flex items-center gap-2 px-4 py-2 bg-white text-rose-600 border border-rose-100 rounded-xl text-[10px] font-black uppercase hover:bg-rose-600 hover:text-white hover:border-rose-600 hover:shadow-lg hover:shadow-rose-100 transition-all active:scale-95 group"
                                         >
                                             <Trash2 size={14} className="group-hover:scale-110 transition-transform" />
-                                            Stop Pulse
+                                            Cancel Broadcast
                                         </button>
                                     </td>
                                 </tr>

@@ -41,7 +41,7 @@ export default function MedicalHistory({
                     <div className="flex-1">
                       <h3 className="text-lg font-bold text-gray-900 mb-1">{record.diagnosis || record.reason}</h3>
                       <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                        <span className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                        <span className="flex items-center gap-1.5 bg-gray-100 text-gray-800 px-2 py-0.5 rounded-full text-xs font-semibold">
                           Dr. {record.doctor.name}
                         </span>
                         <span className="text-gray-300">•</span>
@@ -66,9 +66,6 @@ export default function MedicalHistory({
                     </div>
 
                     <div className="flex flex-col items-end gap-2">
-                      <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wider rounded-full border border-blue-100">
-                        Completed
-                      </span>
                       <button
                         onClick={() => handleDeleteRecord(record._id)}
                         className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-all mt-1"

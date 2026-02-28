@@ -304,10 +304,8 @@ function DoctorDashboard() {
             {/* Sidebar */}
             <aside className="w-56 bg-white border-r border-gray-200 hidden md:flex flex-col fixed h-full z-20">
                 <div className="h-14 flex items-center px-4 border-b border-gray-100">
-                    <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-blue-50 rounded-md flex items-center justify-center">
-                            <Plus size={14} className="text-blue-600" strokeWidth={3} />
-                        </div>
+                    <div className="flex items-center gap-1">
+                        <img src="/logo.png" alt="Qurehealth.AI" className="w-7 h-7 object-contain" />
                         <span className="text-sm font-semibold text-gray-900">Qurehealth.AI</span>
                     </div>
                 </div>
