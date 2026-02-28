@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect, useRef } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import '../styles/Auth.css';
@@ -11,7 +11,6 @@ function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const googleBtnRef = useRef(null);
 
   // If already logged in as patient, go to dashboard
   useEffect(() => {
@@ -20,39 +19,15 @@ function Login() {
     }
   }, [loading, user, navigate]);
 
-  // Google Sign-In button init
-  useEffect(() => {
-    if (loading) return;
+  // Google Sign-In via redirect (avoids GSI origin restriction on localhost)
+  function handleGoogleLogin() {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId || !googleBtnRef.current) return;
-
-    const tryInit = () => {
-      if (!window.google?.accounts?.id) return false;
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: async (response) => {
-          setError('');
-          setSubmitting(true);
-          const result = await googleLogin(response.credential);
-          setSubmitting(false);
-          if (!result.success) {
-            setError(result.error);
-          } else {
-            redirectByRole(result.role);
-          }
-        },
-      });
-      window.google.accounts.id.renderButton(googleBtnRef.current, {
-        theme: 'outline', size: 'large', width: 400, text: 'signin_with_google', locale: 'en',
-      });
-      return true;
-    };
-
-    if (!tryInit()) {
-      const t = setInterval(() => { if (tryInit()) clearInterval(t); }, 300);
-      return () => clearInterval(t);
-    }
-  }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!clientId) { setError('Google Sign-In is not configured.'); return; }
+    const redirectUri = 'http://localhost:5001/api/auth/google/callback';
+    const scope = 'openid email profile';
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&prompt=select_account`;
+    window.location.href = url;
+  }
 
   // Redirect based on role after login
   function redirectByRole(role) {
@@ -98,12 +73,8 @@ function Login() {
     <div className="auth-container">
       <div className="auth-card">
         <h2 className="auth-title">Login</h2>
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-          </div>
+        <div className="flex items-center justify-center gap-1 mb-8">
+          <img src="/logo.png" alt="Qurehealth.AI" className="w-8 h-8 object-contain" />
           <span className="text-xl font-bold tracking-tight text-slate-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
             Qurehealth<span className="text-slate-900">.AI</span>
           </span>
@@ -153,7 +124,37 @@ function Login() {
         </div>
 
         {/* Google Sign-In */}
-        <div ref={googleBtnRef} style={{ width: '100%', marginBottom: '20px' }}></div>
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+            padding: '10px 16px',
+            border: '1px solid #d1d5db',
+            borderRadius: '8px',
+            background: '#fff',
+            color: '#374151',
+            fontSize: '14px',
+            fontWeight: '500',
+            cursor: 'pointer',
+            marginBottom: '20px',
+            transition: 'background 0.15s',
+          }}
+          onMouseOver={e => e.currentTarget.style.background = '#f9fafb'}
+          onMouseOut={e => e.currentTarget.style.background = '#fff'}
+        >
+          <svg width="18" height="18" viewBox="0 0 48 48">
+            <path fill="#4285F4" d="M44.5 20H24v8.5h11.7C34.2 33.6 29.6 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 2.9l6.4-6.4C34.5 5.1 29.5 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c10.8 0 20-7.8 20-21 0-1.4-.1-2.7-.5-4z"/>
+            <path fill="#34A853" d="M6.3 14.7l7 5.1C15 16.1 19.2 13 24 13c3 0 5.8 1.1 7.9 2.9l6.4-6.4C34.5 5.1 29.5 3 24 3c-7.7 0-14.4 4.4-17.7 11.7z"/>
+            <path fill="#FBBC05" d="M24 45c5.4 0 10.3-1.8 14.1-4.9l-6.5-5.3C29.6 36.6 26.9 37.5 24 37.5c-5.5 0-10.2-3.7-11.8-8.7l-7 5.4C8.3 41 15.5 45 24 45z"/>
+            <path fill="#EA4335" d="M44.5 20H24v8.5h11.7c-.8 2.3-2.3 4.2-4.3 5.5l6.5 5.3C41.8 36.1 45 30.5 45 24c0-1.4-.1-2.7-.5-4z"/>
+          </svg>
+          Sign in with Google
+        </button>
 
         <p className="auth-footer">
           Don't have an account? <Link to="/register" className="auth-link">Register here</Link>

@@ -153,16 +153,15 @@ exports.getMe = async (req, res) => {
     let userData = req.user;
 
     if (req.user.role === 'patient') {
-      const patient = await Patient.findById(req.user._id).select('-password');
+      const patient = await Patient.findById(req.user._id).select('-password').lean();
       if (patient) {
-        userData = { ...patient.toObject(), role: 'patient' };
+        userData = { ...patient, role: 'patient' };
       }
     } else if (req.user.role === 'doctor') {
-      const doctor = await Doctor.findById(req.user._id).select('-password -profilePicture').maxTimeMS(30000);
+      const doctor = await Doctor.findById(req.user._id).select('-password -profilePicture').lean();
       if (doctor) {
-        const doctorObj = doctor.toObject();
-        doctorObj.hasProfilePicture = true;
-        userData = { ...doctorObj, role: 'doctor' };
+        doctor.hasProfilePicture = true;
+        userData = { ...doctor, role: 'doctor' };
       }
     }
     // For admin, just return the JWT payload
@@ -313,6 +312,65 @@ exports.googleAuth = async (req, res) => {
   } catch (error) {
     console.error('Google auth error:', error);
     res.status(401).json({ error: 'Google sign-in failed. Please try again.' });
+  }
+};
+
+// Google OAuth2 redirect callback — exchanges auth code for user info
+exports.googleCallback = async (req, res) => {
+  try {
+    const { code } = req.query;
+    if (!code) return res.status(400).send('Missing authorization code');
+
+    const redirectUri = 'http://localhost:5001/api/auth/google/callback';
+    const client = new OAuth2Client(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      redirectUri
+    );
+
+    // Exchange code for tokens
+    const { tokens } = await client.getToken(code);
+    client.setCredentials(tokens);
+
+    // Verify the ID token to get user info
+    const ticket = await client.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture } = payload;
+
+    // Find or create patient
+    let patient = await Patient.findOne({ $or: [{ email }, { googleId }] });
+    if (!patient) {
+      patient = await Patient.create({
+        name,
+        email,
+        googleId,
+        profilePicture: picture,
+        password: `google_${googleId}_${Date.now()}`,
+      });
+    } else {
+      patient.googleId = googleId;
+      patient.profilePicture = picture;
+      await patient.save();
+    }
+
+    const token = signToken({
+      _id: patient._id,
+      id: patient._id,
+      name: patient.name,
+      email: patient.email,
+      role: 'patient'
+    });
+
+    // Redirect back to patient frontend with token
+    res.redirect(`http://localhost:5173/auth/google/success?token=${token}&role=patient`);
+
+  } catch (error) {
+    console.error('Google callback error:', error);
+    res.redirect('http://localhost:5173/login?error=google_failed');
   }
 };
 

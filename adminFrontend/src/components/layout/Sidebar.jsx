@@ -19,11 +19,9 @@ function Sidebar({ sidebarOpen, pendingCount, handleLogout }) {
 
     return (
         <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-gray-100 flex flex-col transition-all duration-300 ease-in-out z-50`}>
-            <div className="h-20 flex items-center px-6 gap-3">
-                <div className="w-9 h-9 bg-blue-50 text-[#3b82f6] rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm border border-blue-100/50">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 5v14M5 12h14" />
-                    </svg>
+            <div className="h-20 flex items-center gap-2 px-6">
+                <div className="w-9 h-9 flex-shrink-0">
+                    <img src="/logo.png" alt="Qurehealth.AI" className="w-full h-full object-contain" />
                 </div>
                 {sidebarOpen && (
                     <div className="flex flex-col">

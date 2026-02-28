@@ -28,12 +28,8 @@ function ForgotPassword() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <div className="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-          </div>
+        <div className="flex items-center justify-center gap-1 mb-4">
+          <img src="/logo.png" alt="Qurehealth.AI" className="w-8 h-8 object-contain" />
           <span className="text-xl font-bold tracking-tight text-slate-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
             Qurehealth<span className="text-slate-900">.AI</span>
           </span>

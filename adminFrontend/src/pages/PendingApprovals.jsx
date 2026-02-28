@@ -1,98 +1,136 @@
-import { CheckCircle2, XCircle, Mail, Clock } from 'lucide-react';
+import { CheckCircle2, XCircle, Mail, Clock, ShieldCheck, Stethoscope, User } from 'lucide-react';
 import HighlightText from '../components/common/HighlightText';
 
 function PendingApprovals({ pendingDoctors, handleApprove, handleReject, actionLoading, getProfileImage, handleImageError, searchQuery = '' }) {
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex justify-between items-end mb-8">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex justify-between items-end">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 font-outfit tracking-tight">Pending Approvals</h1>
-                    <p className="text-slate-500 mt-1 font-medium">Review medical credentials for verification.</p>
+                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight font-outfit mb-1">Pending Approvals</h1>
+                    <p className="text-slate-500 text-sm">Review and verify doctor credentials before granting platform access.</p>
                 </div>
-                <div className="bg-slate-50 text-slate-900 border border-slate-200 px-4 py-1.5 rounded-xl text-xs font-black tracking-widest tabular-nums font-outfit">
-                    {pendingDoctors.length} APPLICATIONS
+                <div className="flex items-center gap-1.5 px-4 py-2 bg-amber-50 border border-amber-100 text-amber-700 rounded-xl text-xs font-black tracking-widest tabular-nums">
+                    {pendingDoctors.length} PENDING
                 </div>
             </div>
 
-            {pendingDoctors.length === 0 ? (
-                <div className="bg-white rounded-[2.5rem] border border-slate-100 p-24 text-center shadow-sm">
-                    <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-6 rotate-3">
-                        <CheckCircle2 size={28} className="text-slate-900" />
+            <div className="bg-white rounded-[2rem] border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.02)] overflow-hidden">
+                <div className="p-6 border-b border-slate-50 flex justify-between items-center">
+                    <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                        <ShieldCheck size={18} className="text-amber-500" />
+                        Applications Queue
+                    </h3>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                        {pendingDoctors.length === 0 ? 'All Clear' : `${pendingDoctors.length} awaiting review`}
                     </div>
-                    <h3 className="text-xl font-black text-slate-900 tracking-tight">System Clear</h3>
-                    <p className="text-slate-400 mt-1 font-medium text-sm">All applications have been processed.</p>
                 </div>
-            ) : (
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                    {pendingDoctors.map(doctor => (
-                        <div key={doctor._id} className="bg-white rounded-[2rem] border border-slate-100 p-6 flex gap-6 hover:shadow-xl hover:border-indigo-100 transition-all duration-300 group">
-                            <div className="w-24 h-24 rounded-2xl overflow-hidden ring-1 ring-slate-100 shrink-0 relative">
-                                <img
-                                    src={getProfileImage(doctor)}
-                                    alt={doctor.name}
-                                    className="w-full h-full object-cover transition-all duration-500 grayscale group-hover:grayscale-0"
-                                    onError={handleImageError}
-                                />
-                                <div className="absolute inset-0 bg-indigo-500/0 group-hover:bg-indigo-500/5 transition-colors"></div>
-                            </div>
-                            <div className="flex-1 min-w-0 flex flex-col justify-between">
-                                <div>
-                                    <div className="flex justify-between items-start mb-1">
-                                        <div>
-                                            <h3 className="text-lg font-black text-slate-900 tracking-tight leading-tight">
-                                                <HighlightText text={doctor.name} highlight={searchQuery} />
-                                            </h3>
-                                            <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg uppercase tracking-widest inline-block mt-2 border border-indigo-100/50">
-                                                <HighlightText text={doctor.specialization} highlight={searchQuery} />
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="bg-slate-50/50">
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Doctor</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Specialization</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Experience</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Submitted</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                            {pendingDoctors.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5" className="px-6 py-20 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center">
+                                                <CheckCircle2 size={24} className="text-emerald-500" />
+                                            </div>
+                                            <p className="text-slate-400 font-semibold text-sm">All applications have been processed</p>
+                                            <p className="text-slate-300 text-xs">No pending approvals at this time</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : (
+                                pendingDoctors.map(doctor => (
+                                    <tr key={doctor._id} className="hover:bg-slate-50/50 transition-colors group">
+                                        {/* Doctor */}
+                                        <td className="px-6 py-5">
+                                            <div className="flex items-center gap-4">
+                                                <div className="relative w-10 h-10 rounded-xl overflow-hidden ring-1 ring-slate-100 shrink-0 bg-slate-100">
+                                                    <img
+                                                        src={getProfileImage(doctor)}
+                                                        alt={doctor.name}
+                                                        className="w-full h-full object-cover"
+                                                        onError={handleImageError}
+                                                    />
+                                                    <div className="absolute inset-0 items-center justify-center bg-indigo-50 text-indigo-400 hidden">
+                                                        <User size={16} />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-slate-900">
+                                                        <HighlightText text={`Dr. ${doctor.name}`} highlight={searchQuery} />
+                                                    </p>
+                                                    <p className="text-xs text-slate-400 mt-0.5">
+                                                        <HighlightText text={doctor.email} highlight={searchQuery} />
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        {/* Specialization */}
+                                        <td className="px-6 py-5">
+                                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter bg-indigo-50 text-indigo-600 border border-indigo-100">
+                                                <Stethoscope size={10} strokeWidth={3} />
+                                                <HighlightText text={doctor.specialization || '—'} highlight={searchQuery} />
+                                            </div>
+                                        </td>
+
+                                        {/* Experience */}
+                                        <td className="px-6 py-5">
+                                            <div className="flex items-center gap-2 text-slate-600">
+                                                <Clock size={13} className="text-slate-300" />
+                                                <span className="text-sm font-semibold">{doctor.experience || '—'} yrs</span>
+                                            </div>
+                                        </td>
+
+                                        {/* Submitted */}
+                                        <td className="px-6 py-5">
+                                            <span className="text-xs font-medium text-slate-400">
+                                                {new Date(doctor.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                                             </span>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => handleApprove(doctor._id)}
-                                                disabled={actionLoading === doctor._id}
-                                                className="p-2 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all disabled:opacity-50 shadow-lg shadow-black/5"
-                                                title="Approve"
-                                            >
-                                                <CheckCircle2 size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleReject(doctor._id)}
-                                                disabled={actionLoading === doctor._id}
-                                                className="p-2 border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 rounded-xl transition-all disabled:opacity-50"
-                                                title="Reject"
-                                            >
-                                                <XCircle size={18} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4 mt-4">
-                                        <div className="flex items-center gap-2">
-                                            <Mail size={12} className="text-slate-300" />
-                                            <span className="text-slate-600 font-bold text-[10px] truncate max-w-[120px]">
-                                                {doctor.email}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Clock size={12} className="text-slate-300" />
-                                            <span className="text-slate-600 font-bold text-[10px]">
-                                                {doctor.experience}Y EXPERIENCE
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
-                                    <span className="text-[10px] font-bold text-slate-300 tabular-nums uppercase tracking-widest">
-                                        SUBMITTED {new Date(doctor.createdAt).toLocaleDateString()}
-                                    </span>
-                                    <button className="text-[10px] font-black text-indigo-600 hover:underline uppercase tracking-widest">
-                                        Details →
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                                        </td>
+
+                                        {/* Actions */}
+                                        <td className="px-6 py-5 text-right">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={() => handleApprove(doctor._id)}
+                                                    disabled={actionLoading === doctor._id}
+                                                    className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-100 transition-all active:scale-95 disabled:opacity-50"
+                                                >
+                                                    {actionLoading === doctor._id
+                                                        ? <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                                                        : <CheckCircle2 size={13} strokeWidth={3} />
+                                                    }
+                                                    Approve
+                                                </button>
+                                                <button
+                                                    onClick={() => handleReject(doctor._id)}
+                                                    disabled={actionLoading === doctor._id}
+                                                    className="inline-flex items-center gap-2 px-4 py-2 bg-white text-rose-600 border border-rose-100 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-rose-600 hover:text-white hover:border-rose-600 hover:shadow-lg hover:shadow-rose-100 transition-all active:scale-95 disabled:opacity-50"
+                                                >
+                                                    <XCircle size={13} strokeWidth={3} />
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
-            )}
+            </div>
         </div>
     );
 }

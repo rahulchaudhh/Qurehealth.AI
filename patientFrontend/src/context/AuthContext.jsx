@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
     if (!token) { setLoading(false); return; }
 
     let cancelled = false;
-    axios.get('/auth/me', { timeout: 60000 })
+    axios.get('/auth/me', { timeout: 5000 })
       .then(res => {
         if (cancelled) return;
         const u = res.data?.data;
@@ -71,6 +71,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Register doctor (pending approval — no auto-login)
+  const doctorRegister = async (userData) => {
+    try {
+      await axios.post('/doctor/register', userData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.response?.data?.error || 'Doctor registration failed' };
+    }
+  };
+
   // Logout
   const logout = () => {
     localStorage.removeItem('token');
@@ -84,10 +96,26 @@ export const AuthProvider = ({ children }) => {
     setUser(updatedData);
   };
 
+  // Set user from a token (used after Google OAuth redirect)
+  const setUserFromToken = (token) => {
+    localStorage.setItem('token', token);
+    axios.get('/auth/me', { timeout: 5000 })
+      .then(res => {
+        const u = res.data?.data;
+        if (u?.role === 'patient') {
+          setUser(u);
+          window.location.href = '/dashboard';
+        }
+      })
+      .catch(() => {
+        window.location.href = '/dashboard';
+      });
+  };
+
   return (
     <AuthContext.Provider value={{
-      user, loading, login, googleLogin, register, logout,
-      updateUserProfile, isAuthenticated: !!user
+      user, loading, login, googleLogin, register, doctorRegister, logout,
+      updateUserProfile, setUserFromToken, isAuthenticated: !!user
     }}>
       {children}
     </AuthContext.Provider>

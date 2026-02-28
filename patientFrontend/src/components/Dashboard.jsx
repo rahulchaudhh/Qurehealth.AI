@@ -1,16 +1,29 @@
 import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jsPDF } from "jspdf";
-import { Bell, X, MapPin, Mail, Phone, AlertTriangle, Calendar, Clock, Stethoscope, Star, Download, Trash2, Video, CheckCircle2, Info, XCircle, Shield, CalendarCheck, ChevronRight, User } from 'lucide-react';
+import { Bell, X, MapPin, Mail, Phone, AlertTriangle, Calendar, Clock, Stethoscope, Star, Download, Trash2, Video, CheckCircle2, Info, XCircle, ChevronRight, User } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api/axios';
 import Toast from './Toast';
 import BroadcastModal from './BroadcastModal';
+import BookingWizard from './booking/BookingWizard';
 import DashboardHome from './DashboardHome';
 import SymptomChecker, { PredictionResults } from './SymptomChecker';
 import FindDoctors from './FindDoctors';
 import Appointments from './Appointments';
 import MedicalHistory from './MedicalHistory';
+
+// Only allow genuine external meeting URLs (not localhost or relative paths)
+const isValidMeetingLink = (link) => {
+  if (!link) return false;
+  try {
+    const url = new URL(link);
+    return (url.protocol === 'https:' || url.protocol === 'http:') &&
+      !['localhost', '127.0.0.1'].includes(url.hostname);
+  } catch {
+    return false;
+  }
+};
 
 
 
@@ -233,120 +246,193 @@ export default function Dashboard() {
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       const margin = 20;
+      const rightCol = 110;
+      let y = 20;
 
-      // --- Header (Letterhead Style) ---
-      // Company Name
-      doc.setFontSize(24);
-      doc.setTextColor(37, 99, 235); // Brand Blue
+      // ── Clinic Header ──
+      doc.setFontSize(16);
       doc.setFont("helvetica", "bold");
-      doc.text("Qurehealth Care", margin, 30);
-
-      // Report Title & Date
-      doc.setFontSize(10);
-      doc.setTextColor(100, 116, 139); // Gray
-      doc.setFont("helvetica", "normal");
-      doc.text("MEDICAL REPORT", pageWidth - margin, 25, { align: "right" });
-      doc.text(`Date: ${new Date(record.date).toLocaleDateString()}`, pageWidth - margin, 30, { align: "right" });
-      doc.text(`Ref: ${record._id.slice(-8).toUpperCase()}`, pageWidth - margin, 35, { align: "right" });
-
-      // Divider Line
-      doc.setDrawColor(200, 200, 200);
-      doc.setLineWidth(0.5);
-      doc.line(margin, 45, pageWidth - margin, 45);
-
-      let yPos = 65;
-
-      // --- Patient & Doctor Details (2 Columns, Clean Text) ---
-      doc.setFontSize(10);
-      doc.setTextColor(150, 150, 150);
-      doc.setFont("helvetica", "bold");
-      doc.text("PATIENT", margin, yPos);
-      doc.text("DOCTOR", 110, yPos);
-
-      yPos += 10;
-
-      // Patient Name
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0); // Black
-      doc.setFont("helvetica", "normal");
-      doc.text(user?.name || record.patient?.name || "N/A", margin, yPos);
-
-      // Doctor Name
-      doc.text(`Dr. ${record.doctor.name}`, 110, yPos);
-
-      yPos += 8;
-
-      // Secondary Details
-      doc.setFontSize(10);
-      doc.setTextColor(80, 80, 80); // Dark Gray
-      doc.text(`ID: ${record._id}`, margin, yPos);
-      doc.text(record.doctor.specialization, 110, yPos);
-      yPos += 5;
-      doc.text(record.doctor.hospital || 'Qurehealth Care', 110, yPos);
-
-      yPos += 30;
-
-      // --- Diagnosis Section ---
-      doc.setFontSize(11);
-      doc.setTextColor(37, 99, 235); // Blue Accent
-      doc.setFont("helvetica", "bold");
-      doc.text("DIAGNOSIS", margin, yPos);
-      yPos += 10;
-
-      doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
+      doc.text("Qurehealth.AI", margin, y);
+
+      const issuedDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text(issuedDate, pageWidth - margin, y, { align: "right" });
+
+      y += 6;
       doc.setFont("helvetica", "normal");
-      const splitDiagnosis = doc.splitTextToSize(record.diagnosis || record.reason || 'N/A', pageWidth - (margin * 2));
-      doc.text(splitDiagnosis, margin, yPos);
-      yPos += (splitDiagnosis.length * 7) + 20;
-
-      // --- Prescription Section ---
-      if (record.prescription) {
-        doc.setFontSize(11);
-        doc.setTextColor(37, 99, 235);
-        doc.setFont("helvetica", "bold");
-        doc.text("PRESCRIPTION (Rx)", margin, yPos);
-        yPos += 10;
-
-        doc.setFontSize(12);
-        doc.setTextColor(0, 0, 0);
-        doc.setFont("helvetica", "normal");
-
-        const splitPrescription = doc.splitTextToSize(record.prescription, pageWidth - (margin * 2));
-        doc.text(splitPrescription, margin, yPos);
-        yPos += (splitPrescription.length * 7) + 20;
-      }
-
-      // --- Notes Section ---
-      if (record.doctorNotes) {
-        doc.setFontSize(11);
-        doc.setTextColor(37, 99, 235);
-        doc.setFont("helvetica", "bold");
-        doc.text("NOTES", margin, yPos);
-        yPos += 10;
-
-        doc.setFontSize(11);
-        doc.setTextColor(60, 60, 60);
-        doc.setFont("helvetica", "italic");
-
-        const splitNotes = doc.splitTextToSize(record.doctorNotes, pageWidth - (margin * 2));
-        doc.text(splitNotes, margin, yPos);
-      }
-
-      // --- Footer & Signature (Bottom) ---
-      const footerY = pageHeight - 20;
-
-      // Line only
-      doc.setDrawColor(226, 232, 240);
-      doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
-
-      // Page Number
+      doc.setTextColor(100, 100, 100);
       doc.setFontSize(9);
-      doc.setTextColor(148, 163, 184); // Slate-400
-      doc.setFont("helvetica", "normal");
-      doc.text("Page 1/1", pageWidth - 20, footerY + 5, { align: "right" });
+      doc.text("Healthcare Platform", margin, y);
+      doc.text(`Ref: ${record._id.slice(-8).toUpperCase()}`, pageWidth - margin, y, { align: "right" });
+      y += 5;
+      doc.text("support@qurehealth.ai", margin, y);
+      y += 5;
+      doc.text("www.qurehealth.ai", margin, y);
+      y += 12;
 
-      doc.save(`Medical_Report_${new Date(record.date).toLocaleDateString().replace(/\//g, '-')}.pdf`);
+      // ── Title ──
+      doc.setFontSize(20);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text("Patient Medical Record", margin, y);
+      y += 10;
+
+      // ── Patient Information Box ──
+      doc.setDrawColor(180, 180, 180);
+      doc.setLineWidth(0.4);
+      doc.rect(margin, y, pageWidth - margin * 2, 32);
+      y += 7;
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text("Patient Information", margin + 4, y);
+      y += 7;
+
+      const patientName = user?.name || record.patient?.name || 'N/A';
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text(patientName, margin + 4, y);
+
+      if (user?.dateOfBirth) {
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "bold");
+        doc.text("Date of Birth", rightCol, y - 7);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.text(new Date(user.dateOfBirth).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), rightCol, y - 1);
+      }
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text("Patient ID", rightCol, y + 5);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(record._id.slice(-8).toUpperCase(), rightCol, y + 11);
+
+      y += 5;
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(80, 80, 80);
+      if (user?.phone) { doc.text(user.phone, margin + 4, y); y += 5; }
+      else y += 5;
+      if (user?.gender) { doc.text(user.gender.charAt(0).toUpperCase() + user.gender.slice(1), margin + 4, y); }
+      y += 14;
+
+      // ── Section helpers ──
+      const drawSection = (title) => {
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(0, 0, 0);
+        doc.text(title, margin, y);
+        y += 3;
+        doc.setDrawColor(150, 150, 150);
+        doc.setLineWidth(0.4);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 6;
+      };
+
+      // ── Doctor Details ──
+      drawSection("Doctor Details");
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Dr. ${record.doctor.name}`, margin, y);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.text("Facility", rightCol, y);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(80, 80, 80);
+      doc.text(record.doctor.hospital || 'Qurehealth Care', rightCol, y + 6);
+      y += 6;
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(80, 80, 80);
+      doc.text(record.doctor.specialization, margin, y);
+      y += 10;
+
+      // ── Visit Details ──
+      drawSection("Visit Details");
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text("Date of Visit", margin, y);
+      doc.text("Appointment Status", rightCol, y);
+      y += 5;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(50, 50, 50);
+      const visitDate = new Date(record.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      doc.text(visitDate, margin, y);
+      doc.text((record.status || 'Completed').charAt(0).toUpperCase() + (record.status || 'Completed').slice(1), rightCol, y);
+      y += 8;
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text("Diagnosis / Reason for Visit", margin, y);
+      y += 5;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(50, 50, 50);
+      const diagText = (record.diagnosis || record.reason || 'N/A');
+      const diagLines = doc.splitTextToSize(diagText.charAt(0).toUpperCase() + diagText.slice(1), pageWidth - margin * 2);
+      doc.text(diagLines, margin, y);
+      y += diagLines.length * 6 + 6;
+
+      // ── Prescription ──
+      drawSection("Prescription (Rx)");
+      if (record.prescription) {
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(50, 50, 50);
+        const lines = doc.splitTextToSize(record.prescription, pageWidth - margin * 2);
+        doc.text(lines, margin, y);
+        y += lines.length * 6 + 6;
+      } else {
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "italic");
+        doc.setTextColor(150, 150, 150);
+        doc.text("No prescription issued for this visit.", margin, y);
+        y += 10;
+      }
+
+      // ── Physician's Notes ──
+      drawSection("Physician's Notes");
+      if (record.doctorNotes) {
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "italic");
+        doc.setTextColor(80, 80, 80);
+        const lines = doc.splitTextToSize(`"${record.doctorNotes}"`, pageWidth - margin * 2);
+        doc.text(lines, margin, y);
+        y += lines.length * 6 + 4;
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(130, 130, 130);
+        doc.text(`— Dr. ${record.doctor.name}`, margin, y);
+      } else {
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "italic");
+        doc.setTextColor(150, 150, 150);
+        doc.text("No clinical notes recorded.", margin, y);
+      }
+
+      // ── Footer ──
+      const footerY = pageHeight - 14;
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.4);
+      doc.line(margin, footerY - 4, pageWidth - margin, footerY - 4);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(160, 160, 160);
+      doc.text("This is an official medical record issued by Qurehealth.AI.", margin, footerY + 2);
+      doc.text("Page 1 / 1", pageWidth - margin, footerY + 2, { align: "right" });
+
+      doc.save(`Medical_Report_${record._id.slice(-8).toUpperCase()}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
       toast.error("Failed to generate PDF: " + error.message);
@@ -628,12 +714,8 @@ export default function Dashboard() {
       {/* Header */}
       {/* Header */}
       <header className="bg-white px-10 py-4 flex justify-between items-center border-b border-gray-200 shadow-sm sticky top-0 z-50">
-        <div className="flex items-center gap-2 cursor-pointer group" onClick={() => navigate('/')}>
-          <div className="w-9 h-9 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-100 transition-all duration-300">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-          </div>
+        <div className="flex items-center gap-1 cursor-pointer group" onClick={() => navigate('/')}>
+          <img src="/logo.png" alt="Qurehealth.AI" className="w-9 h-9 object-contain" />
           <span className="text-xl font-bold tracking-tight text-gray-900">
             Qurehealth.AI
           </span>
@@ -787,193 +869,28 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Booking Modal */}
+      {/* Booking Wizard */}
       {
         selectedDoctor && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={(e) => e.target === e.currentTarget && setSelectedDoctor(null)}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden" style={{ animation: 'fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-
-              {/* Clean Header */}
-              <div className="px-6 pt-6 pb-0">
-                <div className="flex items-start justify-between mb-5">
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900 tracking-tight">Book Appointment</h2>
-                    <p className="text-xs text-gray-400 font-medium mt-0.5">Complete the steps below to confirm</p>
-                  </div>
-                  <button
-                    onClick={() => setSelectedDoctor(null)}
-                    className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors -mr-1 -mt-1"
-                  >
-                    <X size={18} strokeWidth={2} />
-                  </button>
-                </div>
-
-                {/* Doctor Card */}
-                <div className="flex items-center gap-3.5 p-3.5 bg-gray-50 rounded-xl border border-gray-100">
-                  <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-gray-200">
-                    {selectedDoctor.profilePicture ? (
-                      <img
-                        src={selectedDoctor.profilePicture}
-                        alt={selectedDoctor.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-blue-50 text-blue-600">
-                        <User size={22} />
-                      </div>
-                    )}
-                    <div className="w-full h-full items-center justify-center bg-blue-50 text-blue-600 hidden">
-                      <User size={22} />
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-bold text-gray-900 truncate">{selectedDoctor.name}</h3>
-                    <p className="text-xs text-gray-500 font-medium">{selectedDoctor.specialty}</p>
-                  </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <div className="flex items-center gap-1 text-xs text-gray-500 font-medium">
-                      <Star size={11} fill="currentColor" className="text-amber-400" /> {selectedDoctor.rating}
-                    </div>
-                    <div className="h-4 w-px bg-gray-200"></div>
-                    <div className="text-sm font-bold text-gray-900">{selectedDoctor.fee}</div>
-                  </div>
-                </div>
-              </div>
-
-              <form onSubmit={handleBookAppointment} className="p-6 pt-5">
-
-                {/* Date */}
-                <div className="mb-5">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">When</label>
-                  <input
-                    type="date"
-                    required
-                    min={new Date().toISOString().split('T')[0]}
-                    value={bookingData.date}
-                    onChange={(e) => setBookingData({ ...bookingData, date: e.target.value })}
-                    onClick={(e) => e.target.showPicker && e.target.showPicker()}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all bg-white text-gray-800 font-medium text-sm cursor-pointer hover:border-gray-300"
-                  />
-                </div>
-
-                {/* Time Slots — dynamic from doctor schedule */}
-                <div className="mb-5">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Time Slot</label>
-                  {!bookingData.date ? (
-                    <p className="text-xs text-gray-400 italic py-3">Pick a date first to see available slots</p>
-                  ) : loadingSlots ? (
-                    <div className="grid grid-cols-4 gap-1.5">
-                      {[1,2,3,4].map(i => <div key={i} className="h-10 bg-gray-100 rounded-lg animate-pulse" />)}
-                    </div>
-                  ) : availableSlots.length === 0 ? (
-                    <div className="text-center py-4 bg-red-50 rounded-xl border border-red-100">
-                      <p className="text-xs text-red-600 font-medium">No available slots on this date</p>
-                      <p className="text-[10px] text-red-400 mt-0.5">The doctor is either off or fully booked. Try another date.</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-4 gap-1.5">
-                      {availableSlots.map(slot => (
-                        <button
-                          key={slot.time12}
-                          type="button"
-                          onClick={() => setBookingData({ ...bookingData, time: slot.time12 })}
-                          className={`py-2.5 rounded-lg text-xs font-semibold transition-all duration-150 ${bookingData.time === slot.time12
-                            ? 'bg-gray-900 text-white shadow-md'
-                            : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-100'
-                            }`}
-                        >
-                          {slot.time12}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  <input type="hidden" required value={bookingData.time} />
-                </div>
-
-                {/* Reason */}
-                <div className="mb-5">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Reason for Visit</label>
-                  <textarea
-                    required
-                    value={bookingData.reason}
-                    onChange={(e) => setBookingData({ ...bookingData, reason: e.target.value })}
-                    placeholder="Describe your symptoms or concern..."
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all bg-white text-gray-800 text-sm min-h-[72px] resize-none hover:border-gray-300 placeholder:text-gray-300"
-                  ></textarea>
-                </div>
-
-                {/* Summary */}
-                {bookingData.date && bookingData.time && (
-                  <div className="mb-5 p-3.5 bg-blue-50/50 rounded-xl border border-blue-100/60">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-5 text-sm">
-                        <span className="flex items-center gap-1.5 text-gray-700 font-medium">
-                          <Calendar size={13} className="text-blue-500" />
-                          {new Date(bookingData.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                        </span>
-                        <span className="flex items-center gap-1.5 text-gray-700 font-medium">
-                          <Clock size={13} className="text-blue-500" /> {bookingData.time}
-                        </span>
-                      </div>
-                      <span className="flex items-center gap-1 text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold border border-emerald-100">
-                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-                        Available
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Trust Indicators */}
-                <div className="flex items-center gap-4 mb-5 px-1">
-                  <span className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium">
-                    <Shield size={11} className="text-gray-300" />
-                    Free cancellation 24h before
-                  </span>
-                  <span className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium">
-                    <CalendarCheck size={11} className="text-gray-300" />
-                    Instant confirmation
-                  </span>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedDoctor(null)}
-                    disabled={isBooking}
-                    className="px-5 py-3 rounded-xl text-gray-500 font-semibold hover:bg-gray-50 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={!bookingData.time || isBooking}
-                    className={`flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 ${bookingData.time && !isBooking
-                      ? 'bg-gray-900 hover:bg-black text-white shadow-lg shadow-gray-900/20 active:scale-[0.98]'
-                      : 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                      }`}
-                  >
-                    {isBooking ? (
-                      <>
-                        <svg className="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                        </svg>
-                        Confirming...
-                      </>
-                    ) : (
-                      <>
-                        Confirm Booking
-                        <ChevronRight size={16} strokeWidth={2.5} />
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-
-            </div>
-          </div>
+          <BookingWizard
+            doctor={selectedDoctor}
+            user={user}
+            bookingData={bookingData}
+            setBookingData={setBookingData}
+            availableSlots={availableSlots}
+            loadingSlots={loadingSlots}
+            isBooking={isBooking}
+            onSubmit={handleBookAppointment}
+            onClose={() => {
+              setSelectedDoctor(null);
+              setBookingData({ date: '', time: '', reason: '' });
+            }}
+            onViewAppointments={() => {
+              setSelectedDoctor(null);
+              setBookingData({ date: '', time: '', reason: '' });
+              setCurrentPage('appointments');
+            }}
+          />
         )
       }
 
@@ -981,104 +898,153 @@ export default function Dashboard() {
       {/* Appointment Details Modal */}
       {
         viewAppointment && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fadeIn transform transition-all">
-              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            onClick={() => setViewAppointment(null)}
+          >
+            <div
+              className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="bg-gray-50 border-b border-gray-200 px-8 py-5 text-center relative">
                 <h2 className="text-xl font-bold text-gray-900">Appointment Details</h2>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  Consultation with Dr. {viewAppointment.doctor.name}
+                </p>
                 <button
                   onClick={() => setViewAppointment(null)}
-                  className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  <X size={24} strokeWidth={2} />
+                  <X size={20} strokeWidth={2} />
                 </button>
               </div>
 
-              <div className="p-6 space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Doctor</h3>
-                  <p className="text-lg font-bold text-gray-900">{viewAppointment.doctor.name}</p>
-                  <p className="text-sm text-blue-600">{viewAppointment.doctor.specialization}</p>
-                </div>
+              {/* Modal Body */}
+              <div className="px-8 py-6">
+                {/* 2-col grid of fields like the sample */}
+                <div className="grid grid-cols-2 gap-x-10 gap-y-5">
 
-                <div className="grid grid-cols-2 gap-4">
+                  {/* Left col */}
                   <div>
-                    <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Date</h3>
-                    <p className="text-gray-900">{new Date(viewAppointment.date).toLocaleDateString()}</p>
+                    <p className="text-xs font-bold text-gray-500 mb-0.5">Doctor / Specialist:</p>
+                    <p className="text-sm text-gray-900">Dr. {viewAppointment.doctor.name}</p>
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Time</h3>
-                    <p className="text-gray-900">{viewAppointment.time}</p>
+                    <p className="text-xs font-bold text-gray-500 mb-0.5">Specialization:</p>
+                    <p className="text-sm text-blue-600">{viewAppointment.doctor.specialization}</p>
                   </div>
-                </div>
 
-                <div>
-                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Status</h3>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${(new Date(viewAppointment.date) < new Date().setHours(0, 0, 0, 0) && viewAppointment.status === 'pending') ? 'bg-red-100 text-red-700' :
-                    viewAppointment.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
-                      viewAppointment.status === 'completed' ? 'bg-blue-50 text-blue-700 border border-blue-100' :
-                        viewAppointment.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                          'bg-yellow-100 text-yellow-700'
-                    }`}>
-                    {(new Date(viewAppointment.date) < new Date().setHours(0, 0, 0, 0) && viewAppointment.status === 'pending') ? 'Missed' : viewAppointment.status}
-                  </span>
-                </div>
-
-                {viewAppointment.reason && (
                   <div>
-                    <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Reason</h3>
-                    <p className="text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                      {viewAppointment.reason}
+                    <p className="text-xs font-bold text-gray-500 mb-0.5">Scheduled Date:</p>
+                    <p className="text-sm text-gray-900">
+                      {new Date(viewAppointment.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                     </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-gray-500 mb-0.5">Scheduled Time:</p>
+                    <p className="text-sm text-gray-900">{viewAppointment.time}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold text-gray-500 mb-0.5">Appointment Status:</p>
+                    <span className={`inline-block mt-0.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                      (new Date(viewAppointment.date) < new Date().setHours(0,0,0,0) && viewAppointment.status === 'pending') ? 'bg-red-100 text-red-700' :
+                      viewAppointment.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
+                      viewAppointment.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+                      viewAppointment.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                      'bg-amber-100 text-amber-700'
+                    }`}>
+                      {(new Date(viewAppointment.date) < new Date().setHours(0,0,0,0) && viewAppointment.status === 'pending') ? 'Missed' : viewAppointment.status}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-gray-500 mb-0.5">Appointment Type:</p>
+                    <p className="text-sm text-gray-900">{isValidMeetingLink(viewAppointment.meetingLink) ? 'Video Consultation' : 'In-Person'}</p>
+                  </div>
+
+                </div>
+
+                {/* Reason - full width */}
+                <div className="mt-5 pt-5 border-t border-gray-100">
+                  <p className="text-xs font-bold text-gray-500 mb-1.5">Reason for Visit:</p>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 min-h-[52px]">
+                    <p className="text-sm text-gray-700">
+                      {viewAppointment.reason || <span className="italic text-gray-400">No reason provided.</span>}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Doctor Notes - full width, only if exists */}
+                {viewAppointment.doctorNotes && (
+                  <div className="mt-4">
+                    <p className="text-xs font-bold text-gray-500 mb-1.5">Doctor's Notes:</p>
+                    <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3">
+                      <p className="text-sm text-gray-700">{viewAppointment.doctorNotes}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Prescription - only if exists */}
+                {viewAppointment.prescription && (
+                  <div className="mt-4">
+                    <p className="text-xs font-bold text-gray-500 mb-1.5">Prescription:</p>
+                    <div className="bg-emerald-50 border border-emerald-100 rounded-lg px-4 py-3">
+                      <p className="text-sm text-gray-700">{viewAppointment.prescription}</p>
+                    </div>
                   </div>
                 )}
               </div>
 
-              <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
-                {viewAppointment.status === 'confirmed' && (
-                  <>
-                    <button
-                      onClick={() => {
-                        const startDt = (() => {
-                          const [timePart, meridiem] = viewAppointment.time.split(' ');
-                          let [h, m] = timePart.split(':').map(Number);
-                          if (meridiem?.toUpperCase() === 'PM' && h !== 12) h += 12;
-                          if (meridiem?.toUpperCase() === 'AM' && h === 12) h = 0;
-                          const d = new Date(`${viewAppointment.date}T00:00:00`);
-                          d.setHours(h, m, 0, 0);
-                          return d;
-                        })();
-                        const endDt = new Date(startDt.getTime() + 30 * 60 * 1000);
-                        const fmt = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
-                        const params = new URLSearchParams({
-                          action: 'TEMPLATE',
-                          text: `Consultation with ${viewAppointment.doctor.name}`,
-                          dates: `${fmt(startDt)}/${fmt(endDt)}`,
-                          details: `Appointment with ${viewAppointment.doctor.name} (${viewAppointment.doctor.specialization || 'Specialist'})\nReason: ${viewAppointment.reason || 'Consultation'}${viewAppointment.meetingLink ? '\nMeeting Link: ' + viewAppointment.meetingLink : ''}`,
-                          ...(viewAppointment.meetingLink ? { location: viewAppointment.meetingLink } : {}),
-                        });
-                        window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, '_blank');
-                      }}
-                      className="px-5 py-2.5 bg-white text-emerald-600 border border-emerald-200 rounded-lg text-sm font-bold hover:bg-emerald-50 transition-colors flex items-center gap-2"
-                    >
-                      <Calendar size={16} strokeWidth={2} />
-                      Add to Calendar
-                    </button>
-                    {viewAppointment.meetingLink && (
-                      <a
-                        href={viewAppointment.meetingLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-5 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors flex items-center gap-2"
+              {/* Modal Footer */}
+              <div className="border-t border-gray-200 px-8 py-4 flex items-center justify-between gap-3 bg-gray-50">
+                <div className="flex items-center gap-3">
+                  {viewAppointment.status === 'confirmed' && (
+                    <>
+                      <button
+                        onClick={() => {
+                          const startDt = (() => {
+                            const [timePart, meridiem] = viewAppointment.time.split(' ');
+                            let [h, m] = timePart.split(':').map(Number);
+                            if (meridiem?.toUpperCase() === 'PM' && h !== 12) h += 12;
+                            if (meridiem?.toUpperCase() === 'AM' && h === 12) h = 0;
+                            const d = new Date(`${viewAppointment.date}T00:00:00`);
+                            d.setHours(h, m, 0, 0);
+                            return d;
+                          })();
+                          const endDt = new Date(startDt.getTime() + 30 * 60 * 1000);
+                          const fmt = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+                          const params = new URLSearchParams({
+                            action: 'TEMPLATE',
+                            text: `Consultation with ${viewAppointment.doctor.name}`,
+                            dates: `${fmt(startDt)}/${fmt(endDt)}`,
+                            details: `Appointment with ${viewAppointment.doctor.name} (${viewAppointment.doctor.specialization || 'Specialist'})\nReason: ${viewAppointment.reason || 'Consultation'}${viewAppointment.meetingLink ? '\nMeeting Link: ' + viewAppointment.meetingLink : ''}`,
+                            ...(viewAppointment.meetingLink ? { location: viewAppointment.meetingLink } : {}),
+                          });
+                          window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, '_blank');
+                        }}
+                        className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2"
                       >
-                        <Video size={16} strokeWidth={2} />
-                        Join Meeting
-                      </a>
-                    )}
-                  </>
-                )}
+                        <Calendar size={15} strokeWidth={2} />
+                        Add to Calendar
+                      </button>
+                      {isValidMeetingLink(viewAppointment.meetingLink) && (
+                        <a
+                          href={viewAppointment.meetingLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700 transition-colors flex items-center gap-2"
+                        >
+                          <Video size={15} strokeWidth={2} />
+                          Join Meeting
+                        </a>
+                      )}
+                    </>
+                  )}
+                </div>
                 <button
                   onClick={() => setViewAppointment(null)}
-                  className="px-5 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-bold hover:bg-black transition-colors"
+                  className="px-5 py-2 bg-gray-800 text-white rounded-lg text-sm font-semibold hover:bg-black transition-colors"
                 >
                   Close
                 </button>
@@ -1222,12 +1188,8 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
             {/* Brand Section */}
             <div className="md:col-span-1">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-10 h-10 flex items-center justify-center bg-blue-50 text-blue-600 rounded-xl">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
-                </div>
+              <div className="flex items-center gap-1 mb-4">
+                <img src="/logo.png" alt="Qurehealth.AI" className="w-10 h-10 object-contain" />
                 <span className="text-xl font-bold tracking-tight text-gray-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
                   Qurehealth.AI
                 </span>

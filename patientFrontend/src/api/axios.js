@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const instance = axios.create({
   baseURL: '/api',
-  timeout: 60000, // 60s — MongoDB Atlas can be slow on first query
+  timeout: 15000, // 15s — enough for MongoDB Atlas cold start
   headers: { 'Content-Type': 'application/json' }
 });
 

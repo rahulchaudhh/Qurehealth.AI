@@ -2,6 +2,18 @@ import { useState } from 'react';
 import { Search, Calendar, Clock, ArrowLeft, CalendarDays, Plus, Stethoscope, Video, Info, XCircle, Trash2, Star } from 'lucide-react';
 import RatingModal from './RatingModal';
 
+// Only allow genuine external meeting URLs (not localhost or relative paths)
+const isValidMeetingLink = (link) => {
+  if (!link) return false;
+  try {
+    const url = new URL(link);
+    return (url.protocol === 'https:' || url.protocol === 'http:') &&
+      !['localhost', '127.0.0.1'].includes(url.hostname);
+  } catch {
+    return false;
+  }
+};
+
 export default function Appointments({
   myAppointments,
   appointmentFilter,
@@ -18,11 +30,33 @@ export default function Appointments({
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
+  // Parse "9:30 am" / "10:00 pm" style time strings into { hours, minutes }
+  const parseTime = (timeStr) => {
+    if (!timeStr) return { hours: 23, minutes: 59 };
+    const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
+    if (!match) return { hours: 23, minutes: 59 };
+    let hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const meridiem = match[3].toLowerCase();
+    if (meridiem === 'pm' && hours !== 12) hours += 12;
+    if (meridiem === 'am' && hours === 12) hours = 0;
+    return { hours, minutes };
+  };
+
   const enriched = myAppointments.map(apt => {
-    const isMissed = new Date(apt.date) < todayStart && apt.status === 'pending';
+    const aptDate = new Date(apt.date);
+    const { hours, minutes } = parseTime(apt.time);
+    // Full datetime of the appointment
+    const aptDateTime = new Date(aptDate.getFullYear(), aptDate.getMonth(), aptDate.getDate(), hours, minutes, 0);
+    const isPastDateTime = aptDateTime < now;
+
+    const isMissed =
+      (aptDate < todayStart && apt.status === 'pending') ||   // pending & date passed
+      (isPastDateTime && apt.status === 'confirmed');          // confirmed but time passed
+
     const effectiveStatus = isMissed ? 'missed' : apt.status;
-    const isUpcoming = (effectiveStatus === 'confirmed' || effectiveStatus === 'pending') && new Date(apt.date) >= todayStart;
-    return { ...apt, effectiveStatus, isUpcoming };
+    const isUpcoming = (effectiveStatus === 'confirmed' || effectiveStatus === 'pending') && !isPastDateTime;
+    return { ...apt, effectiveStatus, isUpcoming, isPastDateTime, isMissed };
   });
 
   const counts = {
@@ -50,6 +84,14 @@ export default function Appointments({
     cancelled: 'text-gray-400',
     pending: 'text-amber-600',
     missed: 'text-red-500'
+  };
+
+  const statusDisplayLabel = {
+    confirmed: 'CONFIRMED',
+    completed: 'COMPLETED',
+    cancelled: 'CANCELLED',
+    pending: 'PENDING',
+    missed: 'MISSED',
   };
 
   const filterTabs = [
@@ -140,7 +182,6 @@ export default function Appointments({
       ) : (
         <div className="space-y-0 divide-y divide-neutral-100">
           {filtered.map(apt => {
-            const statusLabel = apt.isMissed ? 'MISSED' : apt.status.toUpperCase();
             const aptDate = new Date(apt.date);
             const isToday = aptDate.toDateString() === now.toDateString();
             const isTomorrow = aptDate.toDateString() === new Date(now.getTime() + 86400000).toDateString();
@@ -181,13 +222,14 @@ export default function Appointments({
                   </div>
 
                   <span className={`text-[10px] font-bold tracking-widest ${badgeStyle[apt.effectiveStatus] || 'text-neutral-400'}`}>
-                    {statusLabel}
+                    {statusDisplayLabel[apt.effectiveStatus] || apt.effectiveStatus.toUpperCase()}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between pl-14">
                   <div className="flex items-center gap-1.5">
-                    {apt.effectiveStatus === 'confirmed' && (
+                    {/* Only show action buttons if confirmed AND time has NOT passed */}
+                    {apt.effectiveStatus === 'confirmed' && !apt.isPastDateTime && (
                       <>
                         <button
                           onClick={() => {/* Existing Start logic */ }}
@@ -196,7 +238,7 @@ export default function Appointments({
                           <Stethoscope size={12} strokeWidth={3} />
                           Start Consultation
                         </button>
-                        {apt.meetingLink && (
+                        {isValidMeetingLink(apt.meetingLink) && (
                           <a
                             href={apt.meetingLink}
                             target="_blank"
@@ -208,6 +250,12 @@ export default function Appointments({
                           </a>
                         )}
                       </>
+                    )}
+                    {apt.effectiveStatus === 'missed' && (
+                      <span className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-red-400 bg-red-50 rounded-full border border-red-100">
+                        <Clock size={11} strokeWidth={2.5} />
+                        Appointment time has passed
+                      </span>
                     )}
                     {apt.effectiveStatus === 'completed' && !apt.rating?.isRated && (
                       <button
@@ -232,7 +280,7 @@ export default function Appointments({
                     </button>
                   </div>
 
-                  {apt.effectiveStatus !== 'cancelled' && apt.effectiveStatus !== 'completed' && !apt.isMissed && (
+                  {apt.effectiveStatus !== 'cancelled' && apt.effectiveStatus !== 'completed' && apt.effectiveStatus !== 'missed' && (
                     <button
                       onClick={() => handleCancelAppointment(apt._id)}
                       className="text-[10px] font-bold text-neutral-400 hover:text-red-500 transition-colors uppercase tracking-tight flex items-center gap-1.5"
@@ -241,7 +289,7 @@ export default function Appointments({
                       Cancel appointment
                     </button>
                   )}
-                  {(apt.effectiveStatus === 'cancelled' || apt.effectiveStatus === 'completed' || apt.isMissed) && (
+                  {(apt.effectiveStatus === 'cancelled' || apt.effectiveStatus === 'completed' || apt.effectiveStatus === 'missed') && (
                     <button
                       onClick={() => handleDeleteRecord(apt._id)}
                       className="text-[10px] font-bold text-neutral-400 hover:text-red-500 transition-colors uppercase tracking-tight flex items-center gap-1.5"

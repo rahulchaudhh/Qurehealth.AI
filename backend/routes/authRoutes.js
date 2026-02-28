@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, logout, getMe, updateProfile, googleAuth, forgotPassword, resetPassword } = require('../controllers/authController');
+const { register, login, logout, getMe, updateProfile, googleAuth, googleCallback, forgotPassword, resetPassword } = require('../controllers/authController');
 const auth = require('../middleware/auth');
 
 const upload = require('../middleware/upload');
@@ -8,6 +8,7 @@ const upload = require('../middleware/upload');
 router.post('/register', upload.single('profilePicture'), register);
 router.post('/login', login);
 router.post('/google', googleAuth);
+router.get('/google/callback', googleCallback);
 router.post('/logout', logout);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password/:token', resetPassword);

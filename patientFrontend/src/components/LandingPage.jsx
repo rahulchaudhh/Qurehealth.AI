@@ -52,11 +52,7 @@ export default function LandingPage() {
                     <div className={`backdrop-blur-xl bg-white/70 border border-white/50 shadow-sm rounded-full px-6 py-3 flex justify-between items-center transition-all ${scrolled ? 'shadow-md' : ''}`}>
 
                         <div className="flex items-center gap-2.5">
-                            <div className="w-9 h-9 bg-gradient-to-tr from-indigo-600 to-violet-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M12 5v14M5 12h14" />
-                                </svg>
-                            </div>
+                            <img src="/logo.png" alt="Qurehealth.AI" className="w-9 h-9 object-contain" />
                             <span className="text-xl font-bold tracking-tight text-slate-800 font-outfit">
                                 Qurehealth.AI
                             </span>
@@ -280,12 +276,8 @@ export default function LandingPage() {
             <footer className="bg-white text-slate-900 py-16 px-6 mt-20 relative z-10 border-t border-slate-200">
                 <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
                     <div className="col-span-1 md:col-span-1">
-                        <div className="flex items-center gap-2 mb-6">
-                            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                                    <path d="M12 5v14M5 12h14" />
-                                </svg>
-                            </div>
+                        <div className="flex items-center gap-1 mb-6">
+                            <img src="/logo.png" alt="Qurehealth.AI" className="w-8 h-8 object-contain" />
                             <span className="text-xl font-bold font-outfit tracking-tight text-slate-900">Qurehealth.AI</span>
                         </div>
                         <p className="text-slate-500 text-sm leading-relaxed">
