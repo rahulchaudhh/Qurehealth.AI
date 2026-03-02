@@ -50,6 +50,52 @@ exports.bookAppointment = async (req, res) => {
             reason
         });
 
+        // Send booking confirmation email (non-critical)
+        try {
+            const patient = await Patient.findById(req.user._id).select('name email').maxTimeMS(10000);
+            if (patient && patient.email) {
+                const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                });
+                await sendEmail({
+                    to: patient.email,
+                    subject: `📅 Appointment Request Received — Dr. ${doctor.name}`,
+                    html: `
+                    <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;padding:0;border-radius:16px;overflow:hidden;">
+                        <div style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);padding:36px 40px 28px;text-align:center;">
+                            <div style="font-size:32px;margin-bottom:8px;">📅</div>
+                            <h1 style="color:#fff;margin:0;font-size:22px;font-weight:700;">QureHealth<span style="font-weight:300;">.AI</span></h1>
+                            <p style="color:rgba(255,255,255,0.85);margin:6px 0 0;font-size:13px;">Your Health, Our Priority</p>
+                        </div>
+                        <div style="background:#fff;padding:36px 40px;">
+                            <div style="display:inline-block;background:#fef9c3;color:#a16207;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;margin-bottom:20px;">
+                                ⏳ Pending Confirmation
+                            </div>
+                            <h2 style="color:#1e293b;margin:0 0 8px;font-size:20px;">Hi ${patient.name},</h2>
+                            <p style="color:#64748b;margin:0 0 24px;font-size:15px;line-height:1.6;">
+                                Your appointment request with <strong style="color:#1e293b;">Dr. ${doctor.name}</strong> has been received and is awaiting confirmation.
+                            </p>
+                            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:24px;margin-bottom:24px;">
+                                <h3 style="color:#1e293b;margin:0 0 16px;font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">📋 Appointment Details</h3>
+                                <table style="width:100%;border-collapse:collapse;">
+                                    <tr><td style="padding:8px 0;color:#64748b;font-size:14px;width:40%;">👨‍⚕️ Doctor</td><td style="padding:8px 0;color:#1e293b;font-size:14px;font-weight:600;">Dr. ${doctor.name}</td></tr>
+                                    <tr><td style="padding:8px 0;color:#64748b;font-size:14px;">📅 Date</td><td style="padding:8px 0;color:#1e293b;font-size:14px;font-weight:600;">${formattedDate}</td></tr>
+                                    <tr><td style="padding:8px 0;color:#64748b;font-size:14px;">🕐 Time</td><td style="padding:8px 0;color:#1e293b;font-size:14px;font-weight:600;">${time}</td></tr>
+                                    <tr><td style="padding:8px 0;color:#64748b;font-size:14px;">📝 Reason</td><td style="padding:8px 0;color:#1e293b;font-size:14px;">${reason}</td></tr>
+                                </table>
+                            </div>
+                            <p style="color:#94a3b8;font-size:13px;margin:0;line-height:1.6;">You will receive another email once the doctor confirms your appointment.</p>
+                        </div>
+                        <div style="background:#f1f5f9;padding:20px 40px;text-align:center;border-top:1px solid #e2e8f0;">
+                            <p style="color:#94a3b8;font-size:12px;margin:0;">© ${new Date().getFullYear()} QureHealth.AI — This is an automated notification.</p>
+                        </div>
+                    </div>`
+                });
+            }
+        } catch (emailError) {
+            console.error('Booking email failed (non-critical):', emailError.message);
+        }
+
         res.status(201).json({
             success: true,
             data: appointment
@@ -292,6 +338,42 @@ exports.cancelAppointment = async (req, res) => {
         appointment.status = 'cancelled';
         await appointment.save();
 
+        // Send cancellation email to patient (non-critical)
+        try {
+            const [patient, doctor] = await Promise.all([
+                Patient.findById(appointment.patient).select('name email').maxTimeMS(10000),
+                require('../models/Doctor').findById(appointment.doctor).select('name').maxTimeMS(10000)
+            ]);
+            if (patient && patient.email) {
+                const formattedDate = new Date(appointment.date + 'T00:00:00').toLocaleDateString('en-US', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                });
+                await sendEmail({
+                    to: patient.email,
+                    subject: `❌ Appointment Cancelled — Dr. ${doctor?.name || 'Doctor'}`,
+                    html: `
+                    <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;padding:0;border-radius:16px;overflow:hidden;">
+                        <div style="background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%);padding:36px 40px 28px;text-align:center;">
+                            <div style="font-size:32px;margin-bottom:8px;">❌</div>
+                            <h1 style="color:#fff;margin:0;font-size:22px;font-weight:700;">QureHealth<span style="font-weight:300;">.AI</span></h1>
+                        </div>
+                        <div style="background:#fff;padding:36px 40px;">
+                            <h2 style="color:#1e293b;margin:0 0 8px;font-size:20px;">Hi ${patient.name},</h2>
+                            <p style="color:#64748b;margin:0 0 24px;font-size:15px;line-height:1.6;">
+                                Your appointment with <strong style="color:#1e293b;">Dr. ${doctor?.name || 'Doctor'}</strong> on <strong>${formattedDate}</strong> at <strong>${appointment.time}</strong> has been cancelled.
+                            </p>
+                            <p style="color:#64748b;font-size:14px;line-height:1.6;">To book a new appointment, visit <a href="https://qurehealth.ai" style="color:#6366f1;font-weight:600;">qurehealth.ai</a>.</p>
+                        </div>
+                        <div style="background:#f1f5f9;padding:20px 40px;text-align:center;border-top:1px solid #e2e8f0;">
+                            <p style="color:#94a3b8;font-size:12px;margin:0;">© ${new Date().getFullYear()} QureHealth.AI — This is an automated notification.</p>
+                        </div>
+                    </div>`
+                });
+            }
+        } catch (emailError) {
+            console.error('Cancellation email failed (non-critical):', emailError.message);
+        }
+
         res.json({ success: true, data: appointment });
     } catch (error) {
         console.error('Cancel Appointment Error:', error);
@@ -356,7 +438,7 @@ exports.getAppointmentById = async (req, res) => {
     }
 };
 
-// @desc    Rate a completed appointment (create or update)
+// @desc    Rate a completed appointment
 // @route   PUT /api/appointments/:id/rate
 // @access  Private (Patient)
 exports.rateAppointment = async (req, res) => {
@@ -384,7 +466,12 @@ exports.rateAppointment = async (req, res) => {
             return res.status(400).json({ error: 'Only completed appointments can be rated.' });
         }
 
-        // Save/update rating on appointment
+        // Prevent double rating
+        if (appointment.rating && appointment.rating.isRated) {
+            return res.status(400).json({ error: 'You have already rated this appointment.' });
+        }
+
+        // Save rating on appointment
         appointment.rating = {
             score: Math.round(score),
             feedback: feedback || '',
@@ -419,65 +506,6 @@ exports.rateAppointment = async (req, res) => {
         });
     } catch (error) {
         console.error('Rate Appointment Error:', error);
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// @desc    Delete a review/rating from an appointment
-// @route   DELETE /api/appointments/:id/rate
-// @access  Private (Patient)
-exports.deleteRating = async (req, res) => {
-    try {
-        const appointment = await Appointment.findById(req.params.id).maxTimeMS(30000);
-
-        if (!appointment) {
-            return res.status(404).json({ error: 'Appointment not found' });
-        }
-
-        // Only the patient who booked can delete the rating
-        if (appointment.patient.toString() !== req.user._id.toString()) {
-            return res.status(401).json({ error: 'Not authorized to delete this rating' });
-        }
-
-        if (!appointment.rating || !appointment.rating.isRated) {
-            return res.status(400).json({ error: 'No rating to delete' });
-        }
-
-        // Clear the rating
-        appointment.rating = {
-            score: undefined,
-            feedback: '',
-            isRated: false,
-            givenAt: undefined
-        };
-        await appointment.save();
-
-        // Recalculate doctor's average rating
-        const ratedAppointments = await Appointment.find({
-            doctor: appointment.doctor,
-            'rating.isRated': true
-        }).select('rating.score').maxTimeMS(30000);
-
-        const totalReviews = ratedAppointments.length;
-        const avgRating = totalReviews > 0
-            ? ratedAppointments.reduce((sum, a) => sum + a.rating.score, 0) / totalReviews
-            : 0;
-
-        await Doctor.findByIdAndUpdate(appointment.doctor, {
-            'rating.average': Math.round(avgRating * 10) / 10,
-            'rating.totalReviews': totalReviews
-        });
-
-        res.json({
-            success: true,
-            message: 'Review deleted successfully',
-            doctorRating: {
-                average: Math.round(avgRating * 10) / 10,
-                totalReviews
-            }
-        });
-    } catch (error) {
-        console.error('Delete Rating Error:', error);
         res.status(500).json({ error: error.message });
     }
 };

@@ -2,18 +2,6 @@ import { useState } from 'react';
 import { Search, Calendar, Clock, ArrowLeft, CalendarDays, Plus, Stethoscope, Video, Info, XCircle, Trash2, Star } from 'lucide-react';
 import RatingModal from './RatingModal';
 
-// Only allow genuine external meeting URLs (not localhost or relative paths)
-const isValidMeetingLink = (link) => {
-  if (!link) return false;
-  try {
-    const url = new URL(link);
-    return (url.protocol === 'https:' || url.protocol === 'http:') &&
-      !['localhost', '127.0.0.1'].includes(url.hostname);
-  } catch {
-    return false;
-  }
-};
-
 export default function Appointments({
   myAppointments,
   appointmentFilter,
@@ -238,7 +226,7 @@ export default function Appointments({
                           <Stethoscope size={12} strokeWidth={3} />
                           Start Consultation
                         </button>
-                        {isValidMeetingLink(apt.meetingLink) && (
+                        {apt.meetingLink && (
                           <a
                             href={apt.meetingLink}
                             target="_blank"

@@ -12,6 +12,11 @@ import MedicalRecordView from './components/MedicalRecordView';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 import GoogleAuthSuccess from './components/GoogleAuthSuccess';
+import AboutPage from './components/company/AboutPage';
+import CareersPage from './components/company/CareersPage';
+import BlogPage from './components/company/BlogPage';
+import ContactPage from './components/company/ContactPage';
+import DoctorProfilePage from './components/DoctorProfilePage';
 
 // Clears all localStorage and redirects to home
 function ClearAndRedirect() {
@@ -70,6 +75,13 @@ function App() {
           <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
           {/* Emergency: visit /clear to wipe stuck localStorage token */}
           <Route path="/clear" element={<ClearAndRedirect />} />
+
+          {/* Company pages */}
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/careers" element={<CareersPage />} />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/doctor/:id" element={<DoctorProfilePage />} />
 
           {/* Protected routes */}
           <Route
