@@ -8,20 +8,18 @@ function GoogleAuthSuccess() {
   const { setUserFromToken } = useContext(AuthContext);
 
   useEffect(() => {
-    const token = searchParams.get('token');
     const error = searchParams.get('error');
 
-    if (error || !token) {
+    if (error) {
       navigate('/login?error=google_failed', { replace: true });
       return;
     }
 
-    // Save token and load user
-    localStorage.setItem('token', token);
+    // Cookie is already set by the server redirect — just load user data
     if (setUserFromToken) {
-      setUserFromToken(token);
+      setUserFromToken();
     } else {
-      // Fallback: reload so AuthContext picks up the token
+      // Fallback: reload so AuthContext picks up the cookie
       window.location.href = '/dashboard';
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

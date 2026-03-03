@@ -29,13 +29,12 @@ function Login() {
     window.location.href = url;
   }
 
-  // Redirect based on role after login
+  // Redirect based on role after login (cookie is already set by server)
   function redirectByRole(role) {
-    const token = localStorage.getItem('token');
     if (role === 'admin') {
-      window.location.href = `http://localhost:5175/dashboard?token=${token}`;
+      window.location.href = 'http://localhost:5175/dashboard';
     } else if (role === 'doctor') {
-      window.location.href = `http://localhost:5174/dashboard?token=${token}`;
+      window.location.href = 'http://localhost:5174/dashboard';
     } else {
       navigate('/dashboard', { replace: true });
     }

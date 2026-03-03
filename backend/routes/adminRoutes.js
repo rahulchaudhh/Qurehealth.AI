@@ -3,7 +3,8 @@ const router = express.Router();
 const {
     getPendingDoctors, approveDoctor, rejectDoctor, getAllDoctors,
     getAllPatients, deletePatient, getDashboardStats,
-    broadcast, triggerAlert, getBroadcastHistory, stopBroadcast
+    broadcast, triggerAlert, getBroadcastHistory, stopBroadcast,
+    getAllAppointments, updateAdminAppointmentStatus
 } = require('../controllers/adminController');
 const auth = require('../middleware/auth');
 
@@ -27,5 +28,7 @@ router.post('/broadcast', auth, adminCheck, broadcast);
 router.post('/trigger-alert', auth, adminCheck, triggerAlert);
 router.get('/broadcast-history', auth, adminCheck, getBroadcastHistory);
 router.delete('/broadcast/:batchId', auth, adminCheck, stopBroadcast);
+router.get('/appointments', auth, adminCheck, getAllAppointments);
+router.put('/appointments/:id/status', auth, adminCheck, updateAdminAppointmentStatus);
 
 module.exports = router;

@@ -466,12 +466,7 @@ exports.rateAppointment = async (req, res) => {
             return res.status(400).json({ error: 'Only completed appointments can be rated.' });
         }
 
-        // Prevent double rating
-        if (appointment.rating && appointment.rating.isRated) {
-            return res.status(400).json({ error: 'You have already rated this appointment.' });
-        }
-
-        // Save rating on appointment
+        // Save rating on appointment (allow editing existing rating)
         appointment.rating = {
             score: Math.round(score),
             feedback: feedback || '',
@@ -506,6 +501,65 @@ exports.rateAppointment = async (req, res) => {
         });
     } catch (error) {
         console.error('Rate Appointment Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// @desc    Delete a review from a completed appointment
+// @route   DELETE /api/appointments/:id/rate
+// @access  Private (Patient)
+exports.deleteRating = async (req, res) => {
+    try {
+        const appointment = await Appointment.findById(req.params.id).maxTimeMS(30000);
+
+        if (!appointment) {
+            return res.status(404).json({ error: 'Appointment not found' });
+        }
+
+        // Only the patient who booked can delete their review
+        if (appointment.patient.toString() !== req.user._id.toString()) {
+            return res.status(401).json({ error: 'Not authorized to delete this review' });
+        }
+
+        if (!appointment.rating || !appointment.rating.isRated) {
+            return res.status(400).json({ error: 'This appointment has no review to delete.' });
+        }
+
+        // Clear rating
+        appointment.rating = {
+            score: null,
+            feedback: '',
+            isRated: false,
+            givenAt: null
+        };
+        await appointment.save();
+
+        // Recalculate doctor's average rating
+        const ratedAppointments = await Appointment.find({
+            doctor: appointment.doctor,
+            'rating.isRated': true
+        }).select('rating.score').maxTimeMS(30000);
+
+        const totalReviews = ratedAppointments.length;
+        const avgRating = totalReviews > 0
+            ? ratedAppointments.reduce((sum, a) => sum + a.rating.score, 0) / totalReviews
+            : 0;
+
+        await Doctor.findByIdAndUpdate(appointment.doctor, {
+            'rating.average': Math.round(avgRating * 10) / 10,
+            'rating.totalReviews': totalReviews
+        });
+
+        res.json({
+            success: true,
+            message: 'Review deleted successfully',
+            doctorRating: {
+                average: Math.round(avgRating * 10) / 10,
+                totalReviews
+            }
+        });
+    } catch (error) {
+        console.error('Delete Rating Error:', error);
         res.status(500).json({ error: error.message });
     }
 };
