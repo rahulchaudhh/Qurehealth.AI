@@ -6,6 +6,13 @@ const {
     broadcast, triggerAlert, getBroadcastHistory, stopBroadcast,
     getAllAppointments, updateAdminAppointmentStatus
 } = require('../controllers/adminController');
+const {
+    getVerificationCriteria,
+    updateVerificationCriteria,
+    getActivityLogs,
+    clearOldLogs,
+    getSystemStats
+} = require('../controllers/adminSettingsController');
 const auth = require('../middleware/auth');
 
 // Middleware to check if user is admin - simple check for now
@@ -30,5 +37,12 @@ router.get('/broadcast-history', auth, adminCheck, getBroadcastHistory);
 router.delete('/broadcast/:batchId', auth, adminCheck, stopBroadcast);
 router.get('/appointments', auth, adminCheck, getAllAppointments);
 router.put('/appointments/:id/status', auth, adminCheck, updateAdminAppointmentStatus);
+
+// ── Admin Settings Routes ──
+router.get('/settings/verification-criteria', auth, adminCheck, getVerificationCriteria);
+router.put('/settings/verification-criteria', auth, adminCheck, updateVerificationCriteria);
+router.get('/logs/activity', auth, adminCheck, getActivityLogs);
+router.delete('/logs/clear-old', auth, adminCheck, clearOldLogs);
+router.get('/stats/system', auth, adminCheck, getSystemStats);
 
 module.exports = router;
