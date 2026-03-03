@@ -10,6 +10,27 @@ const signToken = (payload) => {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
 
+// Helper: set httpOnly auth cookie on the response
+const setAuthCookie = (res, token) => {
+  res.cookie('authToken', token, {
+    httpOnly: true,                                      // JS cannot access
+    secure: process.env.NODE_ENV === 'production',       // HTTPS only in prod
+    sameSite: 'lax',                                     // CSRF protection
+    maxAge: 7 * 24 * 60 * 60 * 1000,                    // 7 days
+    path: '/',
+  });
+};
+
+// Helper: clear the auth cookie
+const clearAuthCookie = (res) => {
+  res.clearCookie('authToken', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+  });
+};
+
 exports.register = async (req, res) => {
   try {
     console.log('--- Register Request Received ---');
@@ -19,9 +40,19 @@ exports.register = async (req, res) => {
     const { name, email, password, role, profilePicture: bodyProfilePic, ...otherData } = req.body; // role: 'patient' or 'doctor'
 
     if (role === 'doctor') {
+      console.log('👨‍⚕️ Doctor registration initiated for email:', email);
       const doctorExists = await Doctor.findOne({ email });
       if (doctorExists) {
-        return res.status(400).json({ error: 'Doctor already exists' });
+        // Provide more helpful error message based on approval status
+        if (doctorExists.isApproved === true) {
+          return res.status(400).json({ 
+            error: 'This email is already registered and approved. Please log in instead.' 
+          });
+        } else {
+          return res.status(400).json({ 
+            error: 'This email is already registered. Your application is pending admin approval. Please wait or contact support.' 
+          });
+        }
       }
 
       // Handle file upload
@@ -39,6 +70,115 @@ exports.register = async (req, res) => {
         ...otherData // specialization, experience, etc.
       });
 
+      // Send admin notification email
+      console.log('ADMIN_EMAIL from env:', process.env.ADMIN_EMAIL);
+      if (process.env.ADMIN_EMAIL) {
+        try {
+          console.log('Sending admin notification email to:', process.env.ADMIN_EMAIL);
+          await sendEmail({
+            to: process.env.ADMIN_EMAIL,
+            subject: 'New Doctor Registration on Qurehealth.AI',
+            html: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Ubuntu,sans-serif;background-color:#fafbfc;">
+    <div style="width:100%;max-width:600px;margin:32px auto;background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+        <!-- Premium Brand Bar -->
+        <div style="height:4px;background:linear-gradient(90deg,#4F46E5 0%,#6366f1 100%);border-radius:8px 8px 0 0;"></div>
+        
+        <!-- Logo & Header -->
+        <div style="padding:32px 32px 24px;text-align:center;border-bottom:1px solid #f0f0f0;">
+            <h1 style="margin:0;font-size:24px;font-weight:700;color:#1a1a1a;letter-spacing:-0.5px;">
+                Qurehealth<span style="font-weight:700;color:#1a1a1a;">.AI</span>
+            </h1>
+            <p style="margin:6px 0 0;font-size:12px;color:#8b8b8b;font-weight:500;">Admin Notification</p>
+        </div>
+        
+        <!-- Main Content -->
+        <div style="padding:32px;">
+            <!-- Title -->
+            <h2 style="margin:0 0 12px;font-size:20px;font-weight:700;color:#1a1a1a;line-height:1.4;">
+                New Doctor Registration
+            </h2>
+            
+            <!-- Body Copy -->
+            <p style="margin:0 0 28px;font-size:15px;color:#525252;line-height:1.6;font-weight:400;">
+                A new doctor has registered on the platform. Review their details below and take action if needed.
+            </p>
+            
+            <!-- Doctor Details Card -->
+            <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:24px;margin-bottom:32px;">
+                <h3 style="margin:0 0 20px;font-size:13px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">Doctor Information</h3>
+                
+                <table style="width:100%;border-collapse:collapse;">
+                    <tr>
+                        <td style="padding:12px 0;font-size:14px;color:#6b7280;font-weight:500;border-bottom:1px solid #eff2f5;">Name</td>
+                        <td style="padding:12px 0;font-size:14px;color:#1a1a1a;font-weight:600;border-bottom:1px solid #eff2f5;text-align:right;">${doctor.name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:12px 0;font-size:14px;color:#6b7280;font-weight:500;border-bottom:1px solid #eff2f5;">Email</td>
+                        <td style="padding:12px 0;font-size:14px;color:#1a1a1a;font-weight:600;border-bottom:1px solid #eff2f5;text-align:right;word-break:break-all;">${doctor.email}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:12px 0;font-size:14px;color:#6b7280;font-weight:500;border-bottom:1px solid #eff2f5;">Specialization</td>
+                        <td style="padding:12px 0;font-size:14px;color:#1a1a1a;font-weight:600;border-bottom:1px solid #eff2f5;text-align:right;">${otherData.specialization || 'Not specified'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:12px 0;font-size:14px;color:#6b7280;font-weight:500;border-bottom:1px solid #eff2f5;">Experience</td>
+                        <td style="padding:12px 0;font-size:14px;color:#1a1a1a;font-weight:600;border-bottom:1px solid #eff2f5;text-align:right;">${otherData.experience || 'Not specified'} years</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:12px 0;font-size:14px;color:#6b7280;font-weight:500;">Registration Date</td>
+                        <td style="padding:12px 0;font-size:14px;color:#1a1a1a;font-weight:600;text-align:right;">${new Date().toLocaleDateString()}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- CTA Button -->
+            <table style="width:100%;border-collapse:collapse;margin-bottom:32px;">
+                <tr>
+                    <td style="text-align:center;">
+                        <a href="${process.env.ADMIN_FRONTEND_URL || 'http://localhost:5175'}/pending-doctors"
+                           style="display:inline-block;width:100%;max-width:320px;padding:0 24px;height:48px;line-height:48px;background:#4F46E5;color:white;text-decoration:none;font-size:15px;font-weight:600;border-radius:12px;box-shadow:0 2px 4px rgba(79,70,229,0.2);transition:all 0.2s;">
+                            Review in Dashboard
+                        </a>
+                    </td>
+                </tr>
+            </table>
+            
+            <!-- Supporting Text -->
+            <p style="margin:0;font-size:14px;color:#8b8b8b;line-height:1.6;">
+                Log in to your admin dashboard to review, approve, or reject this doctor's registration.
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="padding:24px 32px;border-top:1px solid #f0f0f0;background:#fafbfc;border-radius:0 0 8px 8px;">
+            <p style="margin:0 0 12px;font-size:13px;color:#8b8b8b;line-height:1.5;">
+                © ${new Date().getFullYear()} Qurehealth.AI. All rights reserved.<br/>
+                Trusted Healthcare Platform
+            </p>
+            <p style="margin:0;font-size:12px;color:#a3a3a3;">
+                This is an automated admin notification.
+            </p>
+        </div>
+    </div>
+</body>
+</html>`
+          });
+          console.log('✅ Admin notification email sent successfully to:', process.env.ADMIN_EMAIL);
+        } catch (emailErr) {
+          console.error('❌ Admin notification email failed:', emailErr.message);
+          console.error('Error details:', emailErr);
+          // Don't block registration if email fails
+        }
+      } else {
+        console.log('⚠️ ADMIN_EMAIL is not set in environment variables');
+      }
+
       // Do NOT return token for doctor immediately due to approval requirement
       res.status(201).json({
         message: 'Doctor registration successful. verification pending.'
@@ -48,7 +188,9 @@ exports.register = async (req, res) => {
       // Default to Patient
       const patientExists = await Patient.findOne({ email });
       if (patientExists) {
-        return res.status(400).json({ error: 'Patient already exists' });
+        return res.status(400).json({ 
+          error: 'This email is already registered. Please log in to your existing account.' 
+        });
       }
 
       const patient = await Patient.create({
@@ -69,8 +211,9 @@ exports.register = async (req, res) => {
         role: 'patient'
       });
 
+      setAuthCookie(res, token);
+
       res.status(201).json({
-        token,
         data: patientObj
       });
     }
@@ -95,7 +238,8 @@ exports.login = async (req, res) => {
         role: 'admin'
       };
       const token = signToken({ _id: 'admin_id', id: 'admin_id', name: 'Admin User', email, role: 'admin' });
-      return res.json({ token, data: adminUser });
+      setAuthCookie(res, token);
+      return res.json({ data: adminUser });
     }
 
     // Query Patient and Doctor in PARALLEL — halves DB latency
@@ -111,7 +255,8 @@ exports.login = async (req, res) => {
       if (isMatch) {
         const patientObj = { ...patient, role: 'patient' };
         const token = signToken({ _id: patientObj._id, id: patientObj._id, name: patientObj.name, email: patientObj.email, role: 'patient' });
-        return res.json({ token, data: patientObj });
+        setAuthCookie(res, token);
+        return res.json({ data: patientObj });
       }
     }
 
@@ -129,7 +274,8 @@ exports.login = async (req, res) => {
         }
         const doctorObj = { ...doctor, role: 'doctor' };
         const token = signToken({ _id: doctorObj._id, id: doctorObj._id, name: doctorObj.name, email: doctorObj.email, role: 'doctor' });
-        return res.json({ token, data: doctorObj });
+        setAuthCookie(res, token);
+        return res.json({ data: doctorObj });
       }
     }
 
@@ -142,8 +288,8 @@ exports.login = async (req, res) => {
 };
 
 exports.logout = async (req, res) => {
-  // With JWT, logout is handled client-side by removing the token.
-  // This endpoint exists for API compatibility.
+  // Clear the httpOnly auth cookie
+  clearAuthCookie(res);
   res.json({ message: 'Logout successful' });
 };
 
@@ -252,9 +398,10 @@ exports.updateProfile = async (req, res) => {
       role: updatedUser.role
     });
 
+    setAuthCookie(res, token);
+
     res.json({
       success: true,
-      token,
       data: updatedUser
     });
 
@@ -307,7 +454,8 @@ exports.googleAuth = async (req, res) => {
       role: 'patient'
     });
 
-    return res.json({ token, data: patientObj });
+    setAuthCookie(res, token);
+    return res.json({ data: patientObj });
 
   } catch (error) {
     console.error('Google auth error:', error);
@@ -365,8 +513,9 @@ exports.googleCallback = async (req, res) => {
       role: 'patient'
     });
 
-    // Redirect back to patient frontend with token
-    res.redirect(`http://localhost:5173/auth/google/success?token=${token}&role=patient`);
+    // Set httpOnly cookie and redirect WITHOUT token in URL
+    setAuthCookie(res, token);
+    res.redirect(`http://localhost:5173/auth/google/success`);
 
   } catch (error) {
     console.error('Google callback error:', error);

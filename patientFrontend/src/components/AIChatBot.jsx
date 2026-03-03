@@ -238,8 +238,8 @@ export default function AIChatBot({ defaultOpen = false, lang: langProp = 'en' }
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    ...(localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}),
                 },
+                credentials: 'include',  // Send httpOnly cookies
                 body: JSON.stringify({ message: trimmed, history, sessionId, lang }),
             });
 

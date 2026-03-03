@@ -12,6 +12,7 @@ import FindDoctors from './FindDoctors';
 import Appointments from './Appointments';
 import MedicalHistory from './MedicalHistory';
 import AIChatBot from './AIChatBot';
+import BookingWizard from './booking/BookingWizard';
 
 
 
@@ -196,6 +197,7 @@ export default function Dashboard() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
 
   const [viewAppointment, setViewAppointment] = useState(null);
@@ -454,10 +456,7 @@ export default function Dashboard() {
 
       toast.success('Appointment booked successfully!');
 
-      setSelectedDoctor(null);
-      setBookingData({ date: '', time: '', reason: '' });
-
-      // Refresh appointments list
+      // Refresh appointments list (wizard shows its own confirmation step — don't close here)
       setMyAppointments(prev => [...prev, res.data.data]);
     } catch (error) {
       console.error('Booking failed:', error);
@@ -699,18 +698,102 @@ export default function Dashboard() {
 
 
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => navigate('/patient/profile')}>
-              <img
-                src={user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff&size=128`}
-                alt="Profile"
-                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
-                referrerPolicy="no-referrer"
-                onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff&size=128`; }}
-              />
-              <div className="hidden md:block">
-                <p className="text-sm font-bold text-gray-900">{user.name}</p>
-                <p className="text-xs text-gray-500">Patient</p>
-              </div>
+            {/* ── Profile popup ── */}
+            <div className="relative">
+              <button
+                onClick={() => { setShowProfileMenu(v => !v); setShowNotifications(false); }}
+                className="flex items-center gap-3 bg-gray-50 px-3 py-2 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                <img
+                  src={user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff&size=128`}
+                  alt="Profile"
+                  className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff&size=128`; }}
+                />
+                <div className="hidden md:block text-left">
+                  <p className="text-sm font-bold text-gray-900 leading-tight">{user.name}</p>
+                  <p className="text-xs text-gray-500">Patient</p>
+                </div>
+              </button>
+
+              {/* ── Popup card (MySecondTeacher style) ── */}
+              {showProfileMenu && (
+                <>
+                  {/* backdrop — click outside closes */}
+                  <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
+
+                  <div className="absolute right-0 mt-3 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-fadeIn">
+
+                    {/* ── Top: avatar + name + handle ── */}
+                    <div className="flex items-center gap-4 px-5 py-5 border-b border-gray-100">
+                      <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-gray-100 bg-indigo-50 shrink-0">
+                        <img
+                          src={user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff&size=128`}
+                          alt="avatar"
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff&size=128`; }}
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-gray-900 text-sm leading-tight truncate">{user.name}</p>
+                        <p className="text-xs text-gray-400 font-medium truncate">@{user.name.replace(/\s+/g, '')}</p>
+                      </div>
+                    </div>
+
+                    {/* ── Info rows ── */}
+                    <ul className="px-5 py-3 space-y-2.5 border-b border-gray-100">
+                      <PopupInfoRow
+                        icon={<svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>}
+                        text={user.email}
+                      />
+                      {user.phone && (
+                        <PopupInfoRow
+                          icon={<svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>}
+                          text={user.phone}
+                        />
+                      )}
+                      {user.gender && (
+                        <PopupInfoRow
+                          icon={<svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>}
+                          text={user.gender.charAt(0).toUpperCase() + user.gender.slice(1)}
+                        />
+                      )}
+                    </ul>
+
+                    {/* ── Links ── */}
+                    <ul className="px-3 py-2 space-y-0.5">
+                      <PopupMenuItem
+                        icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>}
+                        label="My Profile"
+                        color="text-blue-600"
+                        onClick={() => { setShowProfileMenu(false); navigate('/patient/profile'); }}
+                      />
+                      <PopupMenuItem
+                        icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>}
+                        label="My Appointments"
+                        color="text-blue-600"
+                        onClick={() => { setShowProfileMenu(false); setCurrentPage('appointments'); }}
+                      />
+                      <PopupMenuItem
+                        icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>}
+                        label="Medical History"
+                        color="text-blue-600"
+                        onClick={() => { setShowProfileMenu(false); setCurrentPage('history'); }}
+                      />
+                      <div className="border-t border-gray-100 mt-1 pt-1">
+                        <PopupMenuItem
+                          icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>}
+                          label="Logout"
+                          color="text-red-500"
+                          onClick={() => { setShowProfileMenu(false); handleLogout(); }}
+                        />
+                      </div>
+                    </ul>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -769,7 +852,7 @@ export default function Dashboard() {
           appointmentFilter={appointmentFilter}
           setAppointmentFilter={setAppointmentFilter}
           aptSearch={aptSearch}
-          setAptSearch={setAptSearch}
+          setAptSearch={setAptSearch} 
           setCurrentPage={setCurrentPage}
           setViewAppointment={setViewAppointment}
           handleCancelAppointment={handleCancelAppointment}
@@ -788,195 +871,28 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Booking Modal */}
-      {
-        selectedDoctor && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={(e) => e.target === e.currentTarget && setSelectedDoctor(null)}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden" style={{ animation: 'fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-
-              {/* Clean Header */}
-              <div className="px-6 pt-6 pb-0">
-                <div className="flex items-start justify-between mb-5">
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900 tracking-tight">Book Appointment</h2>
-                    <p className="text-xs text-gray-400 font-medium mt-0.5">Complete the steps below to confirm</p>
-                  </div>
-                  <button
-                    onClick={() => setSelectedDoctor(null)}
-                    className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors -mr-1 -mt-1"
-                  >
-                    <X size={18} strokeWidth={2} />
-                  </button>
-                </div>
-
-                {/* Doctor Card */}
-                <div className="flex items-center gap-3.5 p-3.5 bg-gray-50 rounded-xl border border-gray-100">
-                  <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-gray-200">
-                    {selectedDoctor.profilePicture ? (
-                      <img
-                        src={selectedDoctor.profilePicture}
-                        alt={selectedDoctor.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-blue-50 text-blue-600">
-                        <User size={22} />
-                      </div>
-                    )}
-                    <div className="w-full h-full items-center justify-center bg-blue-50 text-blue-600 hidden">
-                      <User size={22} />
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-bold text-gray-900 truncate">{selectedDoctor.name}</h3>
-                    <p className="text-xs text-gray-500 font-medium">{selectedDoctor.specialty}</p>
-                  </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <div className="flex items-center gap-1 text-xs text-gray-500 font-medium">
-                      <Star size={11} fill="currentColor" className="text-amber-400" /> {selectedDoctor.rating}
-                    </div>
-                    <div className="h-4 w-px bg-gray-200"></div>
-                    <div className="text-sm font-bold text-gray-900">{selectedDoctor.fee}</div>
-                  </div>
-                </div>
-              </div>
-
-              <form onSubmit={handleBookAppointment} className="p-6 pt-5">
-
-                {/* Date */}
-                <div className="mb-5">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">When</label>
-                  <input
-                    type="date"
-                    required
-                    min={new Date().toISOString().split('T')[0]}
-                    value={bookingData.date}
-                    onChange={(e) => setBookingData({ ...bookingData, date: e.target.value })}
-                    onClick={(e) => e.target.showPicker && e.target.showPicker()}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all bg-white text-gray-800 font-medium text-sm cursor-pointer hover:border-gray-300"
-                  />
-                </div>
-
-                {/* Time Slots — dynamic from doctor schedule */}
-                <div className="mb-5">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Time Slot</label>
-                  {!bookingData.date ? (
-                    <p className="text-xs text-gray-400 italic py-3">Pick a date first to see available slots</p>
-                  ) : loadingSlots ? (
-                    <div className="grid grid-cols-4 gap-1.5">
-                      {[1,2,3,4].map(i => <div key={i} className="h-10 bg-gray-100 rounded-lg animate-pulse" />)}
-                    </div>
-                  ) : availableSlots.length === 0 ? (
-                    <div className="text-center py-4 bg-red-50 rounded-xl border border-red-100">
-                      <p className="text-xs text-red-600 font-medium">No available slots on this date</p>
-                      <p className="text-[10px] text-red-400 mt-0.5">The doctor is either off or fully booked. Try another date.</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-4 gap-1.5">
-                      {availableSlots.map(slot => (
-                        <button
-                          key={slot.time12}
-                          type="button"
-                          onClick={() => setBookingData({ ...bookingData, time: slot.time12 })}
-                          className={`py-2.5 rounded-lg text-xs font-semibold transition-all duration-150 ${bookingData.time === slot.time12
-                            ? 'bg-gray-900 text-white shadow-md'
-                            : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-100'
-                            }`}
-                        >
-                          {slot.time12}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  <input type="hidden" required value={bookingData.time} />
-                </div>
-
-                {/* Reason */}
-                <div className="mb-5">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Reason for Visit</label>
-                  <textarea
-                    required
-                    value={bookingData.reason}
-                    onChange={(e) => setBookingData({ ...bookingData, reason: e.target.value })}
-                    placeholder="Describe your symptoms or concern..."
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all bg-white text-gray-800 text-sm min-h-[72px] resize-none hover:border-gray-300 placeholder:text-gray-300"
-                  ></textarea>
-                </div>
-
-                {/* Summary */}
-                {bookingData.date && bookingData.time && (
-                  <div className="mb-5 p-3.5 bg-blue-50/50 rounded-xl border border-blue-100/60">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-5 text-sm">
-                        <span className="flex items-center gap-1.5 text-gray-700 font-medium">
-                          <Calendar size={13} className="text-blue-500" />
-                          {new Date(bookingData.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                        </span>
-                        <span className="flex items-center gap-1.5 text-gray-700 font-medium">
-                          <Clock size={13} className="text-blue-500" /> {bookingData.time}
-                        </span>
-                      </div>
-                      <span className="flex items-center gap-1 text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold border border-emerald-100">
-                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-                        Available
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Trust Indicators */}
-                <div className="flex items-center gap-4 mb-5 px-1">
-                  <span className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium">
-                    <Shield size={11} className="text-gray-300" />
-                    Free cancellation 24h before
-                  </span>
-                  <span className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium">
-                    <CalendarCheck size={11} className="text-gray-300" />
-                    Instant confirmation
-                  </span>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedDoctor(null)}
-                    disabled={isBooking}
-                    className="px-5 py-3 rounded-xl text-gray-500 font-semibold hover:bg-gray-50 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={!bookingData.time || isBooking}
-                    className={`flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 ${bookingData.time && !isBooking
-                      ? 'bg-gray-900 hover:bg-black text-white shadow-lg shadow-gray-900/20 active:scale-[0.98]'
-                      : 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                      }`}
-                  >
-                    {isBooking ? (
-                      <>
-                        <svg className="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                        </svg>
-                        Confirming...
-                      </>
-                    ) : (
-                      <>
-                        Confirm Booking
-                        <ChevronRight size={16} strokeWidth={2.5} />
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-
-            </div>
-          </div>
-        )
-      }
+      {/* Multi-Step Booking Wizard */}
+      {selectedDoctor && (
+        <BookingWizard
+          doctor={selectedDoctor}
+          user={user}
+          bookingData={bookingData}
+          setBookingData={setBookingData}
+          availableSlots={availableSlots}
+          loadingSlots={loadingSlots}
+          isBooking={isBooking}
+          onSubmit={handleBookAppointment}
+          onClose={() => {
+            setSelectedDoctor(null);
+            setBookingData({ date: '', time: '', reason: '' });
+          }}
+          onViewAppointments={() => {
+            setSelectedDoctor(null);
+            setBookingData({ date: '', time: '', reason: '' });
+            setCurrentPage('appointments');
+          }}
+        />
+      )}
 
 
       {/* Appointment Details Modal */}
@@ -1338,5 +1254,30 @@ export default function Dashboard() {
       {/* ── AI Chatbot widget ── */}
       <AIChatBot />
     </div >
+  );
+}
+
+// ── Popup helper components ──
+
+function PopupInfoRow({ icon, text }) {
+  return (
+    <li className="flex items-center gap-2.5">
+      <span className="shrink-0">{icon}</span>
+      <span className="text-xs text-gray-600 truncate">{text}</span>
+    </li>
+  );
+}
+
+function PopupMenuItem({ icon, label, color, onClick }) {
+  return (
+    <li>
+      <button
+        onClick={onClick}
+        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium ${color} hover:bg-gray-50 transition-colors text-left`}
+      >
+        <span className="shrink-0">{icon}</span>
+        {label}
+      </button>
+    </li>
   );
 }

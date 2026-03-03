@@ -99,14 +99,10 @@ function Register() {
           name: '', email: '', password: '', phone: '', dateOfBirth: '', gender: 'male',
           specialization: '', experience: '', profilePicture: null
         });
-        successTimerRef.current = setTimeout(() => {
-          navigate('/');
-        }, 5000);
+        // Modal now requires manual click (no auto-dismiss)
       } else {
         setSuccessMsg('Registration successful! Please login to continue.');
-        setTimeout(() => {
-          navigate('/login');
-        }, 1500);
+        // Modal now requires manual click (no auto-dismiss)
       }
     } else {
       setError(result.error);
@@ -124,59 +120,170 @@ function Register() {
     <div className="auth-container">
       <div className="auth-card max-w-lg">
         {/* ... Header ... */}
-        <h2 className="auth-title">Create Account</h2>
-        {/* Role Toggle */}
-        <div className="flex bg-gray-100 p-1 rounded-lg mb-6">
-          <button
-            type="button"
-            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${role === 'patient' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-            onClick={() => setRole('patient')}
-          >
-            Patient
-          </button>
-          <button
-            type="button"
-            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${role === 'doctor' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-            onClick={() => setRole('doctor')}
-          >
-            Doctor
-          </button>
-        </div>
+        {!(successMsg && role === 'doctor') && (
+          <>
+            <h2 className="auth-title">Create Account</h2>
+            {/* Role Toggle */}
+            <div className="flex bg-gray-100 p-1 rounded-lg mb-6">
+              <button
+                type="button"
+                className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${role === 'patient' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setRole('patient')}
+              >
+                Patient
+              </button>
+              <button
+                type="button"
+                className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${role === 'doctor' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setRole('doctor')}
+              >
+                Doctor
+              </button>
+            </div>
+          </>
+        )}
 
-        {/* ... Success/Error ... */}
-
-        {/* ... Success/Error ... */}
         {error && (
           <div className="auth-error-box">
             {error}
           </div>
         )}
 
-        {successMsg && (
-          <div className="bg-green-50 text-green-700 p-4 rounded-lg mb-6 text-center border border-green-200 font-medium relative overflow-hidden">
-            <button
-              onClick={() => {
-                clearTimeout(successTimerRef.current);
-                setSuccessMsg('');
-              }}
-              className="absolute top-2 right-2 text-green-500 hover:text-green-800 font-bold text-lg leading-none"
-              title="Dismiss"
-            >
-              ✕
-            </button>
-            <p className="pr-4">{successMsg}</p>
-            <div className="mt-3 h-1 bg-green-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-green-500 rounded-full"
-                style={{ animation: 'shrink 5s linear forwards' }}
-              />
-            </div>
+        {successMsg && role === 'doctor' && (
+          <div
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-indigo-50 px-6"
+            style={{ animation: 'fadeInUp 0.35s ease both' }}
+          >
             <style>{`
-              @keyframes shrink {
-                from { width: 100%; }
-                to   { width: 0%; }
+              @keyframes fadeInUp {
+                from { opacity: 0; transform: translateY(18px); }
+                to   { opacity: 1; transform: translateY(0); }
+              }
+              @keyframes scaleIn {
+                from { opacity: 0; transform: scale(0.55); }
+                to   { opacity: 1; transform: scale(1); }
               }
             `}</style>
+
+            {/* Card */}
+            <div className="bg-white rounded-2xl shadow-xl px-10 py-12 w-full max-w-md flex flex-col items-center">
+
+              {/* Brand */}
+              <p className="text-black font-bold text-base tracking-wide mb-8">Qurehealth<span className="font-bold">.AI</span></p>
+
+              {/* Success Icon */}
+              <div
+                className="flex items-center justify-center w-24 h-24 rounded-full bg-indigo-50 border-4 border-indigo-100 mb-6"
+                style={{ animation: 'scaleIn 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.1s both' }}
+              >
+                <svg className="w-12 h-12 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+
+              {/* Heading */}
+              <h3 className="text-2xl font-bold text-gray-800 mb-2 text-center">
+                Registration Submitted Successfully
+              </h3>
+
+              {/* Status Badge */}
+              <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-sm font-semibold mb-5">
+                
+                Pending Admin Approval
+              </span>
+
+              {/* Info text */}
+              <p className="text-gray-500 text-sm text-center max-w-xs mb-1">
+                Approval typically takes <span className="font-semibold text-gray-700">24–48 hours</span>.
+              </p>
+              <p className="text-gray-500 text-sm text-center max-w-xs mb-8">
+                You will receive an <span className="font-semibold text-gray-700">email notification</span> once your account has been reviewed and approved.
+              </p>
+
+              {/* Divider */}
+              <div className="w-full border-t border-gray-100 mb-6" />
+
+              {/* Buttons */}
+              <div className="flex flex-col w-full gap-3">
+                <button
+                  onClick={() => {
+                    clearTimeout(successTimerRef.current);
+                    navigate('/login');
+                  }}
+                  className="w-full py-3 rounded-xl text-white font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5"
+                  style={{ background: 'linear-gradient(135deg,#4F46E5,#6366f1)' }}
+                >
+                  Go to Login
+                </button>
+                <button
+                  onClick={() => {
+                    clearTimeout(successTimerRef.current);
+                    navigate('/');
+                  }}
+                  className="w-full py-3 rounded-xl text-gray-600 font-semibold text-sm transition-all duration-200 border border-gray-200 hover:bg-gray-50"
+                >
+                  Back to Home
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {successMsg && role === 'patient' && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div
+              className="bg-white rounded-2xl shadow-xl px-10 py-12 w-full max-w-md flex flex-col items-center"
+              style={{ animation: 'fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}
+            >
+              {/* Brand */}
+              <p className="text-black font-bold text-base tracking-wide mb-8">QureHealth<span className="font-bold">.AI</span></p>
+
+              {/* Success Icon */}
+              <div
+                className="flex items-center justify-center w-24 h-24 rounded-full bg-green-50 border-4 border-green-100 mb-6"
+                style={{ animation: 'scaleIn 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.1s both' }}
+              >
+                <svg className="w-12 h-12 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+
+              {/* Heading */}
+              <h3 className="text-2xl font-bold text-gray-800 mb-2 text-center">
+                Registration Successful
+              </h3>
+
+              {/* Status Badge */}
+              <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-green-50 border border-green-200 text-green-700 text-sm font-semibold mb-5">
+                <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+                Ready to Login
+              </span>
+
+              {/* Info text */}
+              <p className="text-gray-500 text-sm text-center max-w-xs mb-8">
+                Your account has been created successfully. You can now log in with your credentials.
+              </p>
+
+              {/* Divider */}
+              <div className="w-full border-t border-gray-100 mb-6" />
+
+              {/* Buttons */}
+              <div className="flex flex-col w-full gap-3">
+                <button
+                  onClick={() => navigate('/login')}
+                  className="w-full py-3 rounded-xl text-white font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5"
+                  style={{ background: 'linear-gradient(135deg,#16a34a,#22c55e)' }}
+                >
+                  Go to Login
+                </button>
+                <button
+                  onClick={() => navigate('/')}
+                  className="w-full py-3 rounded-xl text-gray-600 font-semibold text-sm transition-all duration-200 border border-gray-200 hover:bg-gray-50"
+                >
+                  Back to Home
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -310,9 +417,11 @@ function Register() {
           </form>
         )}
 
-        <p className="auth-footer">
-          Already have an account? <Link to="/login" className="auth-link">Login here</Link>
-        </p>
+        {!(successMsg && role === 'doctor') && (
+          <p className="auth-footer">
+            Already have an account? <Link to="/login" className="auth-link">Login here</Link>
+          </p>
+        )}
       </div>
     </div>
   );

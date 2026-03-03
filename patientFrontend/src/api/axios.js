@@ -3,25 +3,14 @@ import axios from 'axios';
 const instance = axios.create({
   baseURL: '/api',
   timeout: 15000, // 15s — enough for MongoDB Atlas cold start
-  headers: { 'Content-Type': 'application/json' }
+  headers: { 'Content-Type': 'application/json' },
+  withCredentials: true  // Always send httpOnly cookies with every request
 });
 
-// Attach JWT token to every request
-instance.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// On 401 response, clear token
+// On 401 response, let AuthContext handle the redirect
 instance.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem('token');
-    }
     return Promise.reject(err);
   }
 );

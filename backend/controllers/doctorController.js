@@ -6,6 +6,17 @@ const signToken = (payload) => {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
 
+// Helper: set httpOnly auth cookie on the response
+const setAuthCookie = (res, token) => {
+  res.cookie('authToken', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: '/',
+  });
+};
+
 // ── Helper: compute next available slot for a doctor ──
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -146,7 +157,8 @@ exports.loginDoctor = async (req, res) => {
             role: 'doctor'
         });
 
-        res.json({ token, data: doctorObj });
+        setAuthCookie(res, token);
+        res.json({ data: doctorObj });
     } catch (error) {
         console.error('Doctor login error:', error);
         res.status(500).json({ error: error.message });

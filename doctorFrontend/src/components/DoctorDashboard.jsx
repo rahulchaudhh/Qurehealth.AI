@@ -242,7 +242,7 @@ function DoctorDashboard() {
             fd.append('gender', profileData.gender);
             if (profileData.imageFile) fd.append('profilePicture', profileData.imageFile);
             const res = await axios.put('/auth/profile', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-            if (res.data.success) { updateUserProfile(res.data.data, res.data.token); showToast('Profile saved.'); }
+            if (res.data.success) { updateUserProfile(res.data.data); showToast('Profile saved.'); }
         } catch (err) { showToast(err.response?.data?.error || 'Failed to save', 'error'); }
     };
 
