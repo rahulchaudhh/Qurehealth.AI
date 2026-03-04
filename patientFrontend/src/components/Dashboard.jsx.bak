@@ -21,7 +21,6 @@ export default function Dashboard() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [toastData, setToastData] = useState({ message: '', type: '', isVisible: false });
   const [broadcastModal, setBroadcastModal] = useState({ isOpen: false, message: '', type: 'broadcast' });
-  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
   const showToast = (message, type) => {
     setToastData({ message, type, isVisible: true });
@@ -586,7 +585,7 @@ export default function Dashboard() {
             <div className="w-8 h-8 bg-blue-50 rounded-lg"></div>
             <div className="h-5 w-32 bg-gray-200 rounded animate-pulse"></div>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-6">
             {[1, 2, 3, 4, 5].map(i => (
               <div key={i} className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
             ))}
@@ -629,12 +628,12 @@ export default function Dashboard() {
       {/* Header */}
       {/* Header */}
       <header className="bg-white px-10 py-4 flex justify-between items-center border-b border-gray-200 shadow-sm sticky top-0 z-50">
-        <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate('/')}>
-          <img 
-            src="/logo.png" 
-            alt="Qurehealth.AI Logo" 
-            className="h-10 w-auto object-contain group-hover:opacity-80 transition-opacity duration-300"
-          />
+        <div className="flex items-center gap-2 cursor-pointer group" onClick={() => navigate('/')}>
+          <div className="w-9 h-9 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-100 transition-all duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </div>
           <span className="text-xl font-bold tracking-tight text-gray-900">
             Qurehealth.AI
           </span>
@@ -698,112 +697,20 @@ export default function Dashboard() {
           </div>
 
 
-          <div className="flex items-center gap-4 relative">
-            {/* Profile Dropdown Button */}
-            <button
-              onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-              className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100 transition-colors"
-            >
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => navigate('/patient/profile')}>
               <img
-                src={user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3b82f6&color=fff&size=128`}
+                src={user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff&size=128`}
                 alt="Profile"
-                className="w-10 h-10 rounded-full object-cover border-2 border-blue-100 shadow-sm"
+                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
                 referrerPolicy="no-referrer"
-                onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3b82f6&color=fff&size=128`; }}
+                onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff&size=128`; }}
               />
-              <div className="hidden md:block text-left">
+              <div className="hidden md:block">
                 <p className="text-sm font-bold text-gray-900">{user.name}</p>
                 <p className="text-xs text-gray-500">Patient</p>
               </div>
-            </button>
-
-            {/* Profile Dropdown Menu */}
-            {showProfileDropdown && (
-              <div className="absolute right-0 top-14 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
-                {/* Header: Avatar + Name */}
-                <div className="flex items-center gap-4 p-5 pb-4">
-                  <img
-                    src={user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff&size=128`}
-                    alt="Profile"
-                    className="w-16 h-16 rounded-full object-cover border-2 border-gray-100 shadow-sm flex-shrink-0"
-                    referrerPolicy="no-referrer"
-                    onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff&size=128`; }}
-                  />
-                  <div className="min-w-0">
-                    <p className="text-base font-bold text-gray-900 truncate">{user.name}</p>
-                    <p className="text-sm text-gray-500 truncate">@{user.name.replace(/\s+/g, '')}</p>
-                  </div>
-                </div>
-
-                <div className="border-t border-gray-100 mx-0" />
-
-                {/* Contact Info */}
-                <div className="px-5 py-4 space-y-3">
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <Mail size={16} className="text-gray-400 flex-shrink-0" />
-                    <span className="truncate">{user.email}</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <Phone size={16} className="text-gray-400 flex-shrink-0" />
-                    <span>{user.phone}</span>
-                  </div>
-                  {user.gender && (
-                    <div className="flex items-center gap-3 text-sm text-gray-600">
-                      <User size={16} className="text-gray-400 flex-shrink-0" />
-                      <span className="capitalize">{user.gender}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="border-t border-gray-100 mx-0" />
-
-                {/* Menu Items */}
-                <div className="px-3 py-3 space-y-1">
-                  <button
-                    onClick={() => { navigate('/patient/profile'); setShowProfileDropdown(false); }}
-                    className="w-full text-left px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-xl transition-colors flex items-center gap-3"
-                  >
-                    <User size={18} className="text-blue-500" />
-                    My Profile
-                  </button>
-                  <button
-                    onClick={() => { setCurrentPage('appointments'); setShowProfileDropdown(false); }}
-                    className="w-full text-left px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-xl transition-colors flex items-center gap-3"
-                  >
-                    <Calendar size={18} className="text-blue-500" />
-                    My Appointments
-                  </button>
-                  <button
-                    onClick={() => { setCurrentPage('medical-history'); setShowProfileDropdown(false); }}
-                    className="w-full text-left px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-xl transition-colors flex items-center gap-3"
-                  >
-                    <Shield size={18} className="text-blue-500" />
-                    Medical History
-                  </button>
-                </div>
-
-                <div className="border-t border-gray-100 mx-0" />
-
-                {/* Logout */}
-                <div className="px-3 py-3">
-                  <button
-                    onClick={() => { logout(); setShowProfileDropdown(false); }}
-                    className="w-full text-left px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl transition-colors flex items-center gap-3"
-                  >
-                    <ChevronRight size={18} className="text-red-400" />
-                    Logout
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Backdrop to close dropdown */}
-            {showProfileDropdown && (
-              <div
-                className="fixed inset-0 z-40"
-                onClick={() => setShowProfileDropdown(false)}
-              />
-            )}
+            </div>
           </div>
         </div>
       </header>

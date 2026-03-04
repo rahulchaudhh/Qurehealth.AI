@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useMemo } from 'react';
+import { useState, useEffect, useContext, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import axios from '../api/axios';
@@ -6,6 +6,7 @@ import Toast from './Toast';
 import BroadcastModal from './BroadcastModal';
 import ConfirmModal from './ConfirmModal';
 import NotificationDropdown from './NotificationDropdown';
+import ProfileDropdown from './ProfileDropdown';
 import {
     LayoutDashboard,
     Users,
@@ -25,7 +26,8 @@ import {
     Stethoscope,
     Plus,
     Video,
-    Link
+    Link,
+    Search
 } from 'lucide-react';
 import {
     AreaChart,
@@ -104,6 +106,14 @@ function DoctorDashboard() {
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null });
 
+    // Search state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
+    const searchRef = useRef(null);
+
+    // Profile modal state
+    const [profileModal, setProfileModal] = useState(false);
+
     const growthData = useMemo(() => {
         const last7 = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return d; });
         return last7.map(date => {
@@ -127,6 +137,46 @@ function DoctorDashboard() {
         const d = Object.keys(counts).map(k => ({ name: k, value: counts[k], color: k === 'male' ? '#3b82f6' : k === 'female' ? '#ec4899' : '#94a3b8' }));
         return d.length ? d : [{ name: 'No Data', value: 1, color: '#e2e8f0' }];
     }, [patients]);
+
+    // Today's appointments count
+    const todayAppts = useMemo(() => {
+        const today = new Date().toISOString().split('T')[0];
+        return appointments.filter(a => a.date?.startsWith(today)).length;
+    }, [appointments]);
+
+    // This week's total appointments
+    const weekTotal = useMemo(() => {
+        return growthData.reduce((sum, day) => sum + day.value, 0);
+    }, [growthData]);
+
+    // Search suggestions
+    const searchSuggestions = useMemo(() => {
+        if (searchQuery.trim().length === 0) return [];
+        const query = searchQuery.toLowerCase();
+        
+        const matchedPatients = patients
+            .filter(p => p.name?.toLowerCase().includes(query) || p.email?.toLowerCase().includes(query))
+            .slice(0, 5)
+            .map(p => ({ ...p, type: 'patient' }));
+        
+        const matchedAppointments = appointments
+            .filter(a => a.patientName?.toLowerCase().includes(query) || a.patient?.name?.toLowerCase().includes(query))
+            .slice(0, 5)
+            .map(a => ({ ...a, type: 'appointment' }));
+        
+        return [...matchedPatients, ...matchedAppointments];
+    }, [searchQuery, patients, appointments]);
+
+    // Click-outside handler for search
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (searchRef.current && !searchRef.current.contains(e.target)) {
+                setShowSearchSuggestions(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const fetchAll = async () => {
         try {
@@ -298,6 +348,13 @@ function DoctorDashboard() {
 
     const filteredAppts = appointments.filter(a => appointmentFilter === 'all' || a.status === appointmentFilter);
 
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good morning';
+        if (hour < 18) return 'Good afternoon';
+        return 'Good evening';
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 flex" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
 
@@ -311,19 +368,25 @@ function DoctorDashboard() {
                 </div>
 
                 <div className="px-4 py-3.5 border-b border-gray-100">
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-sm font-medium overflow-hidden shrink-0">
+                    <button
+                        onClick={() => setProfileModal(true)}
+                        className="w-full flex items-center gap-3 p-3 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 hover:shadow-md transition-shadow border border-blue-100"
+                    >
+                        <div className="w-10 h-10 rounded-full bg-white text-slate-600 flex items-center justify-center text-sm font-medium overflow-hidden shrink-0 ring-2 ring-blue-300">
                             {profilePicSrc(user)
                                 ? <img src={profilePicSrc(user)} alt="" className="w-full h-full object-cover" />
                                 : <span>{user?.name?.charAt(0).toUpperCase()}</span>
                             }
                         </div>
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1 text-left">
                             <p className="text-sm font-medium text-gray-900 truncate">Dr. {user?.name?.replace(/^Dr\.?\s*/i, '')}</p>
-                            <p className="text-xs text-gray-400 truncate">{user?.specialization || 'Specialist'}</p>
+                            <p className="text-xs text-gray-500 truncate">{user?.specialization || 'Specialist'}</p>
                         </div>
-                        <div className="ml-auto w-2 h-2 rounded-full bg-green-400 shrink-0" />
-                    </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            <div className="w-2 h-2 rounded-full bg-green-500" />
+                            <ArrowUpRight size={14} className="text-gray-400" />
+                        </div>
+                    </button>
                 </div>
 
                 <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
@@ -361,7 +424,59 @@ function DoctorDashboard() {
                     <h1 className="text-sm font-semibold text-gray-900">
                         {view === 'dashboard' ? 'Overview' : view === 'patients' ? 'My Patients' : view === 'appointments' ? 'Schedule' : view === 'schedule' ? 'Schedule & Fee' : 'Edit Profile'}
                     </h1>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
+                        <div ref={searchRef} className="relative group hidden sm:block">
+                            <div className={`flex items-center gap-2 bg-gray-50 border px-3 py-1.5 rounded-lg focus-within:ring-2 ring-blue-500/20 transition-all w-64 ${showSearchSuggestions && searchSuggestions.length > 0 ? 'border-blue-200 shadow-lg' : 'border-gray-200'}`}>
+                                <Search size={16} className="text-gray-400 flex-shrink-0" />
+                                <input
+                                    type="text"
+                                    placeholder="Search patients..."
+                                    className="bg-transparent border-none outline-none text-sm w-full placeholder:text-gray-400 text-gray-700 font-medium"
+                                    value={searchQuery}
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value);
+                                        setShowSearchSuggestions(true);
+                                    }}
+                                    onFocus={() => setShowSearchSuggestions(true)}
+                                />
+                            </div>
+
+                            {/* Search Suggestions Dropdown */}
+                            {showSearchSuggestions && searchSuggestions.length > 0 && (
+                                <div className="absolute top-full left-0 mt-2 w-full bg-white/95 backdrop-blur-xl border border-gray-200 rounded-xl shadow-xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="space-y-1">
+                                        {searchSuggestions.map((suggestion, index) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => {
+                                                    setSearchQuery(suggestion.name || suggestion.patientName);
+                                                    setShowSearchSuggestions(false);
+                                                    if (suggestion.type === 'appointment') setView('appointments');
+                                                    else setView('patients');
+                                                }}
+                                                className="w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50 rounded-lg transition-all group"
+                                            >
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    <div className="w-7 h-7 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                                                        {(suggestion.name || suggestion.patientName || '?').charAt(0)}
+                                                    </div>
+                                                    <div className="text-left min-w-0">
+                                                        <div className="text-xs font-bold text-gray-800 truncate">
+                                                            {suggestion.name || suggestion.patientName || 'Unknown'}
+                                                        </div>
+                                                        <div className="text-[10px] text-gray-400 font-medium truncate">
+                                                            {suggestion.type === 'appointment' && suggestion.date ? new Date(suggestion.date).toLocaleDateString() : suggestion.email || 'N/A'}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <ArrowUpRight size={12} className="text-gray-300 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         <span className="text-xs text-gray-400 hidden sm:block">
                             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
                         </span>
@@ -379,6 +494,11 @@ function DoctorDashboard() {
                                 <NotificationDropdown notifications={notifications} onMarkRead={handleMarkRead} onClose={() => setIsNotificationOpen(false)} />
                             )}
                         </div>
+                        <ProfileDropdown 
+                            user={user} 
+                            onLogout={handleLogout}
+                            onEditProfile={() => setView('profile')}
+                        />
                     </div>
                 </header>
 
@@ -386,104 +506,203 @@ function DoctorDashboard() {
 
                     {/* DASHBOARD */}
                     {view === 'dashboard' && (
-                        <div className="space-y-5 max-w-6xl">
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="space-y-6 max-w-6xl">
+                            {/* Header with Greeting */}
+                            <div className="mb-8">
+                                <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                                    {getGreeting()}, Dr. {user?.name?.replace(/^Dr\.?\s*/i, '')}
+                                </h2>
+                                <p className="text-sm text-gray-500">Here's your activity overview for today</p>
+                            </div>
+
+                            {/* Stats Cards Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                                 {[
-                                    { label: 'Total Patients',  value: stats.patients,     icon: <Users size={18} />,        color: 'text-blue-600',   bg: 'bg-blue-50'   },
-                                    { label: 'Appointments',    value: stats.appointments, icon: <CalendarDays size={18} />, color: 'text-violet-600', bg: 'bg-violet-50' },
-                                    { label: 'Completed',       value: stats.tasks,        icon: <CheckCircle2 size={18} />, color: 'text-green-600',  bg: 'bg-green-50'  },
+                                    { label: 'Total Patients',    value: stats.patients,     icon: <Users size={20} />,        color: 'from-blue-500 to-blue-600',     bgLight: 'bg-blue-50',     textColor: 'text-blue-600',   trend: '+8%' },
+                                    { label: 'Appointments',      value: stats.appointments, icon: <CalendarDays size={20} />, color: 'from-violet-500 to-violet-600',  bgLight: 'bg-violet-50',   textColor: 'text-violet-600', trend: '+12%' },
+                                    { label: 'Completed',         value: stats.tasks,        icon: <CheckCircle2 size={20} />, color: 'from-green-500 to-green-600',    bgLight: 'bg-green-50',    textColor: 'text-green-600',  trend: '+5%' },
+                                    { label: 'Today\'s Schedule',  value: todayAppts,         icon: <Clock size={20} />,        color: 'from-amber-500 to-amber-600',   bgLight: 'bg-amber-50',    textColor: 'text-amber-600',  trend: '+3%' },
                                 ].map((s, i) => (
-                                    <div key={i} className="bg-white border border-gray-200 rounded-lg p-5">
-                                        <div className={`w-9 h-9 rounded-lg ${s.bg} ${s.color} flex items-center justify-center mb-4`}>{s.icon}</div>
-                                        <p className="text-xs text-gray-500 mb-1">{s.label}</p>
-                                        <p className="text-2xl font-semibold text-gray-900">{loading ? '—' : s.value}</p>
+                                    <div key={i} className="group relative bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-200">
+                                        {/* Gradient Background Accent */}
+                                        <div className={`absolute inset-0 bg-gradient-to-br ${s.color} opacity-0 group-hover:opacity-5 rounded-xl transition-opacity duration-200`} />
+                                        
+                                        <div className="relative z-10">
+                                            {/* Icon with gradient background */}
+                                            <div className={`w-12 h-12 rounded-lg ${s.bgLight} ${s.textColor} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200`}>
+                                                {s.icon}
+                                            </div>
+
+                                            {/* Label and Value */}
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">{s.label}</p>
+                                            <div className="flex items-baseline gap-3">
+                                                <p className="text-3xl font-bold text-gray-900">{loading ? '—' : s.value}</p>
+                                                <span className={`text-xs font-semibold ${s.textColor}`}>{s.trend}</span>
+                                            </div>
+
+                                            {/* Subtle trend text */}
+                                            <p className="text-xs text-gray-400 mt-2">this week</p>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                                <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-5">
-                                    <p className="text-sm font-medium text-gray-900 mb-0.5">Appointment Activity</p>
-                                    <p className="text-xs text-gray-400 mb-4">Daily volume — last 7 days</p>
-                                    <div className="h-52">
+                            {/* Charts Section */}
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                {/* Appointment Activity Chart */}
+                                <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-all">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-gray-900">Appointment Activity</h3>
+                                            <p className="text-sm text-gray-500 mt-1">{weekTotal} appointments this week</p>
+                                        </div>
+                                        <button className="px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                            Last 7 days
+                                        </button>
+                                    </div>
+
+                                    <div className="h-64">
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <AreaChart data={growthData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+                                            <AreaChart data={growthData} margin={{ top: 8, right: 16, bottom: 8, left: -20 }}>
                                                 <defs>
-                                                    <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.12} />
+                                                    <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
                                                         <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                                                     </linearGradient>
                                                 </defs>
-                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 11 }} dy={8} />
-                                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 11 }} allowDecimals={false} />
-                                                <Tooltip contentStyle={{ borderRadius: '6px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.07)', fontSize: 12 }} />
-                                                <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} fill="url(#areaGrad)" />
+                                                <CartesianGrid strokeDasharray="0" vertical={false} stroke="#f3f4f6" />
+                                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} dy={8} />
+                                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} allowDecimals={false} width={24} />
+                                                <Tooltip 
+                                                    contentStyle={{ 
+                                                        borderRadius: '8px', 
+                                                        border: '1px solid #e5e7eb', 
+                                                        boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
+                                                        backgroundColor: '#ffffff',
+                                                        fontSize: 12,
+                                                        padding: '8px 12px'
+                                                    }}
+                                                    cursor={{ stroke: '#e5e7eb', strokeDasharray: '4' }}
+                                                />
+                                                <Area 
+                                                    type="monotone" 
+                                                    dataKey="value" 
+                                                    stroke="#3b82f6" 
+                                                    strokeWidth={3}
+                                                    fill="url(#areaGradient)"
+                                                    isAnimationActive={true}
+                                                />
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     </div>
                                 </div>
 
-                                <div className="bg-white border border-gray-200 rounded-lg p-5 flex flex-col">
-                                    <p className="text-sm font-medium text-gray-900 mb-0.5">Status Breakdown</p>
-                                    <p className="text-xs text-gray-400 mb-2">All appointments</p>
-                                    <div className="flex-1">
-                                        <div className="h-44">
+                                {/* Status Breakdown Chart */}
+                                <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-all flex flex-col">
+                                    <div className="mb-4">
+                                        <h3 className="text-lg font-bold text-gray-900">Status Breakdown</h3>
+                                        <p className="text-sm text-gray-500 mt-1">All appointments</p>
+                                    </div>
+
+                                    <div className="flex-1 flex flex-col">
+                                        <div className="h-48">
                                             <ResponsiveContainer width="100%" height="100%">
                                                 <PieChart>
-                                                    <Pie data={statusDistribution} innerRadius={46} outerRadius={64} paddingAngle={3} dataKey="value">
+                                                    <Pie 
+                                                        data={statusDistribution} 
+                                                        innerRadius={45} 
+                                                        outerRadius={70} 
+                                                        paddingAngle={4} 
+                                                        dataKey="value"
+                                                        isAnimationActive={true}
+                                                    >
                                                         {statusDistribution.map((e, i) => <Cell key={i} fill={e.color} stroke="none" />)}
-                                                        <Label value={appointments.length} position="center"
+                                                        <Label 
+                                                            value={appointments.length} 
+                                                            position="center"
                                                             content={({ viewBox: { cx, cy } }) => (
                                                                 <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central">
-                                                                    <tspan x={cx} y={cy} fontSize={20} fontWeight="600" fill="#111827">{appointments.length}</tspan>
-                                                                    <tspan x={cx} y={cy + 15} fontSize={10} fill="#9ca3af">total</tspan>
+                                                                    <tspan x={cx} y={cy} fontSize={24} fontWeight="700" fill="#111827">{appointments.length}</tspan>
+                                                                    <tspan x={cx} y={cy + 18} fontSize={11} fill="#9ca3af" fontWeight="500">total</tspan>
                                                                 </text>
                                                             )}
                                                         />
                                                     </Pie>
-                                                    <Tooltip contentStyle={{ borderRadius: '6px', border: '1px solid #e5e7eb', fontSize: 12 }} />
+                                                    <Tooltip 
+                                                        contentStyle={{ 
+                                                            borderRadius: '8px', 
+                                                            border: '1px solid #e5e7eb', 
+                                                            boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
+                                                            fontSize: 12
+                                                        }} 
+                                                    />
                                                 </PieChart>
                                             </ResponsiveContainer>
                                         </div>
                                     </div>
-                                    <div className="flex flex-wrap gap-x-3 gap-y-1.5 mt-1">
+
+                                    {/* Legend */}
+                                    <div className="space-y-2 mt-6 pt-4 border-t border-gray-100">
                                         {statusDistribution.map((s, i) => (
-                                            <div key={i} className="flex items-center gap-1.5">
-                                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
-                                                <span className="text-xs text-gray-500">{s.name}</span>
+                                            <div key={i} className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />
+                                                    <span className="text-sm text-gray-600 font-medium">{s.name}</span>
+                                                </div>
+                                                <span className="text-sm font-bold text-gray-900">{s.value}</span>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                                <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
-                                    <p className="text-sm font-medium text-gray-900">Recent Appointments</p>
-                                    <button onClick={() => setView('appointments')} className="text-xs text-blue-600 hover:underline">View all</button>
+                            {/* Recent Appointments */}
+                            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-all">
+                                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-gray-900">Recent Appointments</h3>
+                                        <p className="text-sm text-gray-500 mt-1">{appointments.length} total appointments</p>
+                                    </div>
+                                    <button onClick={() => setView('appointments')} className="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">View all →</button>
                                 </div>
                                 {appointments.length === 0 ? (
-                                    <p className="text-sm text-gray-400 text-center py-10">No appointments yet.</p>
+                                    <div className="px-6 py-12 text-center">
+                                        <p className="text-sm text-gray-400">No appointments yet.</p>
+                                    </div>
                                 ) : (
-                                    <table className="w-full text-sm">
-                                        <thead>
-                                            <tr className="border-b border-gray-100 bg-gray-50/50">
-                                                <th className="text-left text-xs font-medium text-gray-400 px-5 py-3">Patient</th>
-                                                <th className="text-left text-xs font-medium text-gray-400 px-5 py-3">Date & Time</th>
-                                                <th className="text-left text-xs font-medium text-gray-400 px-5 py-3">Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {appointments.slice(0, 5).map(apt => (
-                                                <tr key={apt._id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">
-                                                    <td className="px-5 py-3 font-medium text-gray-800">{apt.patient?.name || 'Unknown'}</td>
-                                                    <td className="px-5 py-3 text-gray-500 tabular-nums text-xs">{apt.date} · {apt.time}</td>
-                                                    <td className="px-5 py-3"><Badge status={apt.status} /></td>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-sm">
+                                            <thead>
+                                                <tr className="border-b border-gray-100 bg-gray-50">
+                                                    <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wide px-6 py-3">Patient</th>
+                                                    <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wide px-6 py-3">Date & Time</th>
+                                                    <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wide px-6 py-3">Status</th>
+                                                    <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wide px-6 py-3">Action</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                {appointments.slice(0, 5).map(apt => (
+                                                    <tr key={apt._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">
+                                                                    {apt.patient?.name?.charAt(0) || '?'}
+                                                                </div>
+                                                                <span className="font-medium text-gray-900">{apt.patient?.name || 'Unknown'}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-gray-600 tabular-nums text-xs">{apt.date} · {apt.time}</td>
+                                                        <td className="px-6 py-4"><Badge status={apt.status} /></td>
+                                                        <td className="px-6 py-4">
+                                                            <button className="px-3 py-1 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                                                View
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -977,6 +1196,93 @@ function DoctorDashboard() {
                 message={broadcastModal.message}
                 type={broadcastModal.type}
             />
+
+            {/* Profile Modal */}
+            {profileModal && (
+                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-200">
+                        {/* Header Gradient */}
+                        <div className="h-32 bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-2xl relative">
+                            {/* Avatar */}
+                            <div className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-1/2">
+                                <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center text-xl font-bold text-blue-600 ring-4 ring-white overflow-hidden">
+                                    {profilePicSrc(user)
+                                        ? <img src={profilePicSrc(user)} alt="" className="w-full h-full object-cover" />
+                                        : <span>{user?.name?.charAt(0).toUpperCase()}</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="pt-14 px-6 pb-6 text-center">
+                            <h2 className="text-xl font-bold text-gray-900 mb-1">Dr. {user?.name?.replace(/^Dr\.?\s*/i, '')}</h2>
+                            <p className="text-sm text-gray-500 mb-4">{user?.specialization || 'Specialist'}</p>
+
+                            {/* Available Badge */}
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full mb-6">
+                                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                                <span className="text-xs font-semibold text-green-700">Available</span>
+                            </div>
+
+                            {/* Info Grid */}
+                            <div className="space-y-4 mb-6 text-left">
+                                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                    <span className="text-gray-400">📧</span>
+                                    <div className="min-w-0">
+                                        <p className="text-xs text-gray-500">Email</p>
+                                        <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                    <span className="text-gray-400">📱</span>
+                                    <div className="min-w-0">
+                                        <p className="text-xs text-gray-500">Phone</p>
+                                        <p className="text-sm font-medium text-gray-900 truncate">{user?.phone || 'Not provided'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                    <span className="text-gray-400">👤</span>
+                                    <div className="min-w-0">
+                                        <p className="text-xs text-gray-500">Gender</p>
+                                        <p className="text-sm font-medium text-gray-900 capitalize">{user?.gender || 'Not specified'}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        setProfileModal(false);
+                                        setView('profile');
+                                    }}
+                                    className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm"
+                                >
+                                    Edit Profile
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setProfileModal(false);
+                                        setView('schedule');
+                                    }}
+                                    className="flex-1 px-4 py-2.5 border border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors text-sm"
+                                >
+                                    Schedule & Fee
+                                </button>
+                            </div>
+
+                            {/* Close Button */}
+                            <button
+                                onClick={() => setProfileModal(false)}
+                                className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                                <X size={20} className="text-gray-400" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

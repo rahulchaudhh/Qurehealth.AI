@@ -23,11 +23,11 @@ const ActionModal = ({ isOpen, onClose, type, onAction, loading }) => {
     };
 
     return (
-        <div onClick={handleClose} className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-            <div onClick={e => e.stopPropagation()} className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+        <div onClick={handleClose} className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
+            <div onClick={e => e.stopPropagation()} className="bg-white w-full h-full flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
                 {/* Header: Soft and Airy */}
-                <div className={`p-8 flex justify-between items-center ${isBroadcast ? 'bg-amber-50/40' : 'bg-rose-50/40'}`}>
-                    <div className="flex items-center gap-4">
+                <div className={`p-8 flex justify-center items-center border-b border-slate-200 ${isBroadcast ? 'bg-amber-50/40' : 'bg-rose-50/40'}`}>
+                    <div className="flex flex-col items-center gap-4 text-center flex-1">
                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isBroadcast ? 'bg-white text-amber-600 shadow-sm' : 'bg-white text-rose-600 shadow-sm'}`}>
                             {isBroadcast ? <Radio size={22} strokeWidth={2} /> : <AlertCircle size={22} strokeWidth={2} />}
                         </div>
@@ -42,17 +42,18 @@ const ActionModal = ({ isOpen, onClose, type, onAction, loading }) => {
                     </div>
                     <button
                         onClick={handleClose}
-                        className="p-2.5 hover:bg-white/80 rounded-full transition-colors text-slate-300 hover:text-slate-600"
+                        className="p-2.5 hover:bg-white/80 rounded-full transition-colors text-slate-300 hover:text-slate-600 absolute right-8"
                     >
                         <X size={18} />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-10 pt-8">
+                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-12 flex flex-col justify-center items-center">
+                    <div className="w-full max-w-md">
                     {/* Target Selection for Broadcast: Casual & Visual */}
                     {isBroadcast && (
                         <div className="mb-8">
-                            <label className="text-xs font-semibold text-slate-400 mb-4 block">Select Recipient Group</label>
+                            <label className="text-xs font-semibold text-slate-400 mb-4 block text-center">Select Recipient Group</label>
                             <div className="grid grid-cols-3 gap-3">
                                 {[
                                     { id: 'all', label: 'Everyone', icon: Globe },
@@ -80,8 +81,8 @@ const ActionModal = ({ isOpen, onClose, type, onAction, loading }) => {
 
                     {!isBroadcast && (
                         <div className="mb-8 p-5 bg-rose-50/30 rounded-2xl border border-rose-100 border-dashed">
-                            <div className="flex gap-3">
-                                <AlertCircle size={18} className="text-rose-500 shrink-0 mt-0.5" />
+                            <div className="flex flex-col gap-3 items-center text-center">
+                                <AlertCircle size={18} className="text-rose-500 shrink-0" />
                                 <p className="text-xs text-rose-700 font-medium leading-relaxed">
                                     This will trigger a high-priority alert to **all users** instantly. Use only for critical updates.
                                 </p>
@@ -91,19 +92,19 @@ const ActionModal = ({ isOpen, onClose, type, onAction, loading }) => {
 
                     {/* Message Input: Simple & Clean */}
                     <div className="mb-10">
-                        <label className="text-xs font-semibold text-slate-400 mb-4 block">What's the message?</label>
+                        <label className="text-xs font-semibold text-slate-400 mb-4 block text-center">What's the message?</label>
                         <textarea
                             required
                             rows={4}
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                             placeholder={isBroadcast ? "Share an update..." : "Emergency details..."}
-                            className="w-full bg-slate-50/50 border border-slate-100 rounded-3xl p-5 text-sm font-medium text-slate-900 outline-none focus:border-slate-200 focus:bg-white transition-all placeholder:text-slate-300 resize-none font-outfit"
+                            className="w-full bg-slate-50/50 border border-slate-100 rounded-3xl p-5 text-sm font-medium text-slate-900 outline-none focus:border-slate-200 focus:bg-white transition-all placeholder:text-slate-300 resize-none font-outfit text-center"
                         />
                     </div>
 
                     {/* Footer Actions: Cascading Priority */}
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 justify-center w-full">
                         <button
                             type="button"
                             onClick={handleClose}
@@ -128,6 +129,7 @@ const ActionModal = ({ isOpen, onClose, type, onAction, loading }) => {
                                 </>
                             )}
                         </button>
+                    </div>
                     </div>
                 </form>
             </div>

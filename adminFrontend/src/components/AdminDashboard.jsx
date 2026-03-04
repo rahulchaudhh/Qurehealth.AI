@@ -4,6 +4,7 @@ import axios from '../api/axios';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './layout/Sidebar';
 import Header from './layout/Header';
+import '../styles/DashboardModern.css';
 
 function AdminDashboard() {
     const { user } = useContext(AuthContext);
@@ -181,56 +182,66 @@ function AdminDashboard() {
     }
 
     return (
-        <div className="flex h-screen bg-[#F8FAFC] overflow-hidden text-slate-900 font-sans antialiased">
-            <Sidebar
-                sidebarOpen={sidebarOpen}
-                setSidebarOpen={setSidebarOpen}
-                pendingCount={pendingDoctors.length}
-                handleLogout={handleLogout}
-            />
+        <div className="dashboard-container relative">
+            {/* ── Aurora Background ── */}
+            <div className="dashboard-aurora-bg">
+                <div className="aurora-blob aurora-blob-1"></div>
+                <div className="aurora-blob aurora-blob-2"></div>
+                <div className="aurora-blob aurora-blob-3"></div>
+            </div>
 
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                <Header
+            <div className="flex h-screen bg-transparent overflow-hidden text-slate-900 font-sans antialiased relative z-10">
+                <Sidebar
                     sidebarOpen={sidebarOpen}
                     setSidebarOpen={setSidebarOpen}
-                    showNotifications={showNotifications}
-                    setShowNotifications={setShowNotifications}
-                    hasUnreadNotifications={hasUnreadNotifications}
-                    setHasUnreadNotifications={setHasUnreadNotifications}
-                    user={user}
-                    searchQuery={searchQuery}
-                    setSearchQuery={setSearchQuery}
-                    doctors={allDoctors}
-                    patients={allPatients}
+                    pendingCount={pendingDoctors.length}
+                    handleLogout={handleLogout}
                 />
 
-                <main className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                    {fetchError && (
-                        <div className="mb-4 px-4 py-3 bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium rounded-xl flex items-center justify-between">
-                            <span>⚠️ {fetchError}</span>
-                            <button
-                                onClick={() => { setFetchError(null); fetchAllDoctors(); fetchAllPatients(); fetchPendingDoctors(); fetchStats(); }}
-                                className="ml-4 text-xs font-bold underline hover:text-rose-900"
-                            >
-                                Retry
-                            </button>
-                        </div>
-                    )}
-                    <Outlet context={{
-                        stats,
-                        pendingDoctors: filteredPendingDoctors,
-                        allDoctors: filteredDoctors,
-                        allPatients: filteredPatients,
-                        actionLoading,
-                        handleApprove,
-                        handleReject,
-                        handleDeleteDoctor,
-                        handleDeletePatient,
-                        getProfileImage,
-                        handleImageError,
-                        searchQuery
-                    }} />
-                </main>
+                <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+                    <Header
+                        sidebarOpen={sidebarOpen}
+                        setSidebarOpen={setSidebarOpen}
+                        showNotifications={showNotifications}
+                        setShowNotifications={setShowNotifications}
+                        hasUnreadNotifications={hasUnreadNotifications}
+                        setHasUnreadNotifications={setHasUnreadNotifications}
+                        user={user}
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
+                        doctors={allDoctors}
+                        patients={allPatients}
+                        onLogout={handleLogout}
+                    />
+
+                    <main className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                        {fetchError && (
+                            <div className="mb-4 px-4 py-3 bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium rounded-xl flex items-center justify-between">
+                                <span>⚠️ {fetchError}</span>
+                                <button
+                                    onClick={() => { setFetchError(null); fetchAllDoctors(); fetchAllPatients(); fetchPendingDoctors(); fetchStats(); }}
+                                    className="ml-4 text-xs font-bold underline hover:text-rose-900"
+                                >
+                                    Retry
+                                </button>
+                            </div>
+                        )}
+                        <Outlet context={{
+                            stats,
+                            pendingDoctors: filteredPendingDoctors,
+                            allDoctors: filteredDoctors,
+                            allPatients: filteredPatients,
+                            actionLoading,
+                            handleApprove,
+                            handleReject,
+                            handleDeleteDoctor,
+                            handleDeletePatient,
+                            getProfileImage,
+                            handleImageError,
+                            searchQuery
+                        }} />
+                    </main>
+                </div>
             </div>
         </div>
     );

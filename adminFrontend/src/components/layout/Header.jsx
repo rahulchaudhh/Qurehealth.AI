@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Bell, MoreHorizontal, UserCheck, Clock, Users, ArrowUpRight } from 'lucide-react';
+import { Search, Bell, MoreHorizontal, UserCheck, Clock, Users, ArrowUpRight, Mail, Phone, User, ChevronRight, BarChart2 } from 'lucide-react';
 import HighlightText from '../common/HighlightText';
 
 const formatTimeAgo = (date) => {
@@ -22,11 +22,24 @@ const formatTimeAgo = (date) => {
 function Header({
     sidebarOpen, setSidebarOpen, showNotifications, setShowNotifications,
     hasUnreadNotifications, setHasUnreadNotifications,
-    user, searchQuery, setSearchQuery, doctors = [], patients = []
+    user, searchQuery, setSearchQuery, doctors = [], patients = [], onLogout
 }) {
     const navigate = useNavigate();
     const [showSuggestions, setShowSuggestions] = useState(false);
     const searchRef = useRef(null);
+    const profileRef = useRef(null);
+    const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+
+    // Close profile dropdown when clicking outside
+    useEffect(() => {
+        const handleProfileClickOutside = (e) => {
+            if (profileRef.current && !profileRef.current.contains(e.target)) {
+                setShowProfileDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleProfileClickOutside);
+        return () => document.removeEventListener('mousedown', handleProfileClickOutside);
+    }, []);
 
     const notifications = useMemo(() => {
         const docNotifications = doctors.slice(0, 5).map(doc => ({
@@ -85,6 +98,7 @@ function Header({
 
     return (
         <header className="h-20 bg-white border-b border-slate-200 px-8 flex items-center justify-between z-40 relative">
+            {/* Left: sidebar toggle */}
             <div className="flex items-center gap-4">
                 <button
                     onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -92,13 +106,18 @@ function Header({
                 >
                     <MoreHorizontal size={20} />
                 </button>
-                <div ref={searchRef} className="relative group">
-                    <div className={`hidden md:flex items-center gap-2 bg-slate-50 border px-4 py-2 rounded-xl focus-within:ring-2 ring-indigo-500/20 transition-all w-96 ${showSuggestions && totalSuggestions > 0 ? 'border-indigo-200 shadow-lg' : 'border-slate-200'}`}>
-                        <Search size={18} className="text-slate-400" />
+            </div>
+
+            {/* Right: search + bell + profile */}
+            <div className="flex items-center gap-4">
+                {/* Search Bar */}
+                <div ref={searchRef} className="relative">
+                    <div className={`hidden md:flex items-center gap-2 bg-slate-50 border px-4 py-2.5 rounded-xl focus-within:ring-2 ring-indigo-500/20 transition-all w-64 ${showSuggestions && totalSuggestions > 0 ? 'border-indigo-200 shadow-lg' : 'border-slate-200'}`}>
+                        <Search size={15} className="text-slate-400 flex-shrink-0" />
                         <input
                             type="text"
-                            placeholder="Search analytics, doctors, or patients..."
-                            className="bg-transparent border-none outline-none text-sm w-full placeholder:text-slate-400 text-slate-700 font-medium"
+                            placeholder="Search doctors, patients..."
+                            className="bg-transparent border-none outline-none text-sm w-full placeholder:text-slate-400 text-slate-700"
                             value={searchQuery}
                             onChange={(e) => {
                                 setSearchQuery(e.target.value);
@@ -110,7 +129,7 @@ function Header({
 
                     {/* Search Suggestions Dropdown */}
                     {showSuggestions && totalSuggestions > 0 && (
-                        <div className="absolute top-full left-0 mt-3 w-full bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="absolute top-full right-0 mt-3 w-full bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
                             {suggestions.doctors.length > 0 && (
                                 <div className="mb-2">
                                     <div className="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
@@ -185,9 +204,11 @@ function Header({
                         </div>
                     )}
                 </div>
-            </div>
 
-            <div className="flex items-center gap-6">
+                {/* Divider */}
+                <div className="h-8 w-px bg-slate-200"></div>
+
+                {/* Notifications Bell */}
                 <div className="relative">
                     <button
                         onClick={() => {
@@ -254,18 +275,103 @@ function Header({
                         </div>
                     )}
                 </div>
-                <div className="h-8 w-px bg-slate-200"></div>
-                <div className="flex items-center gap-3 group cursor-pointer">
-                    <div className="text-right flex flex-col">
-                        <span className="text-sm font-bold text-slate-800 leading-none group-hover:text-indigo-600 transition-colors">Admin</span>
-                    </div>
-                    <div className="w-10 h-10 rounded-xl overflow-hidden ring-2 ring-indigo-50 shadow-md">
+
+                {/* Admin Profile Dropdown */}
+                <div className="relative" ref={profileRef}>
+                    <button
+                        onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                        className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 border border-transparent hover:border-gray-200 transition-all"
+                    >
                         <img
                             src={user?.gender?.toLowerCase() === 'female' ? '/avatar_female.png' : '/avatar_male.png'}
                             alt="Admin"
-                            className="w-full h-full object-cover"
+                            className="w-9 h-9 rounded-full object-cover border-2 border-gray-100 shadow-sm"
                         />
-                    </div>
+                        <div className="hidden md:block text-left">
+                            <p className="text-sm font-bold text-gray-900 leading-none">{user?.name || 'Admin'}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">Administrator</p>
+                        </div>
+                    </button>
+
+                    {showProfileDropdown && (
+                        <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[999] overflow-hidden">
+
+                            {/* Header: Avatar + Name */}
+                            <div className="flex items-center gap-4 p-5 pb-4">
+                                <img
+                                    src={user?.gender?.toLowerCase() === 'female' ? '/avatar_female.png' : '/avatar_male.png'}
+                                    alt="Admin"
+                                    className="w-16 h-16 rounded-full object-cover border-2 border-gray-100 shadow-sm flex-shrink-0"
+                                />
+                                <div className="min-w-0">
+                                    <p className="text-base font-bold text-gray-900 truncate">{user?.name || 'Admin'}</p>
+                                    <p className="text-sm text-gray-500 truncate">@{(user?.name || 'admin').replace(/\s+/g, '')}</p>
+                                </div>
+                            </div>
+
+                            <div className="border-t border-gray-100" />
+
+                            {/* Contact Info */}
+                            <div className="px-5 py-4 space-y-3">
+                                {user?.email && (
+                                    <div className="flex items-center gap-3 text-sm text-gray-600">
+                                        <Mail size={16} className="text-gray-400 flex-shrink-0" />
+                                        <span className="truncate">{user.email}</span>
+                                    </div>
+                                )}
+                                {user?.phone && (
+                                    <div className="flex items-center gap-3 text-sm text-gray-600">
+                                        <Phone size={16} className="text-gray-400 flex-shrink-0" />
+                                        <span>{user.phone}</span>
+                                    </div>
+                                )}
+                                <div className="flex items-center gap-3 text-sm text-gray-600">
+                                    <User size={16} className="text-gray-400 flex-shrink-0" />
+                                    <span>Administrator</span>
+                                </div>
+                            </div>
+
+                            <div className="border-t border-gray-100" />
+
+                            {/* Menu Items */}
+                            <div className="px-3 py-3 space-y-1">
+                                <button
+                                    onClick={() => { setShowProfileDropdown(false); navigate('/dashboard/overview'); }}
+                                    className="w-full text-left px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-xl transition-colors flex items-center gap-3"
+                                >
+                                    <User size={18} className="text-blue-500" />
+                                    My Profile
+                                </button>
+                                <button
+                                    onClick={() => { setShowProfileDropdown(false); navigate('/dashboard/doctors'); }}
+                                    className="w-full text-left px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-xl transition-colors flex items-center gap-3"
+                                >
+                                    <Users size={18} className="text-blue-500" />
+                                    Manage Doctors
+                                </button>
+                                <button
+                                    onClick={() => { setShowProfileDropdown(false); navigate('/dashboard/patients'); }}
+                                    className="w-full text-left px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-xl transition-colors flex items-center gap-3"
+                                >
+                                    <BarChart2 size={18} className="text-blue-500" />
+                                    Analytics
+                                </button>
+                            </div>
+
+                            <div className="border-t border-gray-100" />
+
+                            {/* Logout */}
+                            <div className="px-3 py-3">
+                                <button
+                                    onClick={() => { setShowProfileDropdown(false); onLogout && onLogout(); }}
+                                    className="w-full text-left px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl transition-colors flex items-center gap-3"
+                                >
+                                    <ChevronRight size={18} className="text-red-400" />
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </header>
