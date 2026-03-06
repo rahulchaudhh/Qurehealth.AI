@@ -7,6 +7,7 @@ import BroadcastModal from './BroadcastModal';
 import ConfirmModal from './ConfirmModal';
 import NotificationDropdown from './NotificationDropdown';
 import ProfileDropdown from './ProfileDropdown';
+import DoctorSchedule, { ListView } from './DoctorSchedule';
 import {
     LayoutDashboard,
     Users,
@@ -27,7 +28,8 @@ import {
     Plus,
     Video,
     Link,
-    Search
+    Search,
+    MoreHorizontal
 } from 'lucide-react';
 import {
     AreaChart,
@@ -45,9 +47,10 @@ import {
 
 const statusStyle = {
     pending:   'bg-amber-50   text-amber-700  border-amber-200',
-    confirmed: 'bg-green-50   text-green-700  border-green-200',
+    confirmed: 'bg-gray-100   text-gray-700   border-gray-200',
     completed: 'bg-blue-50    text-blue-700   border-blue-200',
     cancelled: 'bg-red-50     text-red-600    border-red-200',
+    missed:    'bg-gray-100   text-gray-500   border-gray-200',
 };
 
 function Avatar({ name = '', src, size = 9 }) {
@@ -59,10 +62,12 @@ function Avatar({ name = '', src, size = 9 }) {
     );
 }
 
-function Badge({ status }) {
+function Badge({ status, date }) {
+    const isMissed = status === 'pending' && date && new Date(date) < new Date().setHours(0, 0, 0, 0);
+    const display = isMissed ? 'missed' : status;
     return (
-        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border capitalize ${statusStyle[status] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
-            {status}
+        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border capitalize ${statusStyle[display] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+            {display}
         </span>
     );
 }
@@ -77,6 +82,8 @@ function DoctorDashboard() {
     const [view, setView]                   = useState('dashboard');
     const [loading, setLoading]             = useState(true);
     const [appointmentFilter, setAppointmentFilter] = useState('all');
+    const [aptView, setAptView] = useState('list'); // 'list' | 'calendar'
+    const [sidebarOpen, setSidebarOpen]     = useState(true);
 
     const [completionModal, setCompletionModal]   = useState({ isOpen: false, appointmentId: null });
     const [consultationData, setConsultationData] = useState({ diagnosis: '', prescription: '', doctorNotes: '' });
@@ -105,14 +112,12 @@ function DoctorDashboard() {
     const [notifications, setNotifications]   = useState([]);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null });
+    const [aptDetail, setAptDetail] = useState(null); // appointment detail modal
 
     // Search state
     const [searchQuery, setSearchQuery] = useState('');
     const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
     const searchRef = useRef(null);
-
-    // Profile modal state
-    const [profileModal, setProfileModal] = useState(false);
 
     const growthData = useMemo(() => {
         const last7 = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return d; });
@@ -359,71 +364,70 @@ function DoctorDashboard() {
         <div className="min-h-screen bg-gray-50 flex" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
 
             {/* Sidebar */}
-            <aside className="w-56 bg-white border-r border-gray-200 hidden md:flex flex-col fixed h-full z-20">
-                <div className="h-14 flex items-center px-4 border-b border-gray-100">
-                    <div className="flex items-center gap-1">
-                        <img src="/logo.png" alt="Qurehealth.AI" className="w-7 h-7 object-contain" />
-                        <span className="text-sm font-semibold text-gray-900">Qurehealth.AI</span>
-                    </div>
+            <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-gray-100 hidden md:flex flex-col fixed h-full z-20 transition-all duration-300 ease-in-out`}>
+                <div className="h-20 flex items-center px-6 gap-3">
+                    <img src="/logo.png" alt="Qurehealth.AI" className="h-9 w-auto object-contain flex-shrink-0" />
+                    {sidebarOpen && (
+                        <div className="flex flex-col">
+                            <span className="text-slate-900 font-black text-xl tracking-tighter leading-none">
+                                Qurehealth<span className="text-slate-900">.AI</span>
+                            </span>
+                        </div>
+                    )}
                 </div>
 
-                <div className="px-4 py-3.5 border-b border-gray-100">
-                    <button
-                        onClick={() => setProfileModal(true)}
-                        className="w-full flex items-center gap-3 p-3 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 hover:shadow-md transition-shadow border border-blue-100"
-                    >
-                        <div className="w-10 h-10 rounded-full bg-white text-slate-600 flex items-center justify-center text-sm font-medium overflow-hidden shrink-0 ring-2 ring-blue-300">
-                            {profilePicSrc(user)
-                                ? <img src={profilePicSrc(user)} alt="" className="w-full h-full object-cover" />
-                                : <span>{user?.name?.charAt(0).toUpperCase()}</span>
-                            }
-                        </div>
-                        <div className="min-w-0 flex-1 text-left">
-                            <p className="text-sm font-medium text-gray-900 truncate">Dr. {user?.name?.replace(/^Dr\.?\s*/i, '')}</p>
-                            <p className="text-xs text-gray-500 truncate">{user?.specialization || 'Specialist'}</p>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                            <div className="w-2 h-2 rounded-full bg-green-500" />
-                            <ArrowUpRight size={14} className="text-gray-400" />
-                        </div>
-                    </button>
-                </div>
-
-                <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
+                <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
                     {navItems.map(item => (
                         <button
                             key={item.id}
                             onClick={() => setView(item.id)}
-                            className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
-                                view === item.id ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            className={`w-full flex items-center gap-4 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
+                                view === item.id ? 'bg-blue-50/50 text-blue-600' : 'text-slate-600 hover:text-slate-900 hover:bg-gray-50'
                             }`}
                         >
-                            <span className={view === item.id ? 'text-blue-600' : 'text-gray-400'}>{item.icon}</span>
-                            <span>{item.label}</span>
-                            {item.badge > 0 && (
-                                <span className="ml-auto text-[10px] font-semibold bg-red-500 text-white rounded-full px-1.5 py-0.5 min-w-[18px] text-center leading-none">
-                                    {item.badge}
-                                </span>
+                            <span className={view === item.id ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-500'}>{item.icon}</span>
+                            {sidebarOpen && (
+                                <>
+                                    <span className={`font-medium text-sm ${view === item.id ? 'text-blue-600' : 'text-slate-600'}`}>{item.label}</span>
+                                    {item.badge > 0 && (
+                                        <span className={`ml-auto text-[10px] font-semibold px-2 py-0.5 rounded-full ${view === item.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                                            {item.badge}
+                                        </span>
+                                    )}
+                                </>
+                            )}
+                            {view === item.id && (
+                                <div className="absolute left-0 w-1 h-6 bg-blue-600 rounded-r-full" />
                             )}
                         </button>
                     ))}
                 </nav>
 
-                <div className="px-3 py-3 border-t border-gray-100">
-                    <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-colors">
-                        <LogOut size={16} className="text-gray-400" />
-                        Sign Out
-                    </button>
+                <div className="p-4 border-t border-gray-50 flex flex-col gap-2">
+                    {sidebarOpen && (
+                        <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-all w-full">
+                            <LogOut size={20} className="text-slate-400" />
+                            <span className="font-medium text-sm text-gray-600">Sign Out</span>
+                        </button>
+                    )}
                 </div>
             </aside>
 
             {/* Main */}
-            <div className="flex-1 md:ml-56 flex flex-col min-h-screen">
+            <div className={`flex-1 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'} flex flex-col min-h-screen transition-all duration-300 ease-in-out`}>
                 {/* Top bar */}
                 <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-10">
-                    <h1 className="text-sm font-semibold text-gray-900">
-                        {view === 'dashboard' ? 'Overview' : view === 'patients' ? 'My Patients' : view === 'appointments' ? 'Schedule' : view === 'schedule' ? 'Schedule & Fee' : 'Edit Profile'}
-                    </h1>
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setSidebarOpen(!sidebarOpen)}
+                            className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
+                        >
+                            <MoreHorizontal size={20} />
+                        </button>
+                        <h1 className="text-sm font-semibold text-gray-900">
+                            {view === 'dashboard' ? 'Overview' : view === 'patients' ? 'My Patients' : view === 'appointments' ? 'Schedule' : view === 'schedule' ? 'Schedule & Fee' : 'Edit Profile'}
+                        </h1>
+                    </div>
                     <div className="flex items-center gap-4">
                         <div ref={searchRef} className="relative group hidden sm:block">
                             <div className={`flex items-center gap-2 bg-gray-50 border px-3 py-1.5 rounded-lg focus-within:ring-2 ring-blue-500/20 transition-all w-64 ${showSearchSuggestions && searchSuggestions.length > 0 ? 'border-blue-200 shadow-lg' : 'border-gray-200'}`}>
@@ -506,150 +510,99 @@ function DoctorDashboard() {
 
                     {/* DASHBOARD */}
                     {view === 'dashboard' && (
-                        <div className="space-y-6 max-w-6xl">
-                            {/* Header with Greeting */}
-                            <div className="mb-8">
-                                <h2 className="text-2xl font-bold text-gray-900 mb-1">
-                                    {getGreeting()}, Dr. {user?.name?.replace(/^Dr\.?\s*/i, '')}
-                                </h2>
-                                <p className="text-sm text-gray-500">Here's your activity overview for today</p>
+                        <div className="space-y-5 pb-6">
+                            {/* Page Header */}
+                            <div className="flex items-start justify-between pb-4 border-b border-gray-200">
+                                <div>
+                                    <h1 className="text-lg font-semibold text-gray-900">{getGreeting()}, Dr. {user?.name?.replace(/^Dr\.?\s*/i, '')}</h1>
+                                    <p className="text-xs text-gray-500 mt-1">Here's your activity overview for today.</p>
+                                </div>
                             </div>
 
-                            {/* Stats Cards Grid */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                            {/* Stat Cards */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                 {[
-                                    { label: 'Total Patients',    value: stats.patients,     icon: <Users size={20} />,        color: 'from-blue-500 to-blue-600',     bgLight: 'bg-blue-50',     textColor: 'text-blue-600',   trend: '+8%' },
-                                    { label: 'Appointments',      value: stats.appointments, icon: <CalendarDays size={20} />, color: 'from-violet-500 to-violet-600',  bgLight: 'bg-violet-50',   textColor: 'text-violet-600', trend: '+12%' },
-                                    { label: 'Completed',         value: stats.tasks,        icon: <CheckCircle2 size={20} />, color: 'from-green-500 to-green-600',    bgLight: 'bg-green-50',    textColor: 'text-green-600',  trend: '+5%' },
-                                    { label: 'Today\'s Schedule',  value: todayAppts,         icon: <Clock size={20} />,        color: 'from-amber-500 to-amber-600',   bgLight: 'bg-amber-50',    textColor: 'text-amber-600',  trend: '+3%' },
+                                    { label: 'Total Patients',   value: stats.patients,     icon: <Users size={16} />,        text: 'text-blue-600',   trend: '+8%',  trendUp: true  },
+                                    { label: 'Appointments',     value: stats.appointments, icon: <CalendarDays size={16} />, text: 'text-violet-600', trend: '+12%', trendUp: true  },
+                                    { label: 'Completed',        value: stats.tasks,        icon: <CheckCircle2 size={16} />, text: 'text-green-600',  trend: '+5%',  trendUp: true  },
+                                    { label: "Today's Schedule", value: todayAppts,         icon: <Clock size={16} />,        text: 'text-amber-600',  trend: '+3%',  trendUp: true  },
                                 ].map((s, i) => (
-                                    <div key={i} className="group relative bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-200">
-                                        {/* Gradient Background Accent */}
-                                        <div className={`absolute inset-0 bg-gradient-to-br ${s.color} opacity-0 group-hover:opacity-5 rounded-xl transition-opacity duration-200`} />
-                                        
-                                        <div className="relative z-10">
-                                            {/* Icon with gradient background */}
-                                            <div className={`w-12 h-12 rounded-lg ${s.bgLight} ${s.textColor} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200`}>
-                                                {s.icon}
-                                            </div>
-
-                                            {/* Label and Value */}
-                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">{s.label}</p>
-                                            <div className="flex items-baseline gap-3">
-                                                <p className="text-3xl font-bold text-gray-900">{loading ? '—' : s.value}</p>
-                                                <span className={`text-xs font-semibold ${s.textColor}`}>{s.trend}</span>
-                                            </div>
-
-                                            {/* Subtle trend text */}
-                                            <p className="text-xs text-gray-400 mt-2">this week</p>
+                                    <div key={i} className="bg-white rounded-xl border border-gray-200 p-5">
+                                        <div className={`flex items-center gap-2 mb-3 ${s.text}`}>
+                                            {s.icon}
+                                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{s.label}</p>
                                         </div>
+                                        <div className="flex items-baseline gap-2">
+                                            <p className="text-2xl font-bold text-gray-900">{loading ? '—' : s.value}</p>
+                                            <span className={`text-xs font-semibold ${s.text}`}>{s.trend}</span>
+                                        </div>
+                                        <p className="text-xs text-gray-400 mt-1">this week</p>
                                     </div>
                                 ))}
                             </div>
 
-                            {/* Charts Section */}
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                {/* Appointment Activity Chart */}
-                                <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-all">
-                                    <div className="flex items-center justify-between mb-6">
+                            {/* Charts Row */}
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                {/* Area Chart */}
+                                <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                    <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                                         <div>
-                                            <h3 className="text-lg font-bold text-gray-900">Appointment Activity</h3>
-                                            <p className="text-sm text-gray-500 mt-1">{weekTotal} appointments this week</p>
+                                            <h3 className="text-sm font-semibold text-gray-900">Appointment Activity</h3>
+                                            <p className="text-xs text-gray-400 mt-0.5">{weekTotal} appointments this week</p>
                                         </div>
-                                        <button className="px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                            Last 7 days
-                                        </button>
+                                        <span className="px-2.5 py-1 text-xs font-medium text-gray-500 border border-gray-200 rounded-lg bg-gray-50">Last 7 days</span>
                                     </div>
-
-                                    <div className="h-64">
+                                    <div className="p-5 h-[260px]">
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <AreaChart data={growthData} margin={{ top: 8, right: 16, bottom: 8, left: -20 }}>
+                                            <AreaChart data={growthData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                                                 <defs>
-                                                    <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
+                                                    <linearGradient id="drAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.12} />
                                                         <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                                                     </linearGradient>
                                                 </defs>
-                                                <CartesianGrid strokeDasharray="0" vertical={false} stroke="#f3f4f6" />
-                                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} dy={8} />
-                                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} allowDecimals={false} width={24} />
-                                                <Tooltip 
-                                                    contentStyle={{ 
-                                                        borderRadius: '8px', 
-                                                        border: '1px solid #e5e7eb', 
-                                                        boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
-                                                        backgroundColor: '#ffffff',
-                                                        fontSize: 12,
-                                                        padding: '8px 12px'
-                                                    }}
-                                                    cursor={{ stroke: '#e5e7eb', strokeDasharray: '4' }}
-                                                />
-                                                <Area 
-                                                    type="monotone" 
-                                                    dataKey="value" 
-                                                    stroke="#3b82f6" 
-                                                    strokeWidth={3}
-                                                    fill="url(#areaGradient)"
-                                                    isAnimationActive={true}
-                                                />
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 11 }} dy={8} />
+                                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 11 }} allowDecimals={false} />
+                                                <Tooltip contentStyle={{ borderRadius: '10px', border: '1px solid #E2E8F0', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: 12 }} cursor={{ stroke: '#3b82f6', strokeWidth: 1.5, strokeDasharray: '4 2' }} />
+                                                <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#drAreaGrad)" dot={false} activeDot={{ r: 5, fill: '#3b82f6' }} />
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     </div>
                                 </div>
 
-                                {/* Status Breakdown Chart */}
-                                <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-all flex flex-col">
-                                    <div className="mb-4">
-                                        <h3 className="text-lg font-bold text-gray-900">Status Breakdown</h3>
-                                        <p className="text-sm text-gray-500 mt-1">All appointments</p>
+                                {/* Donut Chart */}
+                                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col">
+                                    <div className="px-5 py-4 border-b border-gray-100">
+                                        <h3 className="text-sm font-semibold text-gray-900">Status Breakdown</h3>
+                                        <p className="text-xs text-gray-400 mt-0.5">All appointments</p>
                                     </div>
-
-                                    <div className="flex-1 flex flex-col">
-                                        <div className="h-48">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
-                                                    <Pie 
-                                                        data={statusDistribution} 
-                                                        innerRadius={45} 
-                                                        outerRadius={70} 
-                                                        paddingAngle={4} 
-                                                        dataKey="value"
-                                                        isAnimationActive={true}
-                                                    >
-                                                        {statusDistribution.map((e, i) => <Cell key={i} fill={e.color} stroke="none" />)}
-                                                        <Label 
-                                                            value={appointments.length} 
-                                                            position="center"
-                                                            content={({ viewBox: { cx, cy } }) => (
-                                                                <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central">
-                                                                    <tspan x={cx} y={cy} fontSize={24} fontWeight="700" fill="#111827">{appointments.length}</tspan>
-                                                                    <tspan x={cx} y={cy + 18} fontSize={11} fill="#9ca3af" fontWeight="500">total</tspan>
-                                                                </text>
-                                                            )}
-                                                        />
-                                                    </Pie>
-                                                    <Tooltip 
-                                                        contentStyle={{ 
-                                                            borderRadius: '8px', 
-                                                            border: '1px solid #e5e7eb', 
-                                                            boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
-                                                            fontSize: 12
-                                                        }} 
+                                    <div className="flex-1 flex items-center justify-center min-h-[180px]">
+                                        <ResponsiveContainer width="100%" height={180}>
+                                            <PieChart>
+                                                <Pie data={statusDistribution} cx="50%" cy="50%" innerRadius={52} outerRadius={70} paddingAngle={4} dataKey="value" stroke="none">
+                                                    {statusDistribution.map((e, i) => <Cell key={i} fill={e.color} />)}
+                                                    <Label value={appointments.length} position="center"
+                                                        content={({ viewBox: { cx, cy } }) => (
+                                                            <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central">
+                                                                <tspan x={cx} y={cy} fontSize={22} fontWeight="700" fill="#111827">{appointments.length}</tspan>
+                                                                <tspan x={cx} y={cy + 16} fontSize={10} fill="#9ca3af" fontWeight="500">total</tspan>
+                                                            </text>
+                                                        )}
                                                     />
-                                                </PieChart>
-                                            </ResponsiveContainer>
-                                        </div>
+                                                </Pie>
+                                                <Tooltip contentStyle={{ borderRadius: '10px', border: '1px solid #E2E8F0', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: 12 }} />
+                                            </PieChart>
+                                        </ResponsiveContainer>
                                     </div>
-
-                                    {/* Legend */}
-                                    <div className="space-y-2 mt-6 pt-4 border-t border-gray-100">
+                                    <div className="px-5 pb-5 space-y-2 border-t border-gray-100 pt-4">
                                         {statusDistribution.map((s, i) => (
                                             <div key={i} className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
                                                     <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />
-                                                    <span className="text-sm text-gray-600 font-medium">{s.name}</span>
+                                                    <span className="text-xs text-gray-600 font-medium">{s.name}</span>
                                                 </div>
-                                                <span className="text-sm font-bold text-gray-900">{s.value}</span>
+                                                <span className="text-xs font-bold text-gray-900">{s.value}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -657,51 +610,48 @@ function DoctorDashboard() {
                             </div>
 
                             {/* Recent Appointments */}
-                            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-all">
-                                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900">Recent Appointments</h3>
-                                        <p className="text-sm text-gray-500 mt-1">{appointments.length} total appointments</p>
+                                        <h3 className="text-sm font-semibold text-gray-900">Recent Appointments</h3>
+                                        <p className="text-xs text-gray-400 mt-0.5">{appointments.length} total appointments</p>
                                     </div>
-                                    <button onClick={() => setView('appointments')} className="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">View all →</button>
+                                    <button onClick={() => setView('appointments')}
+                                        className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors">
+                                        View all <ArrowUpRight size={12} />
+                                    </button>
                                 </div>
                                 {appointments.length === 0 ? (
-                                    <div className="px-6 py-12 text-center">
-                                        <p className="text-sm text-gray-400">No appointments yet.</p>
+                                    <div className="flex flex-col items-center justify-center py-14 text-gray-400">
+                                        <CalendarDays size={32} strokeWidth={1} className="mb-2 text-gray-300" />
+                                        <p className="text-sm text-gray-500 font-medium">No appointments yet</p>
                                     </div>
                                 ) : (
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-sm">
-                                            <thead>
-                                                <tr className="border-b border-gray-100 bg-gray-50">
-                                                    <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wide px-6 py-3">Patient</th>
-                                                    <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wide px-6 py-3">Date & Time</th>
-                                                    <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wide px-6 py-3">Status</th>
-                                                    <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wide px-6 py-3">Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {appointments.slice(0, 5).map(apt => (
-                                                    <tr key={apt._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                                                        <td className="px-6 py-4">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">
-                                                                    {apt.patient?.name?.charAt(0) || '?'}
-                                                                </div>
-                                                                <span className="font-medium text-gray-900">{apt.patient?.name || 'Unknown'}</span>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-gray-600 tabular-nums text-xs">{apt.date} · {apt.time}</td>
-                                                        <td className="px-6 py-4"><Badge status={apt.status} /></td>
-                                                        <td className="px-6 py-4">
-                                                            <button className="px-3 py-1 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                                                View
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                    <div className="divide-y divide-gray-50">
+                                        {appointments.slice(0, 5).map(apt => {
+                                            const isMissed = apt.status === 'pending' && apt.date && new Date(apt.date) < new Date().setHours(0,0,0,0);
+                                            const display = isMissed ? 'missed' : (apt.status || 'pending');
+                                            const statusTextColor = {
+                                                confirmed: 'text-blue-600',
+                                                completed: 'text-green-600',
+                                                pending:   'text-amber-600',
+                                                cancelled: 'text-red-500',
+                                                missed:    'text-gray-400',
+                                            }[display] || 'text-gray-400';
+                                            return (
+                                            <div key={apt._id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50/70 transition-colors">
+                                                <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                                    {(apt.patient?.name || '?').charAt(0).toUpperCase()}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-semibold text-gray-900 truncate">{apt.patient?.name || 'Unknown'}</p>
+                                                    <p className="text-xs text-gray-400">{apt.date} · {apt.time}</p>
+                                                </div>
+                                                <span className={`text-xs font-semibold capitalize ${statusTextColor}`}>{display}</span>
+                                                <button onClick={() => setAptDetail(apt)} className="text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0">View</button>
+                                            </div>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>
@@ -710,263 +660,249 @@ function DoctorDashboard() {
 
                     {/* PATIENTS */}
                     {view === 'patients' && (
-                        <div className="max-w-6xl">
-                            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                                <div className="px-5 py-4 border-b border-gray-100">
-                                    <p className="text-sm font-medium text-gray-900">{patients.length} patient{patients.length !== 1 ? 's' : ''}</p>
+                        <div className="space-y-5 pb-6">
+                            {/* Page Header */}
+                            <div className="flex items-start justify-between pb-4 border-b border-gray-200">
+                                <div>
+                                    <h1 className="text-lg font-semibold text-gray-900">My Patients</h1>
+                                    <p className="text-xs text-gray-500 mt-1">{patients.length} patient{patients.length !== 1 ? 's' : ''} registered under your care</p>
                                 </div>
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className="border-b border-gray-100 bg-gray-50/50">
-                                            <th className="text-left text-xs font-medium text-gray-400 px-5 py-3">Name</th>
-                                            <th className="text-left text-xs font-medium text-gray-400 px-5 py-3">Email</th>
-                                            <th className="text-left text-xs font-medium text-gray-400 px-5 py-3">Phone</th>
-                                            <th className="text-left text-xs font-medium text-gray-400 px-5 py-3">Gender</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {patients.length === 0 ? (
-                                            <tr><td colSpan={4} className="text-center text-gray-400 py-10 text-sm">No patients found.</td></tr>
-                                        ) : patients.map(p => (
-                                            <tr key={p._id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">
-                                                <td className="px-5 py-3.5">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-medium shrink-0">
-                                                            {p.name.charAt(0).toUpperCase()}
-                                                        </div>
-                                                        <span className="font-medium text-gray-800">{p.name}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-5 py-3.5 text-gray-500 text-xs">{p.email}</td>
-                                                <td className="px-5 py-3.5 text-gray-500 text-xs">{p.phone || '—'}</td>
-                                                <td className="px-5 py-3.5 text-gray-500 text-xs capitalize">{p.gender || '—'}</td>
+                            </div>
+
+                            {/* Summary Cards */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                {[
+                                    { label: 'Total Patients',  value: patients.length, icon: <Users size={16} />,       text: 'text-blue-600'  },
+                                    { label: 'Male Patients',   value: patients.filter(p => p.gender === 'male').length,   icon: <UserCircle size={16} />, text: 'text-indigo-600' },
+                                    { label: 'Female Patients', value: patients.filter(p => p.gender === 'female').length, icon: <UserCircle size={16} />, text: 'text-pink-600'   },
+                                ].map((s, i) => (
+                                    <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
+                                        <div className={`flex items-center gap-2 ${s.text}`}>
+                                            {s.icon}
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-500 font-medium">{s.label}</p>
+                                            <p className="text-xl font-bold text-gray-900">{s.value}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Patients Table */}
+                            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                <div className="px-5 py-4 border-b border-gray-100">
+                                    <h3 className="text-sm font-semibold text-gray-900">Patient List</h3>
+                                    <p className="text-xs text-gray-400 mt-0.5">All patients who have booked with you</p>
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="border-b border-gray-100 bg-gray-50/60">
+                                                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Patient</th>
+                                                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Email</th>
+                                                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Phone</th>
+                                                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Gender</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            {patients.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={4} className="py-14 text-center">
+                                                        <div className="flex flex-col items-center gap-2 text-gray-400">
+                                                            <Users size={32} strokeWidth={1} className="text-gray-300" />
+                                                            <p className="text-sm font-medium text-gray-500">No patients found</p>
+                                                            <p className="text-xs text-gray-400">Patients will appear here once they book with you</p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ) : patients.map(p => (
+                                                <tr key={p._id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60 transition-colors">
+                                                    <td className="px-5 py-3.5">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                                                {p.name.charAt(0).toUpperCase()}
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-semibold text-gray-900">{p.name}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-5 py-3.5 text-xs text-gray-500">{p.email}</td>
+                                                    <td className="px-5 py-3.5 text-xs text-gray-500">{p.phone || '—'}</td>
+                                                    <td className="px-5 py-3.5">
+                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border capitalize
+                                                            ${p.gender === 'male' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                                              p.gender === 'female' ? 'bg-pink-50 text-pink-700 border-pink-200' :
+                                                              'bg-gray-50 text-gray-500 border-gray-200'}`}>
+                                                            {p.gender || '—'}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     )}
 
                     {/* APPOINTMENTS */}
                     {view === 'appointments' && (
-                        <div className="max-w-6xl space-y-4">
-                            <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg p-1 w-fit">
-                                {['all', 'pending', 'confirmed', 'completed', 'cancelled'].map(s => (
-                                    <button
-                                        key={s}
-                                        onClick={() => setAppointmentFilter(s)}
-                                        className={`px-3 py-1.5 rounded text-xs font-medium capitalize transition-colors ${
-                                            appointmentFilter === s
-                                                ? 'bg-blue-600 text-white shadow-sm'
-                                                : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
-                                        }`}
-                                    >
-                                        {s}
-                                        {s !== 'all' && (
-                                            <span className={`ml-1.5 ${appointmentFilter === s ? 'text-blue-200' : 'text-gray-400'}`}>
-                                                {appointments.filter(a => a.status === s).length}
-                                            </span>
-                                        )}
+                        <div className="space-y-5 pb-6">
+                            {/* Page Header */}
+                            <div className="flex items-start justify-between pb-4 border-b border-gray-200">
+                                <div>
+                                    <h1 className="text-lg font-semibold text-gray-900">Appointments</h1>
+                                    <p className="text-xs text-gray-500 mt-1">{appointments.length} total appointments</p>
+                                </div>
+                                {/* Calendar Toggle */}
+                                <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-1">
+                                    <button onClick={() => setAptView('list')}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all
+                                            ${aptView === 'list' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                                        <MoreHorizontal size={13} /> List
                                     </button>
-                                ))}
+                                    <button onClick={() => setAptView('calendar')}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all
+                                            ${aptView === 'calendar' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                                        <CalendarDays size={13} /> Calendar
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className="border-b border-gray-100 bg-gray-50/50">
-                                            <th className="text-left text-xs font-medium text-gray-400 px-5 py-3">Patient</th>
-                                            <th className="text-left text-xs font-medium text-gray-400 px-5 py-3">Date</th>
-                                            <th className="text-left text-xs font-medium text-gray-400 px-5 py-3">Time</th>
-                                            <th className="text-left text-xs font-medium text-gray-400 px-5 py-3">Reason</th>
-                                            <th className="text-left text-xs font-medium text-gray-400 px-5 py-3">Status</th>
-                                            <th className="text-right text-xs font-medium text-gray-400 px-5 py-3">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {filteredAppts.length === 0 ? (
-                                            <tr>
-                                                <td colSpan={6} className="text-center text-gray-400 py-14 text-sm">
-                                                    No {appointmentFilter !== 'all' ? appointmentFilter : ''} appointments.
-                                                </td>
-                                            </tr>
-                                        ) : filteredAppts.map(apt => (
-                                            <tr key={apt._id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60 group">
-                                                <td className="px-5 py-3.5">
-                                                    <div className="flex items-center gap-2.5">
-                                                        <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-medium shrink-0">
-                                                            {(apt.patient?.name || '?').charAt(0).toUpperCase()}
-                                                        </div>
-                                                        <span className="font-medium text-gray-800">{apt.patient?.name || 'Unknown'}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-5 py-3.5 text-gray-500 text-xs tabular-nums">{apt.date}</td>
-                                                <td className="px-5 py-3.5 text-gray-500 text-xs tabular-nums">{apt.time}</td>
-                                                <td className="px-5 py-3.5 text-gray-400 text-xs max-w-[160px] truncate italic">
-                                                    {apt.reason ? `"${apt.reason}"` : '—'}
-                                                </td>
-                                                <td className="px-5 py-3.5"><Badge status={apt.status} /></td>
-                                                <td className="px-5 py-3.5">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        {apt.status === 'pending' && (
-                                                            <>
-                                                                <button
-                                                                    onClick={() => { setAcceptModal({ isOpen: true, appointmentId: apt._id }); setMeetingLink(''); }}
-                                                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded hover:bg-green-100 transition-colors"
-                                                                >
-                                                                    <CheckCircle2 size={12} /> Accept
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => updateAppointmentStatus(apt._id, 'cancelled')}
-                                                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded hover:bg-red-100 transition-colors"
-                                                                >
-                                                                    <XCircle size={12} /> Decline
-                                                                </button>
-                                                            </>
-                                                        )}
-                                                        {apt.status === 'confirmed' && (
-                                                            <>
-                                                                {apt.meetingLink && (
-                                                                    <a
-                                                                        href={apt.meetingLink}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors"
-                                                                        title="Open Meeting"
-                                                                    >
-                                                                        <Video size={12} /> Meet
-                                                                    </a>
-                                                                )}
-                                                                <button
-                                                                    onClick={() => setCompletionModal({ isOpen: true, appointmentId: apt._id })}
-                                                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
-                                                                >
-                                                                    <ClipboardList size={12} /> Complete
-                                                                </button>
-                                                            </>
-                                                        )}
-                                                        {['completed', 'cancelled'].includes(apt.status) && (
-                                                            <button
-                                                                onClick={() => handleDeleteClick(apt._id)}
-                                                                className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors opacity-0 group-hover:opacity-100"
-                                                                title="Remove"
-                                                            >
-                                                                <Trash2 size={13} />
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                            {aptView === 'calendar' ? (
+                                <DoctorSchedule
+                                    appointments={appointments}
+                                    calendarOnly={true}
+                                    onSelectAppointment={setAptDetail}
+                                />
+                            ) : (
+                                <ListView
+                                    appointments={appointments}
+                                    onSelectAppointment={setAptDetail}
+                                    onAccept={apt => { setAcceptModal({ isOpen: true, appointmentId: apt._id }); setMeetingLink(''); }}
+                                    onDecline={apt => updateAppointmentStatus(apt._id, 'cancelled')}
+                                    onComplete={apt => setCompletionModal({ isOpen: true, appointmentId: apt._id })}
+                                    onMeet={apt => apt.meetingLink && window.open(apt.meetingLink, '_blank')}
+                                />
+                            )}
                         </div>
                     )}
 
                     {/* SCHEDULE & FEE */}
                     {view === 'schedule' && (
-                        <div className="max-w-lg">
-                            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                                <div className="px-6 py-4 border-b border-gray-100">
-                                    <p className="text-sm font-medium text-gray-900">Schedule & Fee Settings</p>
-                                    <p className="text-xs text-gray-400 mt-0.5">Set your availability and consultation fee</p>
+                        <div className="space-y-5 pb-6">
+                            {/* Page Header */}
+                            <div className="flex items-start justify-between pb-4 border-b border-gray-200">
+                                <div>
+                                    <h1 className="text-lg font-semibold text-gray-900">Schedule & Fee</h1>
+                                    <p className="text-xs text-gray-500 mt-1">Configure your availability and consultation fee</p>
                                 </div>
-                                <form onSubmit={handleSaveSchedule} className="p-6 space-y-5">
-                                    {/* Fee */}
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-600 mb-1.5">Consultation Fee (NPR)</label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            step="50"
-                                            value={scheduleData.fee}
-                                            onChange={e => setScheduleData(s => ({ ...s, fee: e.target.value }))}
-                                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            placeholder="e.g. 1500"
-                                        />
-                                    </div>
+                            </div>
 
-                                    {/* Working Days */}
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-600 mb-2">Working Days</label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {ALL_DAYS.map(day => (
-                                                <button
-                                                    key={day}
-                                                    type="button"
-                                                    onClick={() => toggleDay(day)}
-                                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
-                                                        scheduleData.days.includes(day)
-                                                            ? 'bg-blue-600 text-white border-blue-600'
-                                                            : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
-                                                    }`}
-                                                >
-                                                    {day.slice(0, 3)}
-                                                </button>
-                                            ))}
-                                        </div>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                                {/* Form */}
+                                <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                    <div className="px-5 py-4 border-b border-gray-100">
+                                        <h3 className="text-sm font-semibold text-gray-900">Availability Settings</h3>
+                                        <p className="text-xs text-gray-400 mt-0.5">Set your working days, hours, and fees</p>
                                     </div>
-
-                                    {/* Time Range */}
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <form onSubmit={handleSaveSchedule} className="p-5 space-y-5">
+                                        {/* Fee */}
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-600 mb-1.5">Start Time</label>
+                                            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Consultation Fee (NPR)</label>
                                             <input
-                                                type="time"
-                                                value={scheduleData.startTime}
-                                                onChange={e => setScheduleData(s => ({ ...s, startTime: e.target.value }))}
-                                                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                type="number" min="0" step="50"
+                                                value={scheduleData.fee}
+                                                onChange={e => setScheduleData(s => ({ ...s, fee: e.target.value }))}
+                                                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                placeholder="e.g. 1500"
                                             />
                                         </div>
+
+                                        {/* Working Days */}
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-600 mb-1.5">End Time</label>
-                                            <input
-                                                type="time"
-                                                value={scheduleData.endTime}
-                                                onChange={e => setScheduleData(s => ({ ...s, endTime: e.target.value }))}
-                                                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            />
+                                            <label className="block text-xs font-semibold text-gray-600 mb-2">Working Days</label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {ALL_DAYS.map(day => (
+                                                    <button key={day} type="button" onClick={() => toggleDay(day)}
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
+                                                            scheduleData.days.includes(day)
+                                                                ? 'bg-blue-600 text-white border-blue-600'
+                                                                : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                                        }`}>
+                                                        {day.slice(0, 3)}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Time Range */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Start Time</label>
+                                                <input type="time" value={scheduleData.startTime}
+                                                    onChange={e => setScheduleData(s => ({ ...s, startTime: e.target.value }))}
+                                                    className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-semibold text-gray-600 mb-1.5">End Time</label>
+                                                <input type="time" value={scheduleData.endTime}
+                                                    onChange={e => setScheduleData(s => ({ ...s, endTime: e.target.value }))}
+                                                    className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Slot Duration */}
+                                        <div>
+                                            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Slot Duration (minutes)</label>
+                                            <select value={scheduleData.slotDuration}
+                                                onChange={e => setScheduleData(s => ({ ...s, slotDuration: Number(e.target.value) }))}
+                                                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+                                                {[15, 20, 30, 45, 60].map(m => <option key={m} value={m}>{m} minutes</option>)}
+                                            </select>
+                                        </div>
+
+                                        <div className="flex justify-end pt-1">
+                                            <button type="submit" disabled={savingSchedule}
+                                                className="px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-60 transition-colors">
+                                                {savingSchedule ? 'Saving…' : 'Save Schedule'}
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                {/* Preview Card */}
+                                <div className="space-y-4">
+                                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                        <div className="px-5 py-4 border-b border-gray-100">
+                                            <h3 className="text-sm font-semibold text-gray-900">Preview</h3>
+                                            <p className="text-xs text-gray-400 mt-0.5">Your current schedule summary</p>
+                                        </div>
+                                        <div className="p-5 space-y-3">
+                                            <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                                <p className="text-xs text-gray-500 font-medium mb-1">Working Days</p>
+                                                <p className="text-sm font-semibold text-gray-900">
+                                                    {scheduleData.days.length > 0 ? scheduleData.days.map(d => d.slice(0, 3)).join(', ') : 'None selected'}
+                                                </p>
+                                            </div>
+                                            <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                                <p className="text-xs text-gray-500 font-medium mb-1">Working Hours</p>
+                                                <p className="text-sm font-semibold text-gray-900">{scheduleData.startTime} – {scheduleData.endTime}</p>
+                                            </div>
+                                            <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                                <p className="text-xs text-gray-500 font-medium mb-1">Slot Duration</p>
+                                                <p className="text-sm font-semibold text-gray-900">{scheduleData.slotDuration} min slots</p>
+                                            </div>
+                                            <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                                <p className="text-xs text-gray-500 font-medium mb-1">Consultation Fee</p>
+                                                <p className="text-sm font-semibold text-gray-900">NPR {scheduleData.fee || 0}</p>
+                                            </div>
                                         </div>
                                     </div>
-
-                                    {/* Slot Duration */}
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-600 mb-1.5">Slot Duration (minutes)</label>
-                                        <select
-                                            value={scheduleData.slotDuration}
-                                            onChange={e => setScheduleData(s => ({ ...s, slotDuration: Number(e.target.value) }))}
-                                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                                        >
-                                            <option value={15}>15 minutes</option>
-                                            <option value={20}>20 minutes</option>
-                                            <option value={30}>30 minutes</option>
-                                            <option value={45}>45 minutes</option>
-                                            <option value={60}>60 minutes</option>
-                                        </select>
-                                    </div>
-
-                                    {/* Preview */}
-                                    <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
-                                        <p className="text-xs text-blue-700 font-medium mb-1">Preview</p>
-                                        <p className="text-xs text-blue-600">
-                                            {scheduleData.days.length > 0
-                                                ? `${scheduleData.days.map(d => d.slice(0, 3)).join(', ')} · ${scheduleData.startTime} – ${scheduleData.endTime} · ${scheduleData.slotDuration}min slots · NPR ${scheduleData.fee || 0}`
-                                                : 'No working days selected'}
-                                        </p>
-                                    </div>
-
-                                    <div className="flex justify-end pt-1">
-                                        <button
-                                            type="submit"
-                                            disabled={savingSchedule}
-                                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-60 transition-colors"
-                                        >
-                                            {savingSchedule ? 'Saving…' : 'Save Schedule'}
-                                        </button>
-                                    </div>
-                                </form>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -1040,6 +976,106 @@ function DoctorDashboard() {
                     )}
                 </main>
             </div>
+
+            {/* Appointment Detail Modal */}
+            {aptDetail && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+                    onClick={e => e.target === e.currentTarget && setAptDetail(null)}>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+                        {/* Header */}
+                        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-sm font-semibold text-gray-900">Appointment Details</h2>
+                                <p className="text-xs text-gray-400 mt-0.5">Full information for this appointment</p>
+                            </div>
+                            <button onClick={() => setAptDetail(null)}
+                                className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                                <X size={15} />
+                            </button>
+                        </div>
+
+                        {/* Patient info */}
+                        <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg font-bold flex-shrink-0">
+                                {(aptDetail.patient?.name || '?').charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <p className="text-base font-bold text-gray-900">{aptDetail.patient?.name || 'Unknown Patient'}</p>
+                                <p className="text-xs text-gray-400">{aptDetail.patient?.email || '—'}</p>
+                                {aptDetail.patient?.phone && <p className="text-xs text-gray-400">{aptDetail.patient.phone}</p>}
+                            </div>
+                        </div>
+
+                        {/* Details grid */}
+                        <div className="px-6 py-5 grid grid-cols-2 gap-4">
+                            <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <p className="text-xs text-gray-400 font-medium mb-1">Date</p>
+                                <p className="text-sm font-bold text-gray-900 tabular-nums">{aptDetail.date || '—'}</p>
+                            </div>
+                            <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <p className="text-xs text-gray-400 font-medium mb-1">Time</p>
+                                <p className="text-sm font-bold text-gray-900 tabular-nums">{aptDetail.time || '—'}</p>
+                            </div>
+                            <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <p className="text-xs text-gray-400 font-medium mb-1">Type</p>
+                                <p className="text-sm font-bold text-gray-900 capitalize">{aptDetail.consultationType || 'In-person'}</p>
+                            </div>
+                            <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <p className="text-xs text-gray-400 font-medium mb-1">Patient Gender</p>
+                                <p className="text-sm font-bold text-gray-900 capitalize">{aptDetail.patient?.gender || '—'}</p>
+                            </div>
+                        </div>
+
+                        {aptDetail.reason && (
+                            <div className="px-6 pb-4">
+                                <p className="text-xs text-gray-400 font-medium mb-1.5">Reason for Visit</p>
+                                <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                    <p className="text-sm text-gray-700">{aptDetail.reason}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {aptDetail.meetingLink && (
+                            <div className="px-6 pb-4">
+                                <p className="text-xs text-gray-400 font-medium mb-1.5">Meeting Link</p>
+                                <a href={aptDetail.meetingLink} target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium truncate">
+                                    <Video size={14} /> {aptDetail.meetingLink}
+                                </a>
+                            </div>
+                        )}
+
+                        {/* Footer actions */}
+                        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-end gap-2">
+                            {aptDetail.status === 'pending' && !(aptDetail.date && new Date(aptDetail.date) < new Date().setHours(0,0,0,0)) && (
+                                <>
+                                    <button
+                                        onClick={() => { updateAppointmentStatus(aptDetail._id, 'cancelled'); setAptDetail(null); }}
+                                        className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                        Decline
+                                    </button>
+                                    <button
+                                        onClick={() => { setAcceptModal({ isOpen: true, appointmentId: aptDetail._id }); setMeetingLink(''); setAptDetail(null); }}
+                                        className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                                        Accept
+                                    </button>
+                                </>
+                            )}
+                            {aptDetail.status === 'confirmed' && (
+                                <button
+                                    onClick={() => { setCompletionModal({ isOpen: true, appointmentId: aptDetail._id }); setAptDetail(null); }}
+                                    className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                                    <ClipboardList size={13} /> Mark Complete
+                                </button>
+                            )}
+                            <button onClick={() => setAptDetail(null)}
+                                className="px-3.5 py-2 text-xs font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Accept Appointment Modal (Google Meet Link) */}
             {acceptModal.isOpen && (
@@ -1196,93 +1232,6 @@ function DoctorDashboard() {
                 message={broadcastModal.message}
                 type={broadcastModal.type}
             />
-
-            {/* Profile Modal */}
-            {profileModal && (
-                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-200">
-                        {/* Header Gradient */}
-                        <div className="h-32 bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-2xl relative">
-                            {/* Avatar */}
-                            <div className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-1/2">
-                                <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center text-xl font-bold text-blue-600 ring-4 ring-white overflow-hidden">
-                                    {profilePicSrc(user)
-                                        ? <img src={profilePicSrc(user)} alt="" className="w-full h-full object-cover" />
-                                        : <span>{user?.name?.charAt(0).toUpperCase()}</span>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Content */}
-                        <div className="pt-14 px-6 pb-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-900 mb-1">Dr. {user?.name?.replace(/^Dr\.?\s*/i, '')}</h2>
-                            <p className="text-sm text-gray-500 mb-4">{user?.specialization || 'Specialist'}</p>
-
-                            {/* Available Badge */}
-                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full mb-6">
-                                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                                <span className="text-xs font-semibold text-green-700">Available</span>
-                            </div>
-
-                            {/* Info Grid */}
-                            <div className="space-y-4 mb-6 text-left">
-                                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                                    <span className="text-gray-400">📧</span>
-                                    <div className="min-w-0">
-                                        <p className="text-xs text-gray-500">Email</p>
-                                        <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                                    <span className="text-gray-400">📱</span>
-                                    <div className="min-w-0">
-                                        <p className="text-xs text-gray-500">Phone</p>
-                                        <p className="text-sm font-medium text-gray-900 truncate">{user?.phone || 'Not provided'}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                                    <span className="text-gray-400">👤</span>
-                                    <div className="min-w-0">
-                                        <p className="text-xs text-gray-500">Gender</p>
-                                        <p className="text-sm font-medium text-gray-900 capitalize">{user?.gender || 'Not specified'}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => {
-                                        setProfileModal(false);
-                                        setView('profile');
-                                    }}
-                                    className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm"
-                                >
-                                    Edit Profile
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setProfileModal(false);
-                                        setView('schedule');
-                                    }}
-                                    className="flex-1 px-4 py-2.5 border border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors text-sm"
-                                >
-                                    Schedule & Fee
-                                </button>
-                            </div>
-
-                            {/* Close Button */}
-                            <button
-                                onClick={() => setProfileModal(false)}
-                                className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full transition-colors"
-                            >
-                                <X size={20} className="text-gray-400" />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

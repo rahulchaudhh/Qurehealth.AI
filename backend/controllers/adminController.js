@@ -1,4 +1,7 @@
 const Doctor = require('../models/Doctor');
+const Patient = require('../models/Patient');
+const Appointment = require('../models/Appointment');
+const Notification = require('../models/Notification');
 const sendEmail = require('../utils/sendEmail');
 
 exports.getPendingDoctors = async (req, res) => {
@@ -135,7 +138,6 @@ exports.approveDoctor = async (req, res) => {
 
 exports.getAllAppointments = async (req, res) => {
     try {
-        const Appointment = require('../models/Appointment');
         const { status, search, dateFrom, dateTo } = req.query;
 
         const query = {};
@@ -172,7 +174,6 @@ exports.getAllAppointments = async (req, res) => {
 
 exports.updateAdminAppointmentStatus = async (req, res) => {
     try {
-        const Appointment = require('../models/Appointment');
         const { status } = req.body;
         const validStatuses = ['pending', 'confirmed', 'completed', 'cancelled', 'missed'];
         if (!validStatuses.includes(status)) {
@@ -331,7 +332,6 @@ exports.getAllDoctors = async (req, res) => {
 
 exports.getAllPatients = async (req, res) => {
     try {
-        const Patient = require('../models/Patient');
         const patients = await Patient.find().select('-password').lean().maxTimeMS(30000);
         const results = patients.map(p => {
             const { profilePicture, ...rest } = p;
@@ -345,7 +345,6 @@ exports.getAllPatients = async (req, res) => {
 
 exports.deletePatient = async (req, res) => {
     try {
-        const Patient = require('../models/Patient');
         const patient = await Patient.findByIdAndDelete(req.params.id);
 
         if (!patient) {
@@ -358,12 +357,21 @@ exports.deletePatient = async (req, res) => {
     }
 };
 
+exports.getPatientHistory = async (req, res) => {
+    try {
+        const appointments = await Appointment.find({ patient: req.params.id })
+            .populate('doctor', 'name specialization')
+            .sort({ date: -1 })
+            .lean()
+            .maxTimeMS(30000);
+        res.json({ data: appointments });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 exports.getDashboardStats = async (req, res) => {
     try {
-        const Doctor = require('../models/Doctor');
-        const Patient = require('../models/Patient');
-        const Appointment = require('../models/Appointment');
-
         const now = new Date();
         const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
@@ -420,9 +428,6 @@ exports.broadcast = async (req, res) => {
         if (!message || !message.trim()) {
             return res.status(400).json({ error: 'Message is required' });
         }
-        const Notification = require('../models/Notification');
-        const Doctor = require('../models/Doctor');
-        const Patient = require('../models/Patient');
 
         // Run recipient queries in parallel for speed
         const [doctors, patients] = await Promise.all([
@@ -456,9 +461,6 @@ exports.broadcast = async (req, res) => {
 exports.triggerAlert = async (req, res) => {
     try {
         const { message, priority = 'high' } = req.body;
-        const Notification = require('../models/Notification');
-        const Doctor = require('../models/Doctor');
-        const Patient = require('../models/Patient');
 
         const [doctors, patients] = await Promise.all([
             Doctor.find().select('_id').maxTimeMS(30000),
@@ -491,7 +493,6 @@ exports.triggerAlert = async (req, res) => {
 exports.getBroadcastHistory = async (req, res) => {
     try {
         console.log('BACKEND: getBroadcastHistory called');
-        const Notification = require('../models/Notification');
         const history = await Notification.aggregate([
             { $match: { batchId: { $exists: true } } },
             {
@@ -521,9 +522,7 @@ exports.stopBroadcast = async (req, res) => {
         let { batchId } = req.params;
         if (batchId) batchId = batchId.trim();
 
-        const Notification = require('../models/Notification');
         const result = await Notification.deleteMany({ batchId });
-
         res.json({
             success: true,
             message: `Successfully stopped broadcast and removed ${result.deletedCount} notifications.`,

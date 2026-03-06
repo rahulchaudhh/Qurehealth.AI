@@ -147,9 +147,9 @@ const HOME_MENU = [
     { Icon: Phone,         label: 'Support',          msg: 'I need to contact support'              },
 ];
 
-// QureHealth indigo — matches Treeleaf dark-teal button color
-const BTN_BG   = 'linear-gradient(145deg,#4338ca,#6366f1)';
-const BTN_SHD  = '0 4px 14px rgba(99,102,241,0.35)';
+// QureHealth slate — professional muted color
+const BTN_BG   = '#5a6c7d';
+const BTN_SHD  = '0 4px 14px rgba(90,108,125,0.25)';
 
 function HomeScreen({ lang, onMenuClick, onStartChat }) {
     return (
@@ -178,8 +178,7 @@ function HomeScreen({ lang, onMenuClick, onStartChat }) {
                         </div>
                         <Bot className="w-10 h-10 hidden" style={{ color: '#6366f1' }} />
                     </div>
-                    {/* Online dot */}
-                    <span className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-white" />
+
                 </div>
                 <p className="mt-3 font-bold text-slate-800 text-sm tracking-wide">QureHealth AI</p>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -215,7 +214,7 @@ function HomeScreen({ lang, onMenuClick, onStartChat }) {
                         onError={e => { e.currentTarget.style.display = 'none'; }} />
                 </div>
                 <p className="text-[10px] text-slate-400">
-                    Powered By <span className="font-semibold text-indigo-500">QureHealth.AI</span>
+                    Powered By <span className="font-semibold text-slate-400">QureHealth.AI</span>
                 </p>
             </div>
         </div>
@@ -457,10 +456,6 @@ export default function AIChatBot({ defaultOpen = false, lang: langProp = 'en' }
                             onError={e => { e.currentTarget.style.display = 'none'; }} />
                     </div>
                     <span className="text-xs font-bold text-slate-700 tracking-wide">QureHealth AI</span>
-                    <span className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        <span className="text-[10px] text-slate-400">Online</span>
-                    </span>
                 </div>
 
                 <div className="flex items-center gap-0.5">

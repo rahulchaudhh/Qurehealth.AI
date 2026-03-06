@@ -3,9 +3,12 @@
 @tailwind utilities;
 
 @layer base {
-  html {
+  html, body, #root {
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    height: 100%;
+    margin: 0;
+    padding: 0;
   }
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, ChevronLeft, ChevronRight, Star, User, Share2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Star, User } from 'lucide-react';
 
 import StepIndicator from './StepIndicator';
 import StepConsultationType from './StepConsultationType';
@@ -33,7 +33,6 @@ export default function BookingWizard({
     relationship: '',
   });
   const [isConfirmed, setIsConfirmed] = useState(false);
-  const [slideDir, setSlideDir] = useState('right'); // animation direction
 
   // Lock body scroll
   useEffect(() => {
@@ -48,155 +47,99 @@ export default function BookingWizard({
     }
   }, [patientDetails.reason]);
 
-  // Step validation
   const canProceed = () => {
     switch (currentStep) {
-      case 1:
-        return !!consultationType;
-      case 2:
-        return !!bookingData.date && !!bookingData.time;
-      case 3:
-        return (
-          patientDetails.name.trim() &&
-          patientDetails.email.trim() &&
-          patientDetails.phone.trim() &&
-          patientDetails.reason.trim()
-        );
-      case 4:
-        return !!paymentMethod;
-      default:
-        return true;
+      case 1: return !!consultationType;
+      case 2: return !!bookingData.date && !!bookingData.time;
+      case 3: return (
+        patientDetails.name.trim() &&
+        patientDetails.email.trim() &&
+        patientDetails.phone.trim() &&
+        patientDetails.reason.trim()
+      );
+      case 4: return !!paymentMethod;
+      default: return true;
     }
   };
 
-  const goNext = () => {
-    if (!canProceed()) return;
-    setSlideDir('right');
-    setCurrentStep((s) => Math.min(s + 1, 5));
-  };
-
-  const goBack = () => {
-    setSlideDir('left');
-    setCurrentStep((s) => Math.max(s - 1, 1));
-  };
+  const goNext = () => { if (canProceed()) setCurrentStep((s) => Math.min(s + 1, 5)); };
+  const goBack = () => setCurrentStep((s) => Math.max(s - 1, 1));
 
   const handleConfirm = async () => {
-    // Sync reason one final time
     const finalBookingData = { ...bookingData, reason: patientDetails.reason };
     setBookingData(finalBookingData);
-
-    // Fake form event for the existing handler
-    const fakeEvent = { preventDefault: () => {} };
-    await onSubmit(fakeEvent);
+    await onSubmit({ preventDefault: () => {} });
     setIsConfirmed(true);
     setCurrentStep(5);
   };
 
-  const handleClose = () => {
-    onClose();
-  };
-
   const cleanName = doctor?.name ? doctor.name.replace(/^(dr\.?)\s*/i, '') : '';
-  const displayName = cleanName ? `Dr. ${cleanName.charAt(0).toUpperCase() + cleanName.slice(1)}` : doctor?.name || 'Doctor';
+  const displayName = cleanName
+    ? `Dr. ${cleanName.charAt(0).toUpperCase() + cleanName.slice(1)}`
+    : doctor?.name || 'Doctor';
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-white flex flex-col"
-      style={{ animation: 'pageSlideIn 0.28s cubic-bezier(.4,0,.2,1)' }}
-    >
-      {/* ── Sticky Top Bar ── */}
-      <header className="sticky top-0 z-30 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3 min-w-0">
-          {!isConfirmed && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[92vh]">
+
+        {/* ── Header ── */}
+        <div className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Book Appointment</h2>
+              {!isConfirmed && (
+                <p className="text-sm text-gray-500 mt-0.5">Step {currentStep} of 4</p>
+              )}
+            </div>
             <button
-              onClick={currentStep > 1 ? goBack : handleClose}
-              className="p-2 -ml-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
-              aria-label="Go back"
+              onClick={onClose}
+              className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
             >
-              <ArrowLeft size={20} strokeWidth={2} />
+              <X size={20} strokeWidth={2} />
             </button>
-          )}
-          <div className="min-w-0">
-            <h1 className="text-sm font-bold text-gray-900 truncate">
-              {isConfirmed ? 'Booking Confirmed' : 'Book Appointment'}
-            </h1>
-            <p className="text-[11px] text-gray-400 font-medium truncate">
-              {isConfirmed ? 'Your appointment is all set' : `Step ${currentStep} of 4 — ${displayName}`}
-            </p>
           </div>
-        </div>
-        {!isConfirmed && (
-          <button
-            onClick={handleClose}
-            className="text-xs font-semibold text-gray-400 hover:text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-        )}
-      </header>
 
-      {/* ── Main Scrollable Content ── */}
-      <div className="flex-1 overflow-y-auto overscroll-contain">
-
-        {/* Doctor Hero Bar (visible on steps 1-4) */}
-        {currentStep < 5 && (
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 sm:px-6 py-5">
-            <div className="max-w-3xl mx-auto flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0 bg-blue-500 border-2 border-white/20 shadow-lg">
+          {/* Doctor card */}
+          {!isConfirmed && (
+            <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
+              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-blue-200 border-2 border-blue-100">
                 {doctor?.profilePicture ? (
-                  <img
-                    src={doctor.profilePicture}
-                    alt={doctor.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
-                    }}
-                  />
+                  <img src={doctor.profilePicture} alt={doctor.name} className="w-full h-full object-cover"
+                    onError={(e) => { e.target.style.display = 'none'; }} />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white">
-                    <User size={24} />
+                  <div className="w-full h-full flex items-center justify-center text-blue-500">
+                    <User size={18} />
                   </div>
                 )}
-                <div className="w-full h-full items-center justify-center text-white hidden">
-                  <User size={24} />
-                </div>
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="text-base font-bold text-white truncate">{displayName}</h2>
-                <p className="text-blue-100 text-xs font-medium">{doctor?.specialty}</p>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="flex items-center gap-1 text-xs text-white/90 font-medium">
-                    <Star size={11} fill="currentColor" className="text-yellow-300" />
-                    {doctor?.rating || 0}
-                  </span>
-                  <span className="text-white/40">•</span>
-                  <span className="text-xs font-bold text-white">{doctor?.fee || 'Free'}</span>
-                </div>
+                <p className="text-sm font-bold text-gray-900 truncate">{displayName}</p>
+                <p className="text-xs text-blue-600 truncate">{doctor?.specialty}</p>
+              </div>
+              <div className="flex items-center gap-3 flex-shrink-0 text-sm">
+                <span className="flex items-center gap-1 text-amber-500 font-semibold">
+                  <Star size={13} fill="currentColor" /> {doctor?.rating || 0}
+                </span>
+                <span className="text-gray-400">·</span>
+                <span className="font-bold text-gray-700">{doctor?.fee || 'Free'}</span>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Step Indicator */}
-        <div className="max-w-3xl mx-auto">
-          {!isConfirmed && <StepIndicator currentStep={currentStep} />}
+          {/* Step indicator */}
+          {!isConfirmed && (
+            <div className="mt-4">
+              <StepIndicator currentStep={currentStep} />
+            </div>
+          )}
         </div>
 
-        {/* Step Content */}
-        <div className="max-w-3xl mx-auto pb-28 lg:pb-8">
-          <div
-            key={currentStep}
-            className="animate-fadeIn"
-          >
+        {/* ── Body ── */}
+        <div className="flex-1 overflow-y-auto overscroll-contain">
+          <div key={currentStep}>
             {currentStep === 1 && (
-              <StepConsultationType
-                consultationType={consultationType}
-                onChange={setConsultationType}
-              />
+              <StepConsultationType consultationType={consultationType} onChange={setConsultationType} />
             )}
-
             {currentStep === 2 && (
               <StepDateTimeSelection
                 doctor={doctor}
@@ -207,46 +150,32 @@ export default function BookingWizard({
                 consultationType={consultationType}
               />
             )}
-
             {currentStep === 3 && (
-              <StepPatientDetails
-                patientDetails={patientDetails}
-                onChange={setPatientDetails}
-                user={user}
-              />
+              <StepPatientDetails patientDetails={patientDetails} onChange={setPatientDetails} user={user} />
             )}
-
             {currentStep === 4 && (
-              <StepPayment
-                paymentMethod={paymentMethod}
-                onChange={setPaymentMethod}
-                doctor={doctor}
-              />
+              <StepPayment paymentMethod={paymentMethod} onChange={setPaymentMethod} doctor={doctor} />
             )}
-
             {currentStep === 5 && isConfirmed && (
               <StepConfirmation
                 doctor={doctor}
                 bookingData={bookingData}
                 consultationType={consultationType}
                 onViewAppointments={onViewAppointments}
-                onClose={handleClose}
+                onClose={onClose}
               />
             )}
           </div>
         </div>
-      </div>
 
-      {/* ── Footer Navigation (sticky bottom) ── */}
-      {!isConfirmed && (
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 px-4 sm:px-6 py-3.5 shrink-0 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-          <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
-            {/* Back */}
+        {/* ── Footer ── */}
+        {!isConfirmed && (
+          <div className="flex-shrink-0 border-t border-gray-100 bg-gray-50 px-6 py-4 flex items-center justify-between gap-3 rounded-b-2xl">
             {currentStep > 1 ? (
               <button
                 type="button"
                 onClick={goBack}
-                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all border border-gray-200"
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-white border border-gray-200 hover:border-gray-300 transition-all"
               >
                 <ChevronLeft size={16} strokeWidth={2.5} />
                 Back
@@ -254,22 +183,21 @@ export default function BookingWizard({
             ) : (
               <button
                 type="button"
-                onClick={handleClose}
-                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all border border-gray-200"
+                onClick={onClose}
+                className="px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-white border border-gray-200 hover:border-gray-300 transition-all"
               >
                 Cancel
               </button>
             )}
 
-            {/* Next / Confirm */}
             {currentStep < 4 ? (
               <button
                 type="button"
                 onClick={goNext}
                 disabled={!canProceed()}
-                className={`flex items-center gap-2 px-7 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
                   canProceed()
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 active:scale-[0.98]'
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-100 active:scale-[0.98]'
                     : 'bg-gray-100 text-gray-300 cursor-not-allowed'
                 }`}
               >
@@ -281,9 +209,9 @@ export default function BookingWizard({
                 type="button"
                 onClick={handleConfirm}
                 disabled={!canProceed() || isBooking}
-                className={`flex items-center gap-2 px-7 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
                   canProceed() && !isBooking
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 active:scale-[0.98]'
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-100 active:scale-[0.98]'
                     : 'bg-gray-100 text-gray-300 cursor-not-allowed'
                 }`}
               >
@@ -293,7 +221,7 @@ export default function BookingWizard({
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    Confirming...
+                    Booking…
                   </>
                 ) : (
                   <>
@@ -304,15 +232,8 @@ export default function BookingWizard({
               </button>
             )}
           </div>
-        </div>
-      )}
-
-      <style>{`
-        @keyframes pageSlideIn {
-          from { opacity: 0; transform: translateY(12px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+        )}
+      </div>
     </div>
   );
 }

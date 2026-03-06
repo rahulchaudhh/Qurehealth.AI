@@ -183,17 +183,6 @@ export default function LandingPage() {
                 <div className="absolute -bottom-32 left-[20%] w-[60%] h-[60%] bg-teal-200/30 rounded-full blur-[120px] animate-blob animation-delay-4000"></div>
             </div>
 
-            {/* ══════════════ ANNOUNCEMENT BANNER ══════════════ */}
-            <div className="bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 text-white text-center text-sm py-2.5 font-medium relative z-[10000]">
-                <div className="flex items-center justify-center gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    <span>{t.announcement}</span>
-                    <button onClick={handleCTA} className="ml-3 px-3 py-0.5 bg-white/20 hover:bg-white/30 rounded-full text-xs font-semibold transition-colors backdrop-blur-sm cursor-pointer">
-                        {t.tryFree}
-                    </button>
-                </div>
-            </div>
-
             {/* ══════════════ NAVBAR ══════════════ */}
             <nav className="fixed top-10 left-0 right-0 transition-all duration-300" style={{ zIndex: 9999 }}>
                 <div className={`max-w-7xl mx-auto px-6 ${scrolled ? 'py-0' : 'py-2'}`}>
