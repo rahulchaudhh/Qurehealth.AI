@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Calendar, Clock, ArrowLeft, CalendarDays, Plus, Stethoscope, Video, Info, XCircle, Trash2, Star } from 'lucide-react';
+import { Search, Calendar, Clock, ArrowLeft, CalendarDays, Plus, Stethoscope, Video, Info, XCircle, Trash2, Star, Filter } from 'lucide-react';
 import RatingModal from './RatingModal';
 
 export default function Appointments({
@@ -15,6 +15,7 @@ export default function Appointments({
   onRateAppointment,
 }) {
   const [ratingModalApt, setRatingModalApt] = useState(null);
+  const [dateFilter, setDateFilter] = useState('all');
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
@@ -49,21 +50,37 @@ export default function Appointments({
 
   const counts = {
     all: enriched.length,
-    upcoming: enriched.filter(a => a.isUpcoming).length,
+    confirmed: enriched.filter(a => a.effectiveStatus === 'confirmed').length,
+    pending: enriched.filter(a => a.effectiveStatus === 'pending').length,
     completed: enriched.filter(a => a.effectiveStatus === 'completed').length,
-    cancelled: enriched.filter(a => a.effectiveStatus === 'cancelled' || a.effectiveStatus === 'missed').length,
+    cancelled: enriched.filter(a => a.effectiveStatus === 'cancelled').length,
+    missed: enriched.filter(a => a.effectiveStatus === 'missed').length,
   };
 
   const filtered = enriched.filter(a => {
+    // Status filter
     const matchesFilter = appointmentFilter === 'all' ? true
-      : appointmentFilter === 'upcoming' ? a.isUpcoming
-        : appointmentFilter === 'completed' ? a.effectiveStatus === 'completed'
-          : (a.effectiveStatus === 'cancelled' || a.effectiveStatus === 'missed');
+      : appointmentFilter === 'upcoming'
+        ? a.isUpcoming
+        : a.effectiveStatus === appointmentFilter;
 
+    // Date filter
+    const aptDate = new Date(a.date);
+    const aptDateStart = new Date(aptDate.getFullYear(), aptDate.getMonth(), aptDate.getDate());
+    const weekStart = new Date(todayStart); weekStart.setDate(todayStart.getDate() - todayStart.getDay());
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const matchesDate =
+      dateFilter === 'all' ? true
+      : dateFilter === 'today' ? aptDateStart.getTime() === todayStart.getTime()
+      : dateFilter === 'week' ? aptDateStart >= weekStart && aptDateStart <= todayStart
+      : dateFilter === 'month' ? aptDateStart >= monthStart && aptDateStart <= todayStart
+      : true;
+
+    // Search
     const matchesSearch = (a.doctor?.name || '').toLowerCase().includes(aptSearch.toLowerCase()) ||
       (a.reason && a.reason.toLowerCase().includes(aptSearch.toLowerCase()));
 
-    return matchesFilter && matchesSearch;
+    return matchesFilter && matchesDate && matchesSearch;
   });
 
   const badgeStyle = {
@@ -84,9 +101,18 @@ export default function Appointments({
 
   const filterTabs = [
     { key: 'all', label: 'All', count: counts.all },
-    { key: 'upcoming', label: 'Upcoming', count: counts.upcoming },
+    { key: 'confirmed', label: 'Confirmed', count: counts.confirmed },
+    { key: 'pending', label: 'Pending', count: counts.pending },
     { key: 'completed', label: 'Completed', count: counts.completed },
     { key: 'cancelled', label: 'Cancelled', count: counts.cancelled },
+    { key: 'missed', label: 'Missed', count: counts.missed },
+  ];
+
+  const dateTabs = [
+    { key: 'all', label: 'All Time' },
+    { key: 'today', label: 'Today' },
+    { key: 'week', label: 'This Week' },
+    { key: 'month', label: 'This Month' },
   ];
 
   return (
@@ -114,40 +140,69 @@ export default function Appointments({
         </div>
       </div>
 
-      {/* Filter + Search */}
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between mb-8">
-        <div className="flex gap-1 bg-neutral-100 rounded-full p-1 w-fit">
+      {/* Filter + Search bar */}
+      <div className="bg-white border border-neutral-200 rounded-2xl p-4 mb-8 space-y-3">
+
+        {/* Search */}
+        <div className="relative">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+          <input
+            type="text"
+            placeholder="Search by patient name or reason..."
+            value={aptSearch}
+            onChange={e => setAptSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 text-sm bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-all placeholder:text-neutral-400"
+          />
+        </div>
+
+        {/* Status pills */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <Filter size={14} className="text-neutral-400 flex-shrink-0" />
           {filterTabs.map(tab => (
             <button
               key={tab.key}
               onClick={() => setAppointmentFilter(tab.key)}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${appointmentFilter === tab.key
-                ? 'bg-white text-black shadow-sm'
-                : 'text-neutral-500 hover:text-black'
-                }`}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all whitespace-nowrap ${
+                appointmentFilter === tab.key
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-200'
+                  : 'bg-white text-neutral-500 border-neutral-200 hover:border-neutral-300 hover:text-neutral-700'
+              }`}
             >
               {tab.label}
-              <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${appointmentFilter === tab.key
-                ? 'bg-neutral-100 text-black'
-                : 'bg-neutral-200/50 text-neutral-400'
-                }`}>
+              <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
+                appointmentFilter === tab.key
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-neutral-100 text-neutral-500'
+              }`}>
                 {tab.count}
               </span>
             </button>
           ))}
         </div>
 
-        <div className="relative w-full md:w-64">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
-          <input
-            type="text"
-            placeholder="Search doctors..."
-            value={aptSearch}
-            onChange={e => setAptSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 text-xs bg-neutral-50 border border-neutral-200 rounded-full focus:outline-none focus:ring-2 focus:ring-neutral-100 focus:border-neutral-300 transition-all placeholder:text-neutral-400 font-medium"
-          />
+        {/* Date range pills */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <CalendarDays size={14} className="text-neutral-400 flex-shrink-0" />
+          {dateTabs.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setDateFilter(tab.key)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all whitespace-nowrap ${
+                dateFilter === tab.key
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-200'
+                  : 'bg-white text-neutral-500 border-neutral-200 hover:border-neutral-300 hover:text-neutral-700'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* Result count */}
+      <p className="text-sm font-medium text-neutral-500 mb-4">
+        Showing <span className="font-bold text-neutral-800">{filtered.length}</span> of <span className="font-bold text-neutral-800">{enriched.length}</span> appointments
+      </p>
 
       {/* Appointments List */}
       {filtered.length === 0 ? (
