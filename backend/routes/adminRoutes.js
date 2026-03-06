@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
     getPendingDoctors, approveDoctor, rejectDoctor, getAllDoctors,
-    getAllPatients, deletePatient, getDashboardStats,
+    getAllPatients, deletePatient, getPatientHistory, getDashboardStats,
     broadcast, triggerAlert, getBroadcastHistory, stopBroadcast,
     getAllAppointments, updateAdminAppointmentStatus
 } = require('../controllers/adminController');
@@ -26,6 +26,7 @@ const adminCheck = (req, res, next) => {
 
 router.get('/doctors', auth, adminCheck, getAllDoctors);
 router.get('/patients', auth, adminCheck, getAllPatients);
+router.get('/patients/:id/history', auth, adminCheck, getPatientHistory);
 router.get('/dashboard-stats', auth, adminCheck, getDashboardStats);
 router.delete('/delete-patient/:id', auth, adminCheck, deletePatient);
 router.get('/pending-doctors', auth, adminCheck, getPendingDoctors);

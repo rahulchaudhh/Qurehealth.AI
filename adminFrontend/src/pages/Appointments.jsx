@@ -117,143 +117,108 @@ function AppointmentDetailModal({ appt, onClose, onStatusUpdated }) {
         } finally { setStatusUpdating(false); }
     };
 
+    const fields = [
+        { icon: User,        label: 'Patient',        value: appt.patient?.name || '—' },
+        { icon: Mail,        label: 'Patient Email',   value: appt.patient?.email || '—' },
+        { icon: Phone,       label: 'Patient Phone',   value: appt.patient?.phone || '—' },
+        { icon: Stethoscope, label: 'Doctor',          value: appt.doctor?.name ? `Dr. ${appt.doctor.name}` : '—' },
+        { icon: Star,        label: 'Specialization',  value: appt.doctor?.specialization || '—', blue: true },
+        { icon: Calendar,    label: 'Date',            value: fmtLong(appt.date) },
+        { icon: Clock,       label: 'Time',            value: appt.time || '—' },
+        ...(appt.reason      ? [{ icon: FileText, label: 'Reason for Visit',  value: appt.reason }]      : []),
+        ...(appt.diagnosis   ? [{ icon: FileText, label: 'Diagnosis',         value: appt.diagnosis }]   : []),
+        ...(appt.prescription? [{ icon: FileText, label: 'Prescription',      value: appt.prescription }]: []),
+        ...(appt.doctorNotes ? [{ icon: FileText, label: 'Doctor Notes',      value: appt.doctorNotes }] : []),
+    ];
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
             onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-            <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+
                 {/* Header */}
-                <div className="flex items-start justify-between px-6 py-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
                     <div>
-                        <h2 className="text-base font-semibold text-gray-900">Appointment Details</h2>
-                        <p className="text-xs text-gray-400 font-mono mt-0.5">#{appt._id?.slice(-10).toUpperCase()}</p>
+                        <h2 className="text-base font-bold text-gray-900">Appointment Details</h2>
+                        <p className="text-xs text-gray-500 font-mono mt-0.5">#{appt._id?.slice(-10).toUpperCase()}</p>
                     </div>
-                    <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                        <X size={16} />
+                    <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
+                        <X size={18} className="text-gray-500" />
                     </button>
                 </div>
 
-                <div className="px-6 py-5 space-y-4">
-                    {/* Patient & Doctor */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                                <User size={11} />Patient
-                            </p>
-                            <p className="text-sm font-semibold text-gray-900">{appt.patient?.name || '—'}</p>
-                            <div className="mt-1.5 space-y-1">
-                                {appt.patient?.email && <p className="text-xs text-gray-500 flex items-center gap-1.5"><Mail size={10} className="flex-shrink-0" />{appt.patient.email}</p>}
-                                {appt.patient?.phone && <p className="text-xs text-gray-500 flex items-center gap-1.5"><Phone size={10} className="flex-shrink-0" />{appt.patient.phone}</p>}
+                {/* Status + Payment badges row */}
+                <div className="flex items-center gap-2 px-6 pt-4 flex-shrink-0">
+                    <StatusBadge status={appt.status} />
+                    <PaymentBadge status={appt.paymentStatus} />
+                    {appt.paymentMethod && (
+                        <span className="text-xs text-gray-400 font-medium capitalize">{appt.paymentMethod}</span>
+                    )}
+                </div>
+
+                {/* Fields */}
+                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2.5">
+                    {fields.map(({ icon: Icon, label, value, blue }) => (
+                        <div key={label} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <Icon size={15} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                            <div className="min-w-0">
+                                <p className="text-xs text-gray-500 font-medium">{label}</p>
+                                <p className={`text-sm font-semibold mt-0.5 truncate ${blue ? 'text-blue-600' : 'text-gray-900'}`}>{value}</p>
                             </div>
                         </div>
-                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                                <Stethoscope size={11} />Doctor
-                            </p>
-                            <p className="text-sm font-semibold text-gray-900">{appt.doctor?.name ? `Dr. ${appt.doctor.name}` : '—'}</p>
-                            <div className="mt-1.5 space-y-1">
-                                {appt.doctor?.specialization && <p className="text-xs text-blue-600 font-medium">{appt.doctor.specialization}</p>}
-                                {appt.doctor?.email && <p className="text-xs text-gray-500 flex items-center gap-1.5"><Mail size={10} className="flex-shrink-0" />{appt.doctor.email}</p>}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Date / Status / Payment */}
-                    <div className="grid grid-cols-3 gap-3">
-                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Date & Time</p>
-                            <p className="text-sm font-semibold text-gray-900">{fmtLong(appt.date)}</p>
-                            {appt.time && <p className="text-xs text-gray-500 mt-1 flex items-center gap-1"><Clock size={10} />{appt.time}</p>}
-                        </div>
-                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Status</p>
-                            <StatusBadge status={appt.status} />
-                        </div>
-                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Payment</p>
-                            <PaymentBadge status={appt.paymentStatus} />
-                            {appt.paymentMethod && <p className="text-xs text-gray-400 mt-1 capitalize">{appt.paymentMethod}</p>}
-                        </div>
-                    </div>
-
-                    {/* Reason */}
-                    {appt.reason && (
-                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Reason for Visit</p>
-                            <p className="text-sm text-gray-700">{appt.reason}</p>
-                        </div>
-                    )}
-
-                    {/* Diagnosis & Prescription */}
-                    {(appt.diagnosis || appt.prescription) && (
-                        <div className="grid grid-cols-2 gap-3">
-                            {appt.diagnosis && (
-                                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1"><FileText size={10} />Diagnosis</p>
-                                    <p className="text-sm text-gray-700">{appt.diagnosis}</p>
-                                </div>
-                            )}
-                            {appt.prescription && (
-                                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1"><FileText size={10} />Prescription</p>
-                                    <p className="text-sm text-gray-700">{appt.prescription}</p>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Doctor Notes */}
-                    {appt.doctorNotes && (
-                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Doctor Notes</p>
-                            <p className="text-sm text-gray-700">{appt.doctorNotes}</p>
-                        </div>
-                    )}
+                    ))}
 
                     {/* Rating */}
                     {appt.rating?.isRated && (
-                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Patient Rating</p>
-                            <StarRating score={appt.rating.score} />
-                            {appt.rating.feedback && <p className="text-sm text-gray-600 mt-2 italic">"{appt.rating.feedback}"</p>}
+                        <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <Star size={15} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                            <div className="min-w-0">
+                                <p className="text-xs text-gray-500 font-medium">Patient Rating</p>
+                                <div className="mt-1"><StarRating score={appt.rating.score} /></div>
+                                {appt.rating.feedback && <p className="text-xs text-gray-600 mt-1 italic">"{appt.rating.feedback}"</p>}
+                            </div>
                         </div>
                     )}
 
                     {/* Meeting Link */}
                     {appt.meetingLink && (
-                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Meeting Link</p>
-                            <a href={appt.meetingLink} target="_blank" rel="noreferrer"
-                                className="flex items-center gap-1.5 text-sm text-blue-600 hover:underline font-medium">
-                                <ExternalLink size={12} />{appt.meetingLink}
-                            </a>
+                        <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <ExternalLink size={15} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                            <div className="min-w-0">
+                                <p className="text-xs text-gray-500 font-medium">Meeting Link</p>
+                                <a href={appt.meetingLink} target="_blank" rel="noreferrer"
+                                    className="text-sm text-blue-600 hover:underline font-semibold mt-0.5 block truncate">
+                                    {appt.meetingLink}
+                                </a>
+                            </div>
                         </div>
                     )}
+                </div>
 
-                    {/* Status Control */}
-                    <div className="border-t border-gray-200 pt-4">
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                            <Edit3 size={11} />Update Status
-                        </p>
-                        <div className="flex items-center gap-3">
-                            <div className="relative flex-1">
-                                <select value={selectedStatus}
-                                    onChange={e => { setSelectedStatus(e.target.value); setStatusError(''); setStatusSuccess(''); }}
-                                    className="w-full appearance-none px-4 py-2.5 pr-9 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer">
-                                    {['pending','confirmed','completed','cancelled','missed'].map(s => (
-                                        <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
-                                    ))}
-                                </select>
-                                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                            </div>
-                            <button onClick={handleStatusUpdate}
-                                disabled={statusUpdating || selectedStatus === appt.status}
-                                className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                                {statusUpdating ? <><Loader2 size={13} className="animate-spin" />Updating…</> : 'Update Status'}
-                            </button>
+                {/* Update Status */}
+                <div className="px-6 pb-5 pt-3 flex-shrink-0 border-t border-gray-100 space-y-3">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                        <Edit3 size={11} />Update Status
+                    </p>
+                    <div className="flex items-center gap-3">
+                        <div className="relative flex-1">
+                            <select value={selectedStatus}
+                                onChange={e => { setSelectedStatus(e.target.value); setStatusError(''); setStatusSuccess(''); }}
+                                className="w-full appearance-none px-4 py-2.5 pr-9 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer">
+                                {['pending','confirmed','completed','cancelled','missed'].map(s => (
+                                    <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                                ))}
+                            </select>
+                            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                         </div>
-                        {statusError && <p className="text-xs text-red-600 mt-2 flex items-center gap-1"><AlertCircle size={11} />{statusError}</p>}
-                        {statusSuccess && <p className="text-xs text-teal-600 mt-2 flex items-center gap-1"><CheckCircle2 size={11} />{statusSuccess}</p>}
+                        <button onClick={handleStatusUpdate}
+                            disabled={statusUpdating || selectedStatus === appt.status}
+                            className="px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                            {statusUpdating ? <><Loader2 size={13} className="animate-spin" />Updating…</> : 'Update Status'}
+                        </button>
                     </div>
+                    {statusError   && <p className="text-xs text-red-600 flex items-center gap-1"><AlertCircle size={11} />{statusError}</p>}
+                    {statusSuccess && <p className="text-xs text-teal-600 flex items-center gap-1"><CheckCircle2 size={11} />{statusSuccess}</p>}
                 </div>
             </div>
         </div>

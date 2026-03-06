@@ -15,14 +15,11 @@ function ProfileDropdown({ user, onLogout, onEditProfile }) {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const profilePicSrc = () => {
-        if (!user?.profilePicture) return null;
-        return user.profilePicture.startsWith('data:') || user.profilePicture.startsWith('http')
-            ? user.profilePicture : `http://localhost:5001/${user.profilePicture}`;
-    };
+    const avatarUrl = user?._id
+        ? `http://localhost:5001/api/doctor/${user._id}/profile-picture`
+        : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'Doctor')}&background=6366f1&color=fff&size=128`;
 
-    const avatarUrl = profilePicSrc()
-        || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'Doctor')}&background=6366f1&color=fff&size=128`;
+    const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'Doctor')}&background=6366f1&color=fff&size=128`;
 
     return (
         <div ref={dropdownRef} className="relative">
@@ -34,6 +31,7 @@ function ProfileDropdown({ user, onLogout, onEditProfile }) {
                 <img
                     src={avatarUrl}
                     alt="Profile"
+                    onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackUrl; }}
                     className="w-9 h-9 rounded-full object-cover border-2 border-gray-100 shadow-sm flex-shrink-0"
                 />
                 <div className="hidden md:block text-left">
@@ -51,6 +49,7 @@ function ProfileDropdown({ user, onLogout, onEditProfile }) {
                         <img
                             src={avatarUrl}
                             alt="Profile"
+                            onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackUrl; }}
                             className="w-16 h-16 rounded-full object-cover border-2 border-gray-100 shadow-sm flex-shrink-0"
                         />
                         <div className="min-w-0">
