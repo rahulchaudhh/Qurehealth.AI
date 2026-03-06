@@ -96,9 +96,14 @@ exports.bookAppointment = async (req, res) => {
             console.error('Booking email failed (non-critical):', emailError.message);
         }
 
+        // Populate doctor so frontend gets the full doctor object (name, specialization, etc.)
+        const populatedAppointment = await Appointment.findById(appointment._id)
+            .populate('doctor', 'name specialization specialty fee profilePicture')
+            .maxTimeMS(15000);
+
         res.status(201).json({
             success: true,
-            data: appointment
+            data: populatedAppointment
         });
     } catch (error) {
         console.error('Book Appointment Error:', error);
