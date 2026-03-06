@@ -1,4 +1,4 @@
-import { Building2, CreditCard, Smartphone } from 'lucide-react';
+import { Building2, CreditCard } from 'lucide-react';
 
 const PAYMENT_METHODS = [
   {
@@ -11,27 +11,9 @@ const PAYMENT_METHODS = [
     badge: null,
   },
   {
-    id: 'khalti',
-    name: 'Khalti',
-    desc: 'Digital wallet',
-    icon: Smartphone,
-    iconBg: 'bg-purple-100',
-    iconColor: 'text-purple-600',
-    badge: 'Popular',
-  },
-  {
-    id: 'esewa',
-    name: 'eSewa',
-    desc: 'Mobile wallet',
-    icon: Smartphone,
-    iconBg: 'bg-green-100',
-    iconColor: 'text-green-600',
-    badge: null,
-  },
-  {
     id: 'card',
     name: 'Credit / Debit Card',
-    desc: 'Visa, Mastercard & more',
+    desc: 'Visa, Mastercard & more — powered by Stripe',
     icon: CreditCard,
     iconBg: 'bg-blue-100',
     iconColor: 'text-blue-600',
@@ -42,8 +24,6 @@ const PAYMENT_METHODS = [
 
 export default function StepPayment({ paymentMethod, onChange, doctor }) {
   const feeNum = doctor?.fee ? parseInt(String(doctor.fee).replace(/[^0-9]/g, ''), 10) : 0;
-  const platformFee = feeNum > 0 ? Math.round(feeNum * 0.05) : 0;
-  const totalFee = feeNum + platformFee;
   const isFree = feeNum === 0;
 
   return (
@@ -104,20 +84,9 @@ export default function StepPayment({ paymentMethod, onChange, doctor }) {
       {/* Fee breakdown */}
       <div className="border border-gray-200 rounded-xl p-4 bg-gray-50">
         {!isFree ? (
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Consultation Fee</span>
-              <span className="text-gray-700 font-medium">NPR {feeNum}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Platform Fee (5%)</span>
-              <span className="text-gray-700 font-medium">NPR {platformFee}</span>
-            </div>
-            <div className="h-px bg-gray-200 my-1" />
-            <div className="flex justify-between items-center">
-              <span className="text-base font-bold text-gray-900">Total</span>
-              <span className="text-lg font-extrabold text-blue-600">NPR {totalFee}</span>
-            </div>
+          <div className="flex justify-between items-center">
+            <span className="text-base font-bold text-gray-900">Total</span>
+            <span className="text-lg font-extrabold text-blue-600">NPR {feeNum}</span>
           </div>
         ) : (
           <div className="flex justify-between items-center">
