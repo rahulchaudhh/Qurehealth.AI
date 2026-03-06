@@ -60,7 +60,7 @@ export default function Appointments({
         : appointmentFilter === 'completed' ? a.effectiveStatus === 'completed'
           : (a.effectiveStatus === 'cancelled' || a.effectiveStatus === 'missed');
 
-    const matchesSearch = a.doctor.name.toLowerCase().includes(aptSearch.toLowerCase()) ||
+    const matchesSearch = (a.doctor?.name || '').toLowerCase().includes(aptSearch.toLowerCase()) ||
       (a.reason && a.reason.toLowerCase().includes(aptSearch.toLowerCase()));
 
     return matchesFilter && matchesSearch;

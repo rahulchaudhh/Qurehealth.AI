@@ -187,6 +187,16 @@ export default function Dashboard() {
     }
   }, [currentPage]);
 
+  // Reusable refresh function so booking can trigger a fresh fetch
+  const refreshAppointments = async () => {
+    try {
+      const res = await api.get('/appointments/my-appointments');
+      setMyAppointments(res.data.data);
+    } catch (error) {
+      console.error('Error refreshing appointments:', error);
+    }
+  };
+
   // Derived state for medical history (completed appointments)
   const medicalHistory = myAppointments.filter(apt => apt.status === 'completed');
 
@@ -456,11 +466,8 @@ export default function Dashboard() {
       toast.success('Appointment booked successfully!');
 
       // Do NOT close the wizard here — BookingWizard will advance to the confirmation step.
-      // Reset bookingData fields except we keep them available for the confirmation screen.
-      // setSelectedDoctor(null) is called by the wizard's onClose / onViewAppointments callbacks.
-
-      // Refresh appointments list
-      setMyAppointments(prev => [...prev, res.data.data]);
+      // Re-fetch appointments so the list has fully populated doctor objects
+      await refreshAppointments();
 
       // Return the created appointment so BookingWizard can use its ID for Stripe
       return res.data.data;
