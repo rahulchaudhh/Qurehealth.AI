@@ -36,6 +36,7 @@ export default function BookingWizard({
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [bookedAppointmentId, setBookedAppointmentId] = useState(null);
   const [showStripe, setShowStripe] = useState(false);
+  const [pendingBookingData, setPendingBookingData] = useState(null);
 
   // Lock body scroll
   useEffect(() => {
@@ -71,21 +72,28 @@ export default function BookingWizard({
   const handleConfirm = async () => {
     const finalBookingData = { ...bookingData, reason: patientDetails.reason };
     setBookingData(finalBookingData);
-    const result = await onSubmit({ preventDefault: () => {} });
-    const appointmentId = result?._id || result?.appointment?._id || null;
-    setBookedAppointmentId(appointmentId);
 
-    if (paymentMethod === 'card' && appointmentId) {
-      // Show Stripe modal after booking is created
+    if (paymentMethod === 'card') {
+      // For card: show Stripe modal FIRST — appointment is created only after payment succeeds
+      setPendingBookingData(finalBookingData);
       setShowStripe(true);
     } else {
+      // For Pay at Clinic: create appointment immediately
+      const result = await onSubmit({ preventDefault: () => {} });
+      const appointmentId = result?._id || result?.appointment?._id || null;
+      setBookedAppointmentId(appointmentId);
       setIsConfirmed(true);
       setCurrentStep(5);
     }
   };
 
-  const handleStripeSuccess = () => {
+  // Called by StripePaymentModal after card is charged successfully
+  // At this point we create the appointment
+  const handleStripeSuccess = async (paymentIntentId) => {
     setShowStripe(false);
+    const result = await onSubmit({ preventDefault: () => {} });
+    const appointmentId = result?._id || result?.appointment?._id || null;
+    setBookedAppointmentId(appointmentId);
     setIsConfirmed(true);
     setCurrentStep(5);
   };
@@ -238,6 +246,11 @@ export default function BookingWizard({
                     </svg>
                     Booking…
                   </>
+                ) : paymentMethod === 'card' ? (
+                  <>
+                    Proceed to Payment
+                    <ChevronRight size={16} strokeWidth={2.5} />
+                  </>
                 ) : (
                   <>
                     Confirm Booking
@@ -250,18 +263,16 @@ export default function BookingWizard({
         )}
       </div>
 
-      {/* Stripe Payment Modal — shown after booking created for card payments */}
-      {showStripe && bookedAppointmentId && (
+      {/* Stripe Payment Modal — shown BEFORE appointment is created for card payments */}
+      {showStripe && (
         <StripePaymentModal
-          appointmentId={bookedAppointmentId}
           amount={(() => {
             const fee = doctor?.fee ? parseFloat(String(doctor.fee).replace(/[^0-9.]/g, '')) : 0;
-            const platform = fee > 0 ? Math.round(fee * 0.05) : 0;
-            return (fee + platform).toFixed(2);
+            return fee.toFixed(2);
           })()}
           doctor={doctor}
           onSuccess={handleStripeSuccess}
-          onClose={() => { setShowStripe(false); setIsConfirmed(true); setCurrentStep(5); }}
+          onClose={() => setShowStripe(false)}
         />
       )}
     </div>

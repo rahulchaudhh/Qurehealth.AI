@@ -11,7 +11,6 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Lock, CreditCard, ShieldCheck, X } from 'lucide-react';
 import axios from '../../api/axios';
 
-// Load Stripe once outside component to avoid re-renders
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 const CARD_ELEMENT_OPTIONS = {
@@ -26,27 +25,25 @@ const CARD_ELEMENT_OPTIONS = {
   },
 };
 
-// ─── Inner form (needs stripe context) ────────────────────────────────────────
-function StripeForm({ appointmentId, amount, onSuccess, onClose }) {
+// ─── Inner form ───────────────────────────────────────────────────────────────
+// Charges the card only. Appointment is created AFTER payment succeeds.
+function StripeForm({ amountUSD, amountNPR, onSuccess, onClose }) {
   const stripe = useStripe();
   const elements = useElements();
 
   const [clientSecret, setClientSecret] = useState('');
-  const [paymentIntentId, setPaymentIntentId] = useState('');
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
 
-  // Create payment intent on mount
+  // Create payment intent with just the amount — no appointmentId needed yet
   useEffect(() => {
     const init = async () => {
       try {
         const { data } = await axios.post('/payment/stripe/create-intent', {
-          appointmentId,
-          amount,
+          amount: amountUSD,
         });
         setClientSecret(data.clientSecret);
-        setPaymentIntentId(data.paymentIntentId);
       } catch (err) {
         setError(err.response?.data?.error || 'Failed to initialize payment. Please try again.');
       } finally {
@@ -54,7 +51,7 @@ function StripeForm({ appointmentId, amount, onSuccess, onClose }) {
       }
     };
     init();
-  }, [appointmentId, amount]);
+  }, [amountUSD]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -77,22 +74,18 @@ function StripeForm({ appointmentId, amount, onSuccess, onClose }) {
       }
 
       if (paymentIntent.status === 'succeeded') {
-        // Notify backend to update appointment
-        await axios.post('/payment/stripe/confirm', {
-          paymentIntentId: paymentIntent.id,
-          appointmentId,
-        });
+        // Payment done — tell parent to now create the appointment
         onSuccess(paymentIntent.id);
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Payment failed. Please try again.');
+      setError('Payment failed. Please try again.');
       setProcessing(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 gap-3">
+      <div className="flex flex-col items-center justify-center py-10 gap-3">
         <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
         <p className="text-sm text-gray-400">Initializing secure payment…</p>
       </div>
@@ -139,7 +132,7 @@ function StripeForm({ appointmentId, amount, onSuccess, onClose }) {
         </div>
       )}
 
-      {/* Amount + Pay Button */}
+      {/* Pay Button */}
       <button
         type="submit"
         disabled={!stripe || processing || !clientSecret}
@@ -157,7 +150,7 @@ function StripeForm({ appointmentId, amount, onSuccess, onClose }) {
         ) : (
           <>
             <Lock size={14} />
-            Pay ${parseFloat(amount).toFixed(2)}
+            Pay NPR {amountNPR.toLocaleString()}
           </>
         )}
       </button>
@@ -177,8 +170,10 @@ function StripeForm({ appointmentId, amount, onSuccess, onClose }) {
 }
 
 // ─── Modal Wrapper ─────────────────────────────────────────────────────────────
-export default function StripePaymentModal({ appointmentId, amount, doctor, onSuccess, onClose }) {
+export default function StripePaymentModal({ amount, doctor, onSuccess, onClose }) {
   const feeNum = parseFloat(String(amount || '0').replace(/[^0-9.]/g, '')) || 0;
+  // Convert NPR → USD for Stripe (test mode uses USD), min $0.50
+  const amountUSD = Math.max(0.50, parseFloat((feeNum / 135).toFixed(2)));
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -192,7 +187,7 @@ export default function StripePaymentModal({ appointmentId, amount, doctor, onSu
             </div>
             <div>
               <h3 className="text-sm font-bold text-gray-900">Pay with Card</h3>
-              <p className="text-xs text-gray-400">Dr. {doctor?.name}</p>
+              <p className="text-xs text-gray-400">{doctor?.name ? `Dr. ${doctor.name}` : 'Consultation'}</p>
             </div>
           </div>
           <button
@@ -206,15 +201,15 @@ export default function StripePaymentModal({ appointmentId, amount, doctor, onSu
         {/* Amount summary */}
         <div className="mx-5 mt-4 p-3.5 bg-blue-50 border border-blue-100 rounded-xl flex justify-between items-center">
           <span className="text-sm text-gray-600 font-medium">Consultation Fee</span>
-          <span className="text-base font-extrabold text-blue-600">${feeNum.toFixed(2)}</span>
+          <span className="text-base font-extrabold text-blue-600">NPR {feeNum.toLocaleString()}</span>
         </div>
 
-        {/* Stripe Form */}
+        {/* Form */}
         <div className="p-5">
           <Elements stripe={stripePromise}>
             <StripeForm
-              appointmentId={appointmentId}
-              amount={feeNum}
+              amountUSD={amountUSD}
+              amountNPR={feeNum}
               onSuccess={onSuccess}
               onClose={onClose}
             />

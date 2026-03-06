@@ -5,27 +5,32 @@ const Appointment = require('../models/Appointment');
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 // ─── Stripe: Create Payment Intent ────────────────────────────────────────────
+// appointmentId is OPTIONAL — in the "pay first" flow the appointment doesn't
+// exist yet. We just need the amount to charge the card.
 exports.createStripePaymentIntent = async (req, res) => {
     try {
         const { amount, appointmentId } = req.body;
 
-        if (!amount || !appointmentId) {
-            return res.status(400).json({ error: 'Amount and Appointment ID are required' });
+        if (!amount) {
+            return res.status(400).json({ error: 'Amount is required' });
         }
 
-        const appointment = await Appointment.findById(appointmentId);
-        if (!appointment) {
-            return res.status(404).json({ error: 'Appointment not found' });
+        // If an appointmentId is provided, validate it exists (legacy / post-booking flow)
+        if (appointmentId) {
+            const appointment = await Appointment.findById(appointmentId);
+            if (!appointment) {
+                return res.status(404).json({ error: 'Appointment not found' });
+            }
         }
 
-        // Stripe uses smallest currency unit (cents). Treat NPR value as USD cents for demo.
+        // Stripe uses smallest currency unit (cents). amount is already in USD.
         const amountInCents = Math.round(parseFloat(amount) * 100);
 
         const paymentIntent = await stripe.paymentIntents.create({
             amount: amountInCents,
             currency: 'usd',
             metadata: {
-                appointmentId: appointmentId.toString(),
+                appointmentId: appointmentId ? appointmentId.toString() : 'pre-booking',
                 patientId: req.user?.id?.toString() || '',
             },
             description: 'Qurehealth AI - Consultation Appointment',
