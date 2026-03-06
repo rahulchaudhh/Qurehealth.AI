@@ -263,7 +263,7 @@ export default function BookingWizard({
         )}
       </div>
 
-      {/* Stripe Payment Modal — shown BEFORE appointment is created for card payments */}
+      {/* Stripe Payment — full-screen checkout, shown BEFORE appointment is created */}
       {showStripe && (
         <StripePaymentModal
           amount={(() => {
@@ -271,6 +271,7 @@ export default function BookingWizard({
             return fee.toFixed(2);
           })()}
           doctor={doctor}
+          bookingData={bookingData}
           onSuccess={handleStripeSuccess}
           onClose={() => setShowStripe(false)}
         />
