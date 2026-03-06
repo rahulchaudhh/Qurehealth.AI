@@ -2,12 +2,12 @@ import { useState, useEffect, useContext, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import axios from '../api/axios';
-import Toast from './Toast';
-import BroadcastModal from './BroadcastModal';
-import ConfirmModal from './ConfirmModal';
-import NotificationDropdown from './NotificationDropdown';
-import ProfileDropdown from './ProfileDropdown';
-import DoctorSchedule, { ListView } from './DoctorSchedule';
+import Toast from './common/Toast';
+import BroadcastModal from './modals/BroadcastModal';
+import ConfirmModal from './modals/ConfirmModal';
+import NotificationDropdown from './dropdowns/NotificationDropdown';
+import ProfileDropdown from './dropdowns/ProfileDropdown';
+import DoctorSchedule, { ListView } from './schedule/DoctorSchedule';
 import {
     LayoutDashboard,
     Users,
