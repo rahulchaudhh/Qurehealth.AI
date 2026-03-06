@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import Login from './components/Login';
-import Register from './components/Register';
+import Login from './pages/LoginPage';
+import Register from './pages/RegisterPage';
 import DoctorDashboard from './components/DoctorDashboard';
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from './components/common/ProtectedRoute';
 
 function App() {
   return (

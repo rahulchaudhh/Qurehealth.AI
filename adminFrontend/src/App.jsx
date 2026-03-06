@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useOutletContext } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import Login from './components/Login';
+import Login from './pages/LoginPage';
 import AdminDashboard from './components/AdminDashboard';
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from './components/common/ProtectedRoute';
 import Overview from './pages/Overview';
 import PendingApprovals from './pages/PendingApprovals';
 import DoctorsDirectory from './pages/DoctorsDirectory';
