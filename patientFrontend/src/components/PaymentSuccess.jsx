@@ -1,32 +1,40 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import axios from '../api/axios';
 
 const PaymentSuccess = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const [verifying, setVerifying] = useState(true);
-    const [status, setStatus] = useState(null); // 'success', 'failed'
+    const [status, setStatus] = useState(null); // 'success' | 'failed'
 
     useEffect(() => {
         const verify = async () => {
+            // Check for eSewa data param
             const dataQuery = searchParams.get('data');
-            if (!dataQuery) {
-                setStatus('failed');
+            // Check for Stripe payment_intent param (Stripe redirects with this)
+            const paymentIntent = searchParams.get('payment_intent');
+
+            if (!dataQuery && !paymentIntent) {
+                // Could be a direct Stripe success (handled in BookingWizard)
+                setStatus('success');
                 setVerifying(false);
                 return;
             }
 
             try {
-                // Call backend to verify signature and status
-                const { data } = await axios.get(`/payment/verify-esewa?data=${dataQuery}`);
-                if (data.success) {
-                    setStatus('success');
-                } else {
-                    setStatus('failed');
+                if (dataQuery) {
+                    // eSewa verification
+                    const { data } = await axios.get(`/payment/verify-esewa?data=${dataQuery}`);
+                    setStatus(data.success ? 'success' : 'failed');
+                } else if (paymentIntent) {
+                    // Stripe redirect verification (if using redirect flow)
+                    const intentStatus = searchParams.get('redirect_status');
+                    setStatus(intentStatus === 'succeeded' ? 'success' : 'failed');
                 }
             } catch (error) {
-                console.error("Verification failed", error);
+                console.error('Verification failed', error);
                 setStatus('failed');
             } finally {
                 setVerifying(false);
@@ -40,8 +48,9 @@ const PaymentSuccess = () => {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-                    <h2 className="text-xl font-semibold text-gray-700">Verifying Payment...</h2>
+                    <Loader2 className="h-10 w-10 text-blue-600 mx-auto mb-4 animate-spin" />
+                    <h2 className="text-lg font-semibold text-gray-700">Verifying Payment…</h2>
+                    <p className="text-sm text-gray-400 mt-1">Please wait, do not close this page.</p>
                 </div>
             </div>
         );
@@ -52,32 +61,35 @@ const PaymentSuccess = () => {
             <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full text-center">
                 {status === 'success' ? (
                     <>
-                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
+                        <div className="relative w-20 h-20 mx-auto mb-5">
+                            <div className="absolute inset-0 rounded-full bg-green-100 animate-ping opacity-40" />
+                            <div className="relative w-20 h-20 rounded-full bg-green-500 flex items-center justify-center shadow-lg shadow-green-200">
+                                <CheckCircle2 size={38} className="text-white" strokeWidth={2} />
+                            </div>
                         </div>
                         <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h2>
-                        <p className="text-gray-600 mb-8">Your appointment has been confirmed.</p>
+                        <p className="text-gray-500 text-sm mb-8">
+                            Your appointment has been confirmed. A confirmation email will be sent shortly.
+                        </p>
                         <button
                             onClick={() => navigate('/dashboard')}
-                            className="w-full bg-green-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-green-700 transition shadow-lg shadow-green-200"
+                            className="w-full bg-blue-600 text-white py-3 px-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-sm shadow-blue-200"
                         >
                             Go to Dashboard
                         </button>
                     </>
                 ) : (
                     <>
-                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                        <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-5">
+                            <XCircle size={38} className="text-red-500" strokeWidth={2} />
                         </div>
                         <h2 className="text-2xl font-bold text-gray-900 mb-2">Verification Failed</h2>
-                        <p className="text-gray-600 mb-8">We couldn't verify your payment. Please contact support.</p>
+                        <p className="text-gray-500 text-sm mb-8">
+                            We couldn't verify your payment. Please contact support if the amount was deducted.
+                        </p>
                         <button
                             onClick={() => navigate('/dashboard')}
-                            className="w-full bg-gray-900 text-white py-3 px-4 rounded-xl font-semibold hover:bg-gray-800 transition"
+                            className="w-full bg-gray-900 text-white py-3 px-4 rounded-xl font-bold hover:bg-gray-800 transition"
                         >
                             Return to Dashboard
                         </button>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, X, Star, User } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Star, User, CheckCircle2 } from 'lucide-react';
 
 import StepIndicator from './StepIndicator';
 import StepConsultationType from './StepConsultationType';
@@ -7,6 +7,7 @@ import StepDateTimeSelection from './StepDateTimeSelection';
 import StepPatientDetails from './StepPatientDetails';
 import StepPayment from './StepPayment';
 import StepConfirmation from './StepConfirmation';
+import StripePaymentModal from './StripePaymentModal';
 
 export default function BookingWizard({
   doctor,
@@ -33,6 +34,8 @@ export default function BookingWizard({
     relationship: '',
   });
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [bookedAppointmentId, setBookedAppointmentId] = useState(null);
+  const [showStripe, setShowStripe] = useState(false);
 
   // Lock body scroll
   useEffect(() => {
@@ -68,7 +71,21 @@ export default function BookingWizard({
   const handleConfirm = async () => {
     const finalBookingData = { ...bookingData, reason: patientDetails.reason };
     setBookingData(finalBookingData);
-    await onSubmit({ preventDefault: () => {} });
+    const result = await onSubmit({ preventDefault: () => {} });
+    const appointmentId = result?._id || result?.appointment?._id || null;
+    setBookedAppointmentId(appointmentId);
+
+    if (paymentMethod === 'card' && appointmentId) {
+      // Show Stripe modal after booking is created
+      setShowStripe(true);
+    } else {
+      setIsConfirmed(true);
+      setCurrentStep(5);
+    }
+  };
+
+  const handleStripeSuccess = () => {
+    setShowStripe(false);
     setIsConfirmed(true);
     setCurrentStep(5);
   };
@@ -81,8 +98,6 @@ export default function BookingWizard({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[92vh]">
-
-        {/* ── Header ── */}
         <div className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -234,6 +249,21 @@ export default function BookingWizard({
           </div>
         )}
       </div>
+
+      {/* Stripe Payment Modal — shown after booking created for card payments */}
+      {showStripe && bookedAppointmentId && (
+        <StripePaymentModal
+          appointmentId={bookedAppointmentId}
+          amount={(() => {
+            const fee = doctor?.fee ? parseFloat(String(doctor.fee).replace(/[^0-9.]/g, '')) : 0;
+            const platform = fee > 0 ? Math.round(fee * 0.05) : 0;
+            return (fee + platform).toFixed(2);
+          })()}
+          doctor={doctor}
+          onSuccess={handleStripeSuccess}
+          onClose={() => { setShowStripe(false); setIsConfirmed(true); setCurrentStep(5); }}
+        />
+      )}
     </div>
   );
 }

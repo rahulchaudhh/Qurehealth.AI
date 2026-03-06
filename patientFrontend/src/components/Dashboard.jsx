@@ -461,6 +461,9 @@ export default function Dashboard() {
 
       // Refresh appointments list
       setMyAppointments(prev => [...prev, res.data.data]);
+
+      // Return the created appointment so BookingWizard can use its ID for Stripe
+      return res.data.data;
     } catch (error) {
       console.error('Booking failed:', error);
       if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
