@@ -78,9 +78,9 @@ export default function StepConsultationType({ consultationType, onChange }) {
       </div>
 
       {consultationType === 'video' && (
-        <div className="flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-200 rounded-xl">
-          <Info size={15} className="text-amber-500 mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-amber-700 leading-relaxed">
+        <div className="flex items-start gap-3 p-3.5 bg-gray-50 border border-gray-200 rounded-xl">
+          <Info size={15} className="text-gray-400 mt-0.5 flex-shrink-0" />
+          <p className="text-xs text-gray-600 leading-relaxed">
             A secure meeting link will be emailed once the doctor confirms your appointment.
           </p>
         </div>

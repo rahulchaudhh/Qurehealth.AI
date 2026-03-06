@@ -35,7 +35,8 @@ const PAYMENT_METHODS = [
     icon: CreditCard,
     iconBg: 'bg-blue-100',
     iconColor: 'text-blue-600',
-    badge: null,
+    badge: 'Stripe',
+    badgeBg: 'bg-blue-100 text-blue-600',
   },
 ];
 
@@ -56,7 +57,7 @@ export default function StepPayment({ paymentMethod, onChange, doctor }) {
 
       {/* Methods */}
       <div className="space-y-2.5">
-        {PAYMENT_METHODS.map(({ id, name, desc, icon: Icon, iconBg, iconColor, badge }) => {
+        {PAYMENT_METHODS.map(({ id, name, desc, icon: Icon, iconBg, iconColor, badge, badgeBg }) => {
           const selected = paymentMethod === id;
           return (
             <button
@@ -88,7 +89,7 @@ export default function StepPayment({ paymentMethod, onChange, doctor }) {
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-gray-900">{name}</span>
                   {badge && (
-                    <span className="text-[10px] font-bold uppercase bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full tracking-wide">
+                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full tracking-wide ${badgeBg || 'bg-purple-100 text-purple-600'}`}>
                       {badge}
                     </span>
                   )}
