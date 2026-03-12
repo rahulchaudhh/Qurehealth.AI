@@ -10,7 +10,7 @@ import {
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Lock, ShieldCheck, ArrowLeft, CheckCircle2,
-  Calendar, Clock, User, Stethoscope, CreditCard,
+  Calendar, Clock, User, Stethoscope,
 } from 'lucide-react';
 import axios from '../../api/axios';
 
@@ -20,26 +20,25 @@ const CARD_ELEMENT_OPTIONS = {
   style: {
     base: {
       fontSize: '15px',
-      color: '#111827',
+      color: '#0f172a',
       fontFamily: '"Inter", system-ui, sans-serif',
       fontWeight: '500',
-      '::placeholder': { color: '#9ca3af', fontWeight: '400' },
+      '::placeholder': { color: '#94a3b8', fontWeight: '400' },
     },
     invalid: { color: '#ef4444' },
   },
 };
 
-// ─── Payment Form ─────────────────────────────────────────────────────────────
+// ─── Inner Form ───────────────────────────────────────────────────────────────
 function CheckoutForm({ amountUSD, amountNPR, doctor, bookingData, onSuccess, onCancel }) {
-  const stripe = useStripe();
+  const stripe   = useStripe();
   const elements = useElements();
 
-  const [clientSecret, setClientSecret]   = useState('');
-  const [loading, setLoading]             = useState(true);
-  const [processing, setProcessing]       = useState(false);
-  const [error, setError]                 = useState('');
-  const [succeeded, setSucceeded]         = useState(false);
-  const [email, setEmail]                 = useState('');
+  const [clientSecret, setClientSecret] = useState('');
+  const [loading, setLoading]           = useState(true);
+  const [processing, setProcessing]     = useState(false);
+  const [error, setError]               = useState('');
+  const [succeeded, setSucceeded]       = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -47,7 +46,7 @@ function CheckoutForm({ amountUSD, amountNPR, doctor, bookingData, onSuccess, on
         const { data } = await axios.post('/payment/stripe/create-intent', { amount: amountUSD });
         setClientSecret(data.clientSecret);
       } catch (err) {
-        setError(err.response?.data?.error || 'Could not initialize payment. Please try again.');
+        setError(err.response?.data?.error || 'Could not initialize payment.');
       } finally {
         setLoading(false);
       }
@@ -60,21 +59,14 @@ function CheckoutForm({ amountUSD, amountNPR, doctor, bookingData, onSuccess, on
     if (!stripe || !elements || !clientSecret) return;
     setProcessing(true);
     setError('');
-
     try {
       const { paymentIntent, error: stripeError } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: { card: elements.getElement(CardNumberElement) },
       });
-
-      if (stripeError) {
-        setError(stripeError.message);
-        setProcessing(false);
-        return;
-      }
-
+      if (stripeError) { setError(stripeError.message); setProcessing(false); return; }
       if (paymentIntent.status === 'succeeded') {
         setSucceeded(true);
-        setTimeout(() => onSuccess(paymentIntent.id), 1200);
+        setTimeout(() => onSuccess(paymentIntent.id), 1400);
       }
     } catch {
       setError('Payment failed. Please try again.');
@@ -82,210 +74,177 @@ function CheckoutForm({ amountUSD, amountNPR, doctor, bookingData, onSuccess, on
     }
   };
 
-  const cleanName = doctor?.name ? doctor.name.replace(/^(dr\.?)\s*/i, '') : '';
+  const cleanName   = doctor?.name ? doctor.name.replace(/^(dr\.?)\s*/i, '') : '';
   const displayName = cleanName ? `Dr. ${cleanName.charAt(0).toUpperCase() + cleanName.slice(1)}` : doctor?.name || 'Doctor';
+  const aptDate     = bookingData?.date
+    ? new Date(bookingData.date).toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })
+    : null;
+  const aptTime = bookingData?.time || null;
 
-  const aptDate = bookingData?.date ? new Date(bookingData.date).toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' }) : '—';
-  const aptTime = bookingData?.time || '—';
-
-  // ── Success screen ──
+  // ── Success ──
   if (succeeded) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-4 py-16 px-8 text-center">
-        <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mb-2">
-          <CheckCircle2 size={36} className="text-green-500" strokeWidth={2} />
+      <div className="flex flex-col items-center justify-center min-h-screen bg-white gap-5 px-6">
+        <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center">
+          <CheckCircle2 size={30} className="text-blue-600" strokeWidth={2.5} />
         </div>
-        <h2 className="text-xl font-bold text-gray-900">Payment successful!</h2>
-        <p className="text-sm text-gray-500">Booking your appointment…</p>
-        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mt-2" />
+        <div className="text-center">
+          <h2 className="text-lg font-bold text-slate-900">Payment confirmed</h2>
+          <p className="text-sm text-slate-500 mt-1">Booking your appointment…</p>
+        </div>
+        <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-start py-10 px-4">
 
-      {/* ── LEFT: Order Summary ── */}
-      <div className="w-full md:w-[42%] bg-white border-b md:border-b-0 md:border-r border-gray-200 flex flex-col">
-        {/* Brand / back */}
-        <div className="px-8 pt-8 pb-6 flex items-center gap-3 border-b border-gray-100">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-            <Stethoscope size={16} className="text-white" />
+      {/* ── Top nav ── */}
+      <div className="w-full max-w-lg mb-6 flex items-center justify-between">
+        <button
+          onClick={onCancel}
+          className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors group"
+        >
+          <ArrowLeft size={15} className="group-hover:-translate-x-0.5 transition-transform" />
+          Back
+        </button>
+
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
+            <Stethoscope size={14} className="text-white" />
           </div>
-          <span className="font-extrabold text-gray-900 text-base tracking-tight">Qurehealth AI</span>
-        </div>
-
-        <div className="flex-1 px-8 py-8 space-y-8">
-          {/* Amount */}
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Consultation fee</p>
-            <p className="text-4xl font-extrabold text-gray-900 tracking-tight">
-              NPR {amountNPR.toLocaleString()}
-            </p>
-            <p className="text-xs text-gray-400 mt-1">≈ USD {amountUSD.toFixed(2)}</p>
-          </div>
-
-          {/* What you get */}
-          <div className="space-y-3">
-            {[
-              'One consultation session',
-              'Verified specialist doctor',
-              'Digital prescription (if applicable)',
-              'Appointment confirmed instantly',
-            ].map((item, i) => (
-              <div key={i} className="flex items-center gap-2.5 text-sm text-gray-600">
-                <CheckCircle2 size={15} className="text-blue-500 flex-shrink-0" strokeWidth={2.5} />
-                {item}
-              </div>
-            ))}
-          </div>
-
-          {/* Appointment details */}
-          <div className="bg-gray-50 rounded-2xl p-5 space-y-4 border border-gray-100">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Appointment Details</p>
-
-            <div className="flex items-center gap-3">
-              {doctor?.profilePicture ? (
-                <img src={doctor.profilePicture} alt={displayName}
-                  className="w-10 h-10 rounded-full object-cover border border-gray-200"
-                  onError={e => e.target.style.display = 'none'} />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <User size={18} className="text-blue-500" />
-                </div>
-              )}
-              <div>
-                <p className="text-sm font-bold text-gray-900">{displayName}</p>
-                <p className="text-xs text-blue-600">{doctor?.specialty || doctor?.specialization || ''}</p>
-              </div>
-            </div>
-
-            <div className="space-y-2 pt-1">
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <Calendar size={13} className="text-gray-400" />
-                {aptDate}
-              </div>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <Clock size={13} className="text-gray-400" />
-                {aptTime}
-              </div>
-            </div>
-          </div>
-
-          {/* Line items */}
-          <div className="space-y-2 border-t border-gray-100 pt-5">
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>Consultation</span>
-              <span>NPR {amountNPR.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>Platform fee</span>
-              <span className="text-green-600 font-semibold">Free</span>
-            </div>
-            <div className="flex justify-between text-sm font-bold text-gray-900 border-t border-gray-100 pt-2 mt-1">
-              <span>Total due today</span>
-              <span>NPR {amountNPR.toLocaleString()}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Security footer */}
-        <div className="px-8 pb-8 flex items-center gap-1.5 text-xs text-gray-400">
-          <ShieldCheck size={13} className="text-green-500" />
-          Secured by Stripe · 256-bit SSL encryption
+          <span className="text-sm font-bold text-slate-900">Qurehealth AI</span>
         </div>
       </div>
 
-      {/* ── RIGHT: Payment Form ── */}
-      <div className="flex-1 flex flex-col">
-        {/* Back button */}
-        <div className="px-8 pt-8 pb-4">
-          <button
-            onClick={onCancel}
-            className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors group"
-          >
-            <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
-            Back to booking
-          </button>
+      {/* ── Card ── */}
+      <div className="w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+
+        {/* Header — amount */}
+        <div className="px-8 pt-8 pb-6 border-b border-slate-100">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">Consultation fee</p>
+          <div className="flex items-end gap-3">
+            <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
+              NPR {amountNPR.toLocaleString()}
+            </span>
+            <span className="text-sm text-slate-400 mb-0.5">≈ USD {amountUSD.toFixed(2)}</span>
+          </div>
         </div>
 
-        <div className="flex-1 px-8 pb-10 max-w-md">
-          <h1 className="text-2xl font-extrabold text-gray-900 mb-1">Payment method</h1>
-          <p className="text-sm text-gray-400 mb-8">Complete your secure payment below</p>
+        {/* Appointment summary row */}
+        <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            {doctor?.profilePicture ? (
+              <img
+                src={doctor.profilePicture}
+                alt={displayName}
+                className="w-9 h-9 rounded-full object-cover border border-slate-200 flex-shrink-0"
+                onError={e => e.target.style.display = 'none'}
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 border border-blue-100">
+                <User size={16} className="text-blue-500" />
+              </div>
+            )}
+            <div>
+              <p className="text-sm font-bold text-slate-900">{displayName}</p>
+              <p className="text-xs text-blue-600">{doctor?.specialty || doctor?.specialization || ''}</p>
+            </div>
+          </div>
 
+          {(aptDate || aptTime) && (
+            <div className="text-right space-y-0.5 flex-shrink-0">
+              {aptDate && (
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 justify-end">
+                  <Calendar size={11} className="text-slate-400" />
+                  {aptDate}
+                </div>
+              )}
+              {aptTime && (
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 justify-end">
+                  <Clock size={11} className="text-slate-400" />
+                  {aptTime}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Form */}
+        <div className="px-8 py-7">
           {loading ? (
-            <div className="flex items-center gap-3 py-12 text-gray-400">
+            <div className="flex items-center gap-3 py-8 justify-center text-slate-400">
               <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm">Initializing secure payment…</span>
+              <span className="text-sm">Initializing secure checkout…</span>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
 
-              {/* Email */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all bg-white"
-                />
+              {/* Card section label */}
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Card details</p>
+                <div className="flex items-center gap-1.5 opacity-60">
+                  <img src="https://js.stripe.com/v3/fingerprinted/img/visa-729c05c240c4bdb47b03ac81d9945bfe.svg" alt="Visa" className="h-[14px]" />
+                  <img src="https://js.stripe.com/v3/fingerprinted/img/mastercard-4d8844094130711885b5e41b28c9848f.svg" alt="MC" className="h-[14px]" />
+                  <img src="https://js.stripe.com/v3/fingerprinted/img/amex-a49b82f46c5cd6a96a6e418a6ca1717c.svg" alt="Amex" className="h-[14px]" />
+                </div>
               </div>
 
-              {/* Card section */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-gray-500">Card information</label>
-                  <div className="flex items-center gap-1.5">
-                    <img src="https://js.stripe.com/v3/fingerprinted/img/visa-729c05c240c4bdb47b03ac81d9945bfe.svg" alt="Visa" className="h-4" />
-                    <img src="https://js.stripe.com/v3/fingerprinted/img/mastercard-4d8844094130711885b5e41b28c9848f.svg" alt="Mastercard" className="h-4" />
-                    <img src="https://js.stripe.com/v3/fingerprinted/img/amex-a49b82f46c5cd6a96a6e418a6ca1717c.svg" alt="Amex" className="h-4" />
-                  </div>
+              {/* Card number */}
+              <div className="border border-slate-200 rounded-xl overflow-hidden focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-50 transition-all bg-white">
+                <div className="px-4 py-3.5 border-b border-slate-100">
+                  <CardNumberElement options={CARD_ELEMENT_OPTIONS} />
                 </div>
-
-                {/* Card number */}
-                <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
-                  <div className="px-4 py-3.5 border-b border-gray-100">
-                    <CardNumberElement options={CARD_ELEMENT_OPTIONS} />
+                <div className="grid grid-cols-2 divide-x divide-slate-100">
+                  <div className="px-4 py-3.5">
+                    <CardExpiryElement options={CARD_ELEMENT_OPTIONS} />
                   </div>
-                  <div className="grid grid-cols-2">
-                    <div className="px-4 py-3.5 border-r border-gray-100">
-                      <CardExpiryElement options={CARD_ELEMENT_OPTIONS} />
-                    </div>
-                    <div className="px-4 py-3.5">
-                      <CardCvcElement options={CARD_ELEMENT_OPTIONS} />
-                    </div>
+                  <div className="px-4 py-3.5">
+                    <CardCvcElement options={CARD_ELEMENT_OPTIONS} />
                   </div>
                 </div>
               </div>
 
               {/* Name on card */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Name on card</label>
-                <input
-                  type="text"
-                  placeholder="Full name"
-                  className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all bg-white"
-                />
-              </div>
+              <input
+                type="text"
+                placeholder="Name on card"
+                className="w-full px-4 py-3 text-sm text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-50 focus:border-blue-400 transition-all placeholder:text-slate-400 bg-white"
+              />
 
               {/* Error */}
               {error && (
                 <div className="flex items-start gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
-                  <span className="mt-0.5">⚠</span>
+                  <span className="mt-0.5 flex-shrink-0">⚠</span>
                   {error}
                 </div>
               )}
 
-              {/* Subscribe / Pay button */}
+              {/* Divider + line items */}
+              <div className="space-y-2 py-1 border-t border-slate-100">
+                <div className="flex justify-between text-xs text-slate-500">
+                  <span>Consultation fee</span>
+                  <span>NPR {amountNPR.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-xs text-slate-500">
+                  <span>Platform fee</span>
+                  <span className="text-blue-600 font-semibold">Free</span>
+                </div>
+                <div className="flex justify-between text-sm font-bold text-slate-900 border-t border-slate-100 pt-2">
+                  <span>Total due today</span>
+                  <span>NPR {amountNPR.toLocaleString()}</span>
+                </div>
+              </div>
+
+              {/* Pay button */}
               <button
                 type="submit"
                 disabled={!stripe || processing || !clientSecret}
-                className={`w-full flex items-center justify-center gap-2.5 py-4 rounded-xl text-sm font-bold transition-all ${
+                className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold transition-all ${
                   !stripe || processing || !clientSecret
-                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    : 'bg-gray-900 hover:bg-gray-800 text-white shadow-lg active:scale-[0.99]'
+                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200 active:scale-[0.99]'
                 }`}
               >
                 {processing ? (
@@ -295,23 +254,22 @@ function CheckoutForm({ amountUSD, amountNPR, doctor, bookingData, onSuccess, on
                   </>
                 ) : (
                   <>
-                    <Lock size={14} />
+                    <Lock size={13} />
                     Pay NPR {amountNPR.toLocaleString()}
                   </>
                 )}
               </button>
 
-              {/* Terms */}
-              <p className="text-[11px] text-gray-400 leading-relaxed">
-                By confirming your payment, you authorize Qurehealth AI to charge your card for this appointment.{' '}
-                <span className="underline cursor-pointer">Cancel anytime</span> before the appointment to receive a refund.
-              </p>
+              {/* Footer */}
+              <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400 pt-1">
+                <ShieldCheck size={13} className="text-blue-400" />
+                Secured by Stripe · SSL encrypted
+              </div>
 
               {/* Test hint */}
-              <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-700">
-                <CreditCard size={13} className="flex-shrink-0" />
-                <span>Test: <span className="font-mono font-bold">4242 4242 4242 4242</span> · any future date · any CVC</span>
-              </div>
+              <p className="text-center text-[11px] text-slate-400 border-t border-slate-100 pt-3">
+                Test card: <span className="font-mono font-semibold text-slate-600">4242 4242 4242 4242</span> · any future date · any CVC
+              </p>
             </form>
           )}
         </div>
@@ -326,7 +284,7 @@ export default function StripePaymentModal({ amount, doctor, bookingData, onSucc
   const amountUSD = Math.max(0.50, parseFloat((feeNum / 135).toFixed(2)));
 
   return (
-    <div className="fixed inset-0 z-[70] bg-gray-50 overflow-y-auto">
+    <div className="fixed inset-0 z-[70] overflow-y-auto bg-slate-50">
       <Elements stripe={stripePromise}>
         <CheckoutForm
           amountUSD={amountUSD}

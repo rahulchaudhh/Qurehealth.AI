@@ -1,5 +1,6 @@
 const Patient = require('../models/Patient');
 const Doctor = require('../models/Doctor');
+const AdminActivityLog = require('../models/AdminActivityLog');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
@@ -29,6 +30,18 @@ const clearAuthCookie = (res) => {
     sameSite: 'lax',
     path: '/',
   });
+};
+
+const logSystemActivity = async (payload) => {
+  try {
+    await AdminActivityLog.create({
+      adminId: 'system',
+      status: 'SUCCESS',
+      ...payload
+    });
+  } catch (error) {
+    console.error('Failed to write system activity log:', error.message);
+  }
 };
 
 exports.register = async (req, res) => {
@@ -68,6 +81,20 @@ exports.register = async (req, res) => {
         profilePicture,
         isApproved: true, // Auto-approve for demo/testing purposes
         ...otherData // specialization, experience, etc.
+      });
+
+      await logSystemActivity({
+        action: 'DOCTOR_REGISTERED',
+        targetType: 'DOCTOR',
+        targetId: doctor._id,
+        targetName: doctor.name,
+        targetEmail: doctor.email,
+        details: {
+          source: 'doctor_signup',
+          specialization: doctor.specialization,
+          isApproved: doctor.isApproved,
+          status: doctor.status
+        }
       });
 
       // Send admin notification email
@@ -239,6 +266,23 @@ exports.login = async (req, res) => {
       };
       const token = signToken({ _id: 'admin_id', id: 'admin_id', name: 'Admin User', email, role: 'admin' });
       setAuthCookie(res, token);
+
+      try {
+        await AdminActivityLog.create({
+          adminId: 'admin_id',
+          action: 'LOGIN',
+          targetType: 'SYSTEM',
+          targetName: 'Admin User',
+          targetEmail: email,
+          details: { role: 'admin' },
+          ipAddress: req.ip || req.connection?.remoteAddress,
+          userAgent: req.get('user-agent'),
+          status: 'SUCCESS'
+        });
+      } catch (logErr) {
+        console.error('Failed to log admin login:', logErr.message);
+      }
+
       return res.json({ data: adminUser });
     }
 

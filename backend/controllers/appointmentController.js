@@ -172,7 +172,7 @@ exports.getMyAppointments = async (req, res) => {
             patient: req.user._id,
             isVisibleToPatient: { $ne: false }
         })
-            .populate('doctor', 'name specialization hospital phone profilePicture')
+            .populate('doctor', 'name specialization hospital phone profilePicture fee')
             .sort({ date: 1, time: 1 })
             .maxTimeMS(30000);
 

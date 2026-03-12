@@ -7,8 +7,6 @@ const {
     getAllAppointments, updateAdminAppointmentStatus
 } = require('../controllers/adminController');
 const {
-    getVerificationCriteria,
-    updateVerificationCriteria,
     getActivityLogs,
     clearOldLogs,
     getSystemStats
@@ -40,8 +38,6 @@ router.get('/appointments', auth, adminCheck, getAllAppointments);
 router.put('/appointments/:id/status', auth, adminCheck, updateAdminAppointmentStatus);
 
 // ── Admin Settings Routes ──
-router.get('/settings/verification-criteria', auth, adminCheck, getVerificationCriteria);
-router.put('/settings/verification-criteria', auth, adminCheck, updateVerificationCriteria);
 router.get('/logs/activity', auth, adminCheck, getActivityLogs);
 router.delete('/logs/clear-old', auth, adminCheck, clearOldLogs);
 router.get('/stats/system', auth, adminCheck, getSystemStats);

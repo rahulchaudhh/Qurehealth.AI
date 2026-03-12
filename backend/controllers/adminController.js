@@ -2,7 +2,22 @@ const Doctor = require('../models/Doctor');
 const Patient = require('../models/Patient');
 const Appointment = require('../models/Appointment');
 const Notification = require('../models/Notification');
+const AdminActivityLog = require('../models/AdminActivityLog');
 const sendEmail = require('../utils/sendEmail');
+
+const logAdminActivity = async (req, payload) => {
+    try {
+        await AdminActivityLog.create({
+            adminId: req.user?._id?.toString() || req.user?.id || 'admin',
+            ipAddress: req.ip || req.connection?.remoteAddress,
+            userAgent: req.get('user-agent'),
+            status: 'SUCCESS',
+            ...payload
+        });
+    } catch (error) {
+        console.error('Failed to write admin activity log:', error.message);
+    }
+};
 
 exports.getPendingDoctors = async (req, res) => {
     try {
@@ -130,6 +145,18 @@ exports.approveDoctor = async (req, res) => {
             }
         }
 
+        await logAdminActivity(req, {
+            action: 'DOCTOR_APPROVED',
+            targetType: 'DOCTOR',
+            targetId: doctor._id,
+            targetName: doctor.name,
+            targetEmail: doctor.email,
+            details: {
+                specialization: doctor.specialization,
+                status: doctor.status
+            }
+        });
+
         res.json({ success: true, data: doctor });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -179,6 +206,14 @@ exports.updateAdminAppointmentStatus = async (req, res) => {
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ error: 'Invalid status value' });
         }
+
+        const existingAppointment = await Appointment.findById(req.params.id)
+            .select('_id status doctor patient')
+            .lean();
+        if (!existingAppointment) {
+            return res.status(404).json({ error: 'Appointment not found' });
+        }
+
         const appointment = await Appointment.findByIdAndUpdate(
             req.params.id,
             { status },
@@ -187,9 +222,20 @@ exports.updateAdminAppointmentStatus = async (req, res) => {
             .populate('doctor', 'name specialization email')
             .populate('patient', 'name email phone')
             .lean();
-        if (!appointment) {
-            return res.status(404).json({ error: 'Appointment not found' });
-        }
+
+        await logAdminActivity(req, {
+            action: 'APPOINTMENT_STATUS_UPDATED',
+            targetType: 'SYSTEM',
+            targetId: appointment._id,
+            targetName: `Appointment ${appointment._id}`,
+            details: {
+                previousStatus: existingAppointment.status,
+                newStatus: status,
+                patientId: appointment.patient?._id || existingAppointment.patient,
+                doctorId: appointment.doctor?._id || existingAppointment.doctor
+            }
+        });
+
         res.json({ success: true, data: appointment });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -311,6 +357,18 @@ exports.rejectDoctor = async (req, res) => {
             }
         }
 
+        await logAdminActivity(req, {
+            action: 'DOCTOR_REJECTED',
+            targetType: 'DOCTOR',
+            targetId: doctor._id,
+            targetName: doctor.name,
+            targetEmail: doctor.email,
+            details: {
+                specialization: doctor.specialization,
+                status: doctor.status
+            }
+        });
+
         res.json({ success: true, data: doctor });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -350,6 +408,18 @@ exports.deletePatient = async (req, res) => {
         if (!patient) {
             return res.status(404).json({ error: 'Patient not found' });
         }
+
+        await logAdminActivity(req, {
+            action: 'PATIENT_DELETED',
+            targetType: 'PATIENT',
+            targetId: patient._id,
+            targetName: patient.name,
+            targetEmail: patient.email,
+            details: {
+                deletedPatientId: patient._id,
+                deletedAt: new Date()
+            }
+        });
 
         res.json({ success: true, message: 'Patient deleted successfully' });
     } catch (error) {
@@ -452,6 +522,17 @@ exports.broadcast = async (req, res) => {
 
         await Notification.insertMany(notifications);
 
+        await logAdminActivity(req, {
+            action: 'BROADCAST_SENT',
+            targetType: 'SYSTEM',
+            details: {
+                batchId,
+                target: target || 'all',
+                recipientCount: recipients.length,
+                messageLength: message.length
+            }
+        });
+
         res.json({ success: true, message: `Broadcast sent to ${recipients.length} users` });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -483,6 +564,17 @@ exports.triggerAlert = async (req, res) => {
         }));
 
         await Notification.insertMany(notifications);
+
+        await logAdminActivity(req, {
+            action: 'ALERT_TRIGGERED',
+            targetType: 'SYSTEM',
+            details: {
+                batchId,
+                priority,
+                recipientCount: recipients.length,
+                messageLength: (message || '').length
+            }
+        });
 
         res.json({ success: true, message: `Alert triggered for ${recipients.length} users` });
     } catch (error) {
@@ -523,6 +615,16 @@ exports.stopBroadcast = async (req, res) => {
         if (batchId) batchId = batchId.trim();
 
         const result = await Notification.deleteMany({ batchId });
+
+        await logAdminActivity(req, {
+            action: 'BROADCAST_STOPPED',
+            targetType: 'SYSTEM',
+            details: {
+                batchId,
+                deletedCount: result.deletedCount
+            }
+        });
+
         res.json({
             success: true,
             message: `Successfully stopped broadcast and removed ${result.deletedCount} notifications.`,

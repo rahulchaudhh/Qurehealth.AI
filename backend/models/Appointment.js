@@ -60,6 +60,10 @@ const appointmentSchema = new mongoose.Schema({
         type: String,
         default: 'esewa'
     },
+    paidAt: {
+        type: Date,
+        default: null
+    },
     isVisibleToPatient: {
         type: Boolean,
         default: true

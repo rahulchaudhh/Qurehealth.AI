@@ -67,6 +67,7 @@ exports.confirmStripePayment = async (req, res) => {
             paymentStatus: 'paid',
             transactionId: paymentIntentId,
             paymentMethod: 'stripe',
+            paidAt: new Date(),
         });
 
         res.json({ success: true, message: 'Payment confirmed', transactionId: paymentIntentId });
@@ -139,6 +140,7 @@ exports.verifyPayment = async (req, res) => {
                 paymentStatus: 'paid',
                 transactionId: decodedData.transaction_uuid,
                 paymentMethod: 'esewa',
+                paidAt: new Date(),
             });
         }
 

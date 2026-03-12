@@ -37,8 +37,8 @@ function Sidebar({ sidebarOpen, pendingCount, handleLogout }) {
                 />
                 {sidebarOpen && (
                     <div className="flex flex-col">
-                        <span className="text-[#1e293b] font-black text-xl tracking-tighter font-outfit leading-none">
-                            Qurehealth<span className="text-[#1e293b]">.AI</span>
+                        <span className="text-slate-900 font-black text-xl tracking-tighter leading-none">
+                            Qurehealth<span className="text-slate-900">.AI</span>
                         </span>
                     </div>
                 )}

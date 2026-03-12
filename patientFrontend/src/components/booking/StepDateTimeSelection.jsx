@@ -9,8 +9,6 @@ export default function StepDateTimeSelection({
   consultationType,
 }) {
   const feeNum = doctor?.fee ? parseInt(String(doctor.fee).replace(/[^0-9]/g, ''), 10) : 0;
-  const platformFee = feeNum > 0 ? Math.round(feeNum * 0.05) : 0;
-  const totalFee = feeNum + platformFee;
 
   return (
     <div className="p-6 space-y-5">
@@ -74,9 +72,6 @@ export default function StepDateTimeSelection({
                           : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700'
                       }`}
                     >
-                      {!isSelected && (
-                        <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-green-400 rounded-full" />
-                      )}
                       {slot.time12}
                     </button>
                   );
@@ -137,17 +132,9 @@ export default function StepDateTimeSelection({
             <div className="pt-3 border-t border-gray-100 space-y-1.5">
               {feeNum > 0 ? (
                 <>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-400">Consult Fee</span>
-                    <span className="text-gray-600">NPR {feeNum}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-400">Platform (5%)</span>
-                    <span className="text-gray-600">NPR {platformFee}</span>
-                  </div>
                   <div className="flex justify-between items-center pt-1.5 border-t border-dashed border-gray-200">
                     <span className="text-sm font-bold text-gray-800">Total</span>
-                    <span className="text-sm font-extrabold text-blue-600">NPR {totalFee}</span>
+                    <span className="text-sm font-extrabold text-blue-600">NPR {feeNum}</span>
                   </div>
                 </>
               ) : (
