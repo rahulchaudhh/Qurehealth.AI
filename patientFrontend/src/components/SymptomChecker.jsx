@@ -1,4 +1,7 @@
+import { useContext, useState } from 'react';
 import { ArrowLeft, X, AlertCircle, Stethoscope, Star, Clock } from 'lucide-react';
+import DoctorProfileModal from './DoctorProfileModal';
+import { AuthContext } from '../context/AuthContext';
 
 export default function SymptomChecker({
   symptoms,
@@ -87,6 +90,9 @@ export function PredictionResults({
   setCurrentPage,
   setSelectedDoctor,
 }) {
+  const [profileDoctor, setProfileDoctor] = useState(null);
+  const { user } = useContext(AuthContext);
+
   return (
     <main className="max-w-6xl mx-auto py-10 px-5 min-h-[calc(100vh-140px)]">
       <button className="px-4 py-2 bg-gray-100 rounded-lg mb-5 text-sm font-semibold text-gray-700 transition-all flex items-center gap-2 group" onClick={() => setCurrentPage('symptoms')}>
@@ -172,16 +178,32 @@ export function PredictionResults({
                 </span>
                 <span className="font-bold text-emerald-700">{doctor.fee}</span>
               </div>
-              <button
-                onClick={() => setSelectedDoctor(doctor)}
-                className="w-full py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700 shadow-md"
-              >
-                Book Appointment
-              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setProfileDoctor(doctor)}
+                  className="w-full py-2 bg-white text-gray-700 border border-gray-300 rounded-md text-sm font-semibold hover:bg-gray-50"
+                >
+                  View Profile
+                </button>
+                <button
+                  onClick={() => setSelectedDoctor(doctor)}
+                  className="w-full py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700 shadow-md"
+                >
+                  Book Appointment
+                </button>
+              </div>
             </div>
           ))}
         </div>
       </div>
+      {profileDoctor && (
+        <DoctorProfileModal
+          doctor={profileDoctor}
+          onClose={() => setProfileDoctor(null)}
+          onBook={(doc) => setSelectedDoctor(doc)}
+          currentUserId={user?._id || user?.id}
+        />
+      )}
     </main>
   );
 }

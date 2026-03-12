@@ -9,7 +9,19 @@ const adminActivityLogSchema = new mongoose.Schema(
     },
     action: {
       type: String,
-      enum: ['DOCTOR_APPROVED', 'DOCTOR_REJECTED', 'DOCTOR_DELETED', 'DOCTOR_REGISTERED', 'VERIFICATION_CRITERIA_UPDATED', 'SETTINGS_CHANGED', 'LOGIN'],
+      enum: [
+        'DOCTOR_APPROVED',
+        'DOCTOR_REJECTED',
+        'DOCTOR_DELETED',
+        'DOCTOR_REGISTERED',
+        'PATIENT_DELETED',
+        'APPOINTMENT_STATUS_UPDATED',
+        'BROADCAST_SENT',
+        'ALERT_TRIGGERED',
+        'BROADCAST_STOPPED',
+        'SETTINGS_CHANGED',
+        'LOGIN'
+      ],
       required: true
     },
     targetType: {

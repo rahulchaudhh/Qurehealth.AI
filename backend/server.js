@@ -79,6 +79,17 @@ app.use('/api/payment', require('./routes/paymentRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/predict', require('./routes/predictionRoutes'));
 
+// ── RAG: rebuild PDF index endpoint ──
+app.post('/api/rag/build', async (req, res) => {
+    const { buildIndex } = require('./rag/ragHelper');
+    try {
+        const result = await buildIndex();
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ status: 'error', message: err.message });
+    }
+});
+
 // Make uploads folder static
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

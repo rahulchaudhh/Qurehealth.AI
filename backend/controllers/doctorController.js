@@ -1,6 +1,7 @@
 const Doctor = require('../models/Doctor');
 const jwt = require('jsonwebtoken');
 const Appointment = require('../models/Appointment');
+const AdminActivityLog = require('../models/AdminActivityLog');
 
 const signToken = (payload) => {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -15,6 +16,20 @@ const setAuthCookie = (res, token) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/',
   });
+};
+
+const logDoctorActivity = async (req, payload) => {
+    try {
+        await AdminActivityLog.create({
+            adminId: req.user?._id?.toString() || req.user?.id || 'system',
+            ipAddress: req.ip || req.connection?.remoteAddress,
+            userAgent: req.get('user-agent'),
+            status: 'SUCCESS',
+            ...payload
+        });
+    } catch (error) {
+        console.error('Failed to write doctor activity log:', error.message);
+    }
 };
 
 // ── Helper: compute next available slot for a doctor ──
@@ -103,6 +118,20 @@ exports.registerDoctor = async (req, res) => {
             profilePicture: req.file
                 ? `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`
                 : ''
+        });
+
+        await logDoctorActivity(req, {
+            action: 'DOCTOR_REGISTERED',
+            targetType: 'DOCTOR',
+            targetId: doctor._id,
+            targetName: doctor.name,
+            targetEmail: doctor.email,
+            details: {
+                source: 'doctor_register_api',
+                specialization: doctor.specialization,
+                isApproved: doctor.isApproved,
+                status: doctor.status
+            }
         });
 
         if (doctor) {
@@ -449,6 +478,18 @@ exports.deleteDoctor = async (req, res) => {
         }
 
         await doctor.deleteOne(); // Use deleteOne()
+
+        await logDoctorActivity(req, {
+            action: 'DOCTOR_DELETED',
+            targetType: 'DOCTOR',
+            targetId: doctor._id,
+            targetName: doctor.name,
+            targetEmail: doctor.email,
+            details: {
+                specialization: doctor.specialization,
+                deletedByRole: req.user?.role || 'unknown'
+            }
+        });
 
         res.json({
             success: true,

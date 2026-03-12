@@ -1,9 +1,36 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const ChatSession = require('../models/ChatSession');
 const Patient = require('../models/Patient');
+const { retrieveFromPDF } = require('../rag/ragHelper');
 require('dotenv').config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+/* ─────────────────────────────────────────────
+   Response Cache (saves tokens + speeds up repeated questions)
+───────────────────────────────────────────── */
+const responseCache = new Map();
+const CACHE_TTL = 3600000; // 1 hour
+
+function getCacheKey(message, lang = 'en') {
+    return `${message.trim().toLowerCase()}:${lang}`;
+}
+
+function getCachedResponse(message, lang) {
+    const key = getCacheKey(message, lang);
+    const cached = responseCache.get(key);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        console.log(`[CACHE] ✅ Hit for: "${message.slice(0, 40)}"`);
+        return cached.response;
+    }
+    if (cached) responseCache.delete(key); // Expired
+    return null;
+}
+
+function setCachedResponse(message, response, lang) {
+    const key = getCacheKey(message, lang);
+    responseCache.set(key, { response, timestamp: Date.now() });
+}
 
 /* ─────────────────────────────────────────────
    Specialty detection from AI responses
@@ -42,32 +69,30 @@ function buildSystemPrompt({ lang = 'en', patientContext = '' }) {
         : '';
 
     const patientInfo = patientContext
-        ? `\n\n--- PATIENT CONTEXT (use this to personalize your advice) ---\n${patientContext}\n--- END PATIENT CONTEXT ---`
+        ? `\n\n--- PATIENT CONTEXT ---\n${patientContext}\n--- END PATIENT CONTEXT ---`
         : '';
 
     return [
         {
             role: 'user',
             parts: [{
-                text: `You are QureHealth AI — a helpful, empathetic, and responsible medical assistant for Qurehealth.AI, a Nepal-based telehealth platform.
-Your role:
-• Help patients understand symptoms and get preliminary health guidance.
-• When you recommend seeing a specialist, clearly mention the specialty name (e.g., "I recommend consulting a **Cardiologist**").
-• Explain how to use Qurehealth.AI features (book appointments, symptom checker, etc.).
-• Answer general health and wellness questions concisely (under 120 words per reply).
-• Always recommend seeing a real doctor for serious concerns.
-• If symptoms suggest an emergency (chest pain, stroke, severe breathing issues), urgently tell the user to call 102 immediately.
-• Never diagnose definitively — always say "this may indicate" or "you should consult a doctor".
-• Be warm, supportive, and avoid medical jargon.
-• The platform is based in Nepal; be culturally sensitive and mention NPR pricing when relevant.${langInstruction}${patientInfo}`
+                text: `You are QureHealth AI — a friendly health assistant for Qurehealth.AI platform.
+
+YOUR BEHAVIOUR:
+• For greetings (hi, hello, how are you): respond warmly and ask how you can help.
+• For booking questions: guide them to use the "Book Appointment" button or browse doctors.
+• For general health questions: give a helpful 2-3 line answer and suggest consulting a doctor.
+• For emergencies (chest pain, stroke, breathing issues): say "Call 102 immediately".
+• Always be helpful, friendly and complete your sentences fully.
+• Never cut off mid-sentence.${langInstruction}${patientInfo}`
             }],
         },
         {
             role: 'model',
             parts: [{
                 text: lang === 'ne'
-                    ? 'बुझेँ। म QureHealth AI हुँ, Qurehealth.AI मा बिरामीहरूलाई सहानुभूतिपूर्ण र सटीक स्वास्थ्य मार्गदर्शनमा सहयोग गर्न तयार छु।'
-                    : 'Understood. I am QureHealth AI, ready to assist patients on Qurehealth.AI with empathetic, accurate, and concise medical guidance.'
+                    ? 'नमस्ते! म QureHealth AI हुँ। तपाईंलाई कसरी मद्दत गर्न सक्छु?'
+                    : 'Hello! I am QureHealth AI, your health assistant. How can I help you today?'
             }],
         },
     ];
@@ -92,10 +117,19 @@ function buildPatientContext(patient) {
     return parts.join('\n');
 }
 
+/* ─────────────────────────────────────────────
+   Detect if message is a medical question
+   Returns true only for medical queries
+   so greetings/booking go straight to Gemini
+───────────────────────────────────────────── */
+const MEDICAL_KEYWORDS = /symptom|disease|condition|treatment|medicine|drug|surgery|pain|fever|cough|infection|cancer|diabetes|blood|heart|brain|lung|kidney|liver|bone|skin|eye|ear|throat|stomach|chest|headache|allerg|diagnos|dose|prescription|vitamin|vaccine|prognosis|definition|abscess|abortion|cervix|anatomy|procedure|therapy|wound|fracture|tumor|virus|bacteria|injury|syndrome|disorder|chronic|acute|benign|malignant|diagnosis|anatomy|organ|nerve|muscle|artery|vein|hormone|antibiot|inflammat|incision|drainage|swallow|digest|nausea|vomit|diarrhea|constipat|breath|respir|bleed|fracture|sprain|rash|itch|swell|dizzy|faint|seizure|paralys|numb|weak|fatigue|insomnia|depress|anxiety|psych|mental|bone|joint|spine|dental|gum|teeth|urin|bowel|stool|period|menstrual|pregnan|labor|birth|infant|pediatr|elder|geriatr|medic|clinic|hospital|doctor|physician|nurse|specialist|diagnos|prescri|tablet|capsule|injection|vaccine|dose|mg|ml/i;
+
+function isMedicalQuestion(text) {
+    return MEDICAL_KEYWORDS.test(text);
+}
+
 /* ═════════════════════════════════════════════
    POST /api/chat — STREAMING AI CHAT
-   Features: streaming SSE, multi-turn history,
-   context-aware, language support, MongoDB save
 ═════════════════════════════════════════════ */
 const chatWithAI = async (req, res) => {
     try {
@@ -113,103 +147,212 @@ const chatWithAI = async (req, res) => {
             try {
                 const patient = await Patient.findById(patientId).lean();
                 patientContext = buildPatientContext(patient);
-            } catch { /* non-critical — proceed without context */ }
+            } catch { /* non-critical */ }
         }
 
-        // ── Build system prompt with language & patient context ──
-        const systemHistory = buildSystemPrompt({ lang, patientContext });
-        const fullHistory = [...systemHistory, ...history];
-
-        // ── Start Gemini chat ──
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-        const chat = model.startChat({
-            history: fullHistory,
-            generationConfig: {
-                maxOutputTokens: 250,
-                temperature: 0.7,
-            },
-        });
-
-        // ── Stream the response via SSE ──
-        const result = await chat.sendMessageStream(message);
-
+        // ── SSE headers ──
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
         res.setHeader('X-Accel-Buffering', 'no');
 
-        let fullText = '';
-
-        for await (const chunk of result.stream) {
-            const chunkText = chunk.text();
-            fullText += chunkText;
-            res.write(`data: ${JSON.stringify({ chunk: chunkText })}\n\n`);
+        // ── CHECK CACHE FIRST ──
+        const cachedResponse = getCachedResponse(message, lang);
+        if (cachedResponse) {
+            for (const char of cachedResponse.text) {
+                res.write(`data: ${JSON.stringify({ chunk: char })}\n\n`);
+            }
+            res.write(`data: ${JSON.stringify({ done: true, source: 'cache', suggestedSpecialty: cachedResponse.specialty, isEmergency: cachedResponse.isEmergency })}\n\n`);
+            return res.end();
         }
 
-        // ── Detect specialty & emergency in the full response ──
-        const suggestedSpecialty = detectSpecialty(fullText);
-        const isEmergency = /emergency|call\s*102|ambulance|chest\s*pain|stroke|heart\s*attack/i.test(fullText);
+        // ── STEP 1: Is this a medical question? ──
+        const medicalQuery = isMedicalQuestion(message);
 
-        // ── Save to MongoDB if user is authenticated ──
-        let newSessionId = sessionId;
-        if (patientId) {
+        // ── STEP 2: Only search PDF for medical questions ──
+        let ragChunks = [];
+        if (medicalQuery) {
             try {
-                const userMessage = { role: 'user', text: message };
-                const aiMessage = { role: 'ai', text: fullText, isEmergency, suggestedSpecialty };
-
-                if (sessionId) {
-                    await ChatSession.findOneAndUpdate(
-                        { _id: sessionId, patientId },
-                        {
-                            $push: { messages: { $each: [userMessage, aiMessage] } },
-                            $set: { updatedAt: new Date(), lang },
-                        }
-                    );
-                } else {
-                    const session = await ChatSession.create({
-                        patientId,
-                        lang,
-                        messages: [userMessage, aiMessage],
-                    });
-                    newSessionId = session._id;
-                    res.write(`data: ${JSON.stringify({ sessionId: session._id })}\n\n`);
+                const ragResult = await retrieveFromPDF(message);
+                if (!ragResult.fallback && ragResult.chunks?.length > 0) {
+                    // Only use chunks with a good relevance score (lower = better in L2 distance)
+                    ragChunks = ragResult.chunks.filter(c => c.score < 1.2);
+                    console.log(`[RAG] Found ${ragChunks.length} relevant chunk(s) for medical query`);
                 }
-            } catch (err) {
-                console.error('Chat history save error:', err.message);
+            } catch (ragErr) {
+                console.warn('[RAG] Retrieval skipped:', ragErr.message);
+            }
+        } else {
+            console.log('[RAG] Skipped — not a medical question');
+        }
+
+        // ── STEP 3: If good PDF match found → use Gemini to write a clean answer from PDF context ──
+        if (ragChunks.length > 0) {
+            console.log('[RAG] ✅ Polishing PDF chunks with Gemini');
+
+            const rawContext = ragChunks.map(c => c.text).join('\n\n');
+
+            const ragPrompt = `You are QureHealth AI, a friendly medical assistant.
+Use ONLY the medical reference text below to answer the user's question in clear, easy-to-read language.
+- Write in complete sentences.
+- Use simple headings if helpful (e.g. **Definition**, **Treatment**).
+- Remove any page numbers, timestamps, or file metadata from the source text.
+- Keep the answer concise but complete (3-6 sentences or bullet points).
+- End by suggesting the user consult a doctor if needed.
+
+--- MEDICAL REFERENCE ---
+${rawContext}
+--- END REFERENCE ---
+
+User question: ${message}`;
+
+            const safetySettings = [
+                { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+            ];
+
+            const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', safetySettings });
+
+            let fullText = '';
+            try {
+                const result = await model.generateContentStream({
+                    contents: [{ role: 'user', parts: [{ text: ragPrompt }] }],
+                    generationConfig: { maxOutputTokens: 500, temperature: 0.3 },
+                });
+                for await (const chunk of result.stream) {
+                    const chunkText = chunk.text();
+                    fullText += chunkText;
+                    res.write(`data: ${JSON.stringify({ chunk: chunkText })}\n\n`);
+                }
+            } catch (ragGeminiErr) {
+                const isQuotaError = ragGeminiErr.status === 429 || /quota|rate.limit|too many|429/i.test(ragGeminiErr.message);
+                if (isQuotaError) {
+                    console.warn('[RAG] Quota hit — using cleaned PDF chunks');
+                } else {
+                    console.warn('[RAG] Gemini polish failed:', ragGeminiErr.message);
+                }
+                // Fall back to cleaned raw text (no tokens used)
+                fullText = rawContext
+                    .split('\n')
+                    .filter(line => !/^\s*GEM\s*-|Page \d+|\d{1,2}\/\d{1,2}\/\d{2,4}/.test(line))
+                    .join('\n')
+                    .trim();
+                res.write(`data: ${JSON.stringify({ chunk: fullText })}\n\n`);
+            }
+
+            const suggestedSpecialty = detectSpecialty(fullText);
+            const isEmergency = /emergency|call\s*102|ambulance|chest\s*pain|stroke|heart\s*attack/i.test(fullText);
+
+            // Save to MongoDB
+            if (patientId) {
+                try {
+                    const userMsg = { role: 'user', text: message };
+                    const aiMsg  = { role: 'ai', text: fullText, isEmergency, suggestedSpecialty };
+                    if (sessionId) {
+                        await ChatSession.findOneAndUpdate(
+                            { _id: sessionId, patientId },
+                            { $push: { messages: { $each: [userMsg, aiMsg] } }, $set: { updatedAt: new Date(), lang } }
+                        );
+                    } else {
+                        const session = await ChatSession.create({ patientId, lang, messages: [userMsg, aiMsg] });
+                        res.write(`data: ${JSON.stringify({ sessionId: session._id })}\n\n`);
+                    }
+                } catch (err) { console.error('Chat history save error:', err.message); }
+            }
+
+            // ── Cache the response ──
+            setCachedResponse(message, { text: fullText, specialty: suggestedSpecialty, isEmergency }, lang);
+
+            res.write(`data: ${JSON.stringify({ done: true, suggestedSpecialty, isEmergency, source: 'pdf+gemini' })}\n\n`);
+            return res.end();
+        }
+
+        // ── STEP 4: No PDF match OR not medical → use Gemini ──
+        console.log('[Gemini] Using Gemini for general/greeting/booking question');
+
+        const systemHistory = buildSystemPrompt({ lang, patientContext });
+        const fullHistory   = [...systemHistory, ...history];
+
+        const safetySettings = [
+            { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+        ];
+
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', safetySettings });
+        const chat  = model.startChat({
+            history: fullHistory,
+            generationConfig: {
+                maxOutputTokens: 300,   // enough for complete sentences
+                temperature: 0.5,
+            },
+        });
+
+        let fullText = '';
+        try {
+            const result = await chat.sendMessageStream(message);
+            for await (const chunk of result.stream) {
+                const chunkText = chunk.text();
+                fullText += chunkText;
+                res.write(`data: ${JSON.stringify({ chunk: chunkText })}\n\n`);
+            }
+        } catch (streamErr) {
+            const isQuotaError = streamErr.status === 429 || /quota|rate.limit|too many|429/i.test(streamErr.message);
+            if (!isQuotaError) {
+                console.warn('[Gemini] Streaming failed, trying non-stream:', streamErr.message);
+            }
+            try {
+                const response = await chat.sendMessage(message);
+                fullText = response.response.text();
+                res.write(`data: ${JSON.stringify({ chunk: fullText })}\n\n`);
+            } catch (fallbackErr) {
+                const quotaErr = fallbackErr.status === 429 || /quota|rate.limit|too many|429/i.test(fallbackErr.message);
+                if (quotaErr) {
+                    console.warn('[Gemini] Quota hit — returning generic message');
+                    fullText = '⏰ AI is temporarily busy. Your quota has been reached for today. Please try again after a few hours. For urgent health concerns, please contact a doctor directly.';
+                } else {
+                    throw fallbackErr;
+                }
             }
         }
 
-        // ── Send completion event with metadata ──
-        res.write(`data: ${JSON.stringify({
-            done: true,
-            suggestedSpecialty,
-            isEmergency,
-        })}\n\n`);
+        const suggestedSpecialty = detectSpecialty(fullText);
+        const isEmergency = /emergency|call\s*102|ambulance|chest\s*pain|stroke|heart\s*attack/i.test(fullText);
 
+        // Save to MongoDB
+        if (patientId) {
+            try {
+                const userMsg = { role: 'user', text: message };
+                const aiMsg  = { role: 'ai', text: fullText, isEmergency, suggestedSpecialty };
+                if (sessionId) {
+                    await ChatSession.findOneAndUpdate(
+                        { _id: sessionId, patientId },
+                        { $push: { messages: { $each: [userMsg, aiMsg] } }, $set: { updatedAt: new Date(), lang } }
+                    );
+                } else {
+                    const session = await ChatSession.create({ patientId, lang, messages: [userMsg, aiMsg] });
+                    res.write(`data: ${JSON.stringify({ sessionId: session._id })}\n\n`);
+                }
+            } catch (err) { console.error('Chat history save error:', err.message); }
+        }
+
+        // ── Cache the response ──
+        setCachedResponse(message, { text: fullText, specialty: suggestedSpecialty, isEmergency }, lang);
+
+        res.write(`data: ${JSON.stringify({ done: true, suggestedSpecialty, isEmergency, source: 'gemini' })}\n\n`);
         res.end();
 
     } catch (error) {
-        // Graceful handling for Gemini rate-limit / quota errors
         const isQuotaError = error.status === 429 || /quota|rate.limit|too many requests/i.test(error.message);
-        if (isQuotaError) {
-            console.warn('Gemini quota/rate limit hit — returning friendly message to client');
-        } else {
-            console.error('Gemini API Error:', error.message);
-        }
-
+        console.error('Chat error:', isQuotaError ? 'Gemini quota hit' : error.message);
         if (res.headersSent) {
-            const errMsg = isQuotaError
-                ? 'The AI assistant is temporarily busy. Please try again in a minute.'
-                : 'AI response failed mid-stream';
-            res.write(`data: ${JSON.stringify({ error: errMsg })}\n\n`);
+            res.write(`data: ${JSON.stringify({ error: isQuotaError ? 'AI is temporarily busy, please try again.' : 'Error processing request' })}\n\n`);
             return res.end();
         }
-        res.status(isQuotaError ? 429 : 500).json({
-            success: false,
-            message: isQuotaError
-                ? 'The AI assistant is temporarily busy. Please try again in a minute.'
-                : 'Failed to get response from AI',
-        });
+        res.status(500).json({ success: false, message: 'Failed to get AI response' });
     }
 };
 

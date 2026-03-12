@@ -1,10 +1,18 @@
-
-> qurehealthai@1.0.0 start
-> node server.js
-
-[dotenv@17.2.3] injecting env (14) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+[dotenv@17.2.3] injecting env (16) from .env -- tip: 📡 add observability to secrets: https://dotenvx.com/ops
 Attempting to connect to MongoDB...
-[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
 Server running on port 5001
 MongoDB Connected
 Connection pool warmed up
+[RAG] Skipped — not a medical question
+[Gemini] Using Gemini for general/greeting/booking question
+[Gemini] Quota hit — returning generic message
+[RAG] ✅ Retrieved 3 chunk(s) for: "what is infection symptoms"
+[RAG] Found 3 relevant chunk(s) for medical query
+[RAG] ✅ Polishing PDF chunks with Gemini
+[RAG] Quota hit — using cleaned PDF chunks
+[CACHE] ✅ Hit for: "hello"
+[RAG] ✅ Retrieved 3 chunk(s) for: "heart"
+[RAG] Found 3 relevant chunk(s) for medical query
+[RAG] ✅ Polishing PDF chunks with Gemini
+[RAG] Quota hit — using cleaned PDF chunks

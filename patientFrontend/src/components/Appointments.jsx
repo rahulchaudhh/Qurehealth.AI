@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Search, Calendar, Clock, ArrowLeft, CalendarDays, Plus, Stethoscope, Video, Info, XCircle, Trash2, Star, Filter } from 'lucide-react';
+import { Search, Calendar, Clock, ArrowLeft, CalendarDays, Plus, Stethoscope, Video, Info, XCircle, Trash2, Star, Filter, CreditCard, CheckCircle2, AlertCircle } from 'lucide-react';
 import RatingModal from './RatingModal';
+import PaymentDetailModal from './PaymentDetailModal';
 
 export default function Appointments({
   myAppointments,
@@ -15,6 +16,7 @@ export default function Appointments({
   onRateAppointment,
 }) {
   const [ratingModalApt, setRatingModalApt] = useState(null);
+  const [paymentModalApt, setPaymentModalApt] = useState(null);
   const [dateFilter, setDateFilter] = useState('all');
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -264,9 +266,26 @@ export default function Appointments({
                     </div>
                   </div>
 
-                  <span className={`text-[10px] font-bold tracking-widest ${badgeStyle[apt.effectiveStatus] || 'text-neutral-400'}`}>
-                    {statusDisplayLabel[apt.effectiveStatus] || apt.effectiveStatus.toUpperCase()}
-                  </span>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* Payment pill */}
+                    {apt.paymentStatus === 'paid' ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-semibold border border-blue-100">
+                        <CheckCircle2 size={9} strokeWidth={3} />Paid
+                      </span>
+                    ) : apt.paymentStatus === 'failed' ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-[10px] font-semibold border border-gray-200">
+                        <AlertCircle size={9} strokeWidth={3} />Failed
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-400 text-[10px] font-semibold border border-blue-100">
+                        <CreditCard size={9} strokeWidth={2.5} />Unpaid
+                      </span>
+                    )}
+                    {/* Appointment status */}
+                    <span className={`text-[10px] font-bold tracking-widest ${badgeStyle[apt.effectiveStatus] || 'text-neutral-400'}`}>
+                      {statusDisplayLabel[apt.effectiveStatus] || apt.effectiveStatus.toUpperCase()}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between pl-14">
@@ -321,6 +340,13 @@ export default function Appointments({
                       <Info size={12} strokeWidth={2.5} />
                       VIEW DETAILS
                     </button>
+                    <button
+                      onClick={() => setPaymentModalApt(apt)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-neutral-400 hover:text-blue-600 transition-colors text-[10px] font-bold"
+                    >
+                      <CreditCard size={12} strokeWidth={2.5} />
+                      PAYMENT
+                    </button>
                   </div>
 
                   {apt.effectiveStatus !== 'cancelled' && apt.effectiveStatus !== 'completed' && apt.effectiveStatus !== 'missed' && (
@@ -357,6 +383,14 @@ export default function Appointments({
             await onRateAppointment(aptId, score, feedback);
             setRatingModalApt(null);
           }}
+        />
+      )}
+
+      {/* Payment Detail Modal */}
+      {paymentModalApt && (
+        <PaymentDetailModal
+          appointment={paymentModalApt}
+          onClose={() => setPaymentModalApt(null)}
         />
       )}
     </main>
