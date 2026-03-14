@@ -17,9 +17,9 @@ export default function CompanyNav() {
             <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
                 {/* Logo */}
                 <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/')}>
-                    <img src="/logo.png" alt="Qurehealth.AI" className="w-8 h-8 object-contain" />
+                    <img src="/qurehealth-logo.png" alt="QureHealth.AI" className="w-8 h-8 object-contain" />
                     <span className="text-lg font-bold tracking-tight text-slate-800 font-outfit">
-                        Qurehealth<span className="text-black">.AI</span>
+                        QureHealth<span className="text-black">.AI</span>
                     </span>
                 </div>
 

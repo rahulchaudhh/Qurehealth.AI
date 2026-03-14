@@ -15,7 +15,7 @@ function Login() {
 
   useEffect(() => {
     if (!loading && user?.role === 'patient') {
-      navigate('/dashboard', { replace: true });
+      navigate('/patientdashboard', { replace: true });
     }
   }, [loading, user, navigate]);
 
@@ -28,13 +28,13 @@ function Login() {
     window.location.href = url;
   }
 
-  function redirectByRole(role) {
+  function redirectBasedOnRole(role) {
     if (role === 'admin') {
-      window.location.href = 'http://localhost:5175/dashboard';
+      window.location.href = 'http://localhost:5175/admindashboard';
     } else if (role === 'doctor') {
-      window.location.href = 'http://localhost:5174/dashboard';
+      window.location.href = 'http://localhost:5174/doctordashboard';
     } else {
-      navigate('/dashboard', { replace: true });
+      navigate('/patientdashboard', { replace: true });
     }
   }
 
@@ -47,7 +47,7 @@ function Login() {
     if (!result.success) {
       setError(result.error);
     } else {
-      redirectByRole(result.role);
+      redirectBasedOnRole(result.role);
     }
   }
 
@@ -120,8 +120,8 @@ function Login() {
 
             {/* Brand */}
             <div className="lp-brand">
-              <img src="/logo.png" alt="Qurehealth.AI" className="lp-brand-img" />
-              <span className="lp-brand-name">Qurehealth<span className="lp-brand-accent">.AI</span></span>
+              <img src="/qurehealth-logo.png" alt="QureHealth.AI" className="lp-brand-img" />
+              <span className="lp-brand-name">QureHealth<span className="lp-brand-accent">.AI</span></span>
             </div>
 
             <h1 className="lp-form-title">Welcome back</h1>
@@ -159,9 +159,9 @@ function Login() {
                   />
                   <button type="button" className="lp-eye" onClick={() => setShowPassword(v => !v)} tabIndex={-1}>
                     {showPassword ? (
-                      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
                     ) : (
-                      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
                     )}
                   </button>
                 </div>
@@ -177,10 +177,10 @@ function Login() {
 
             <button type="button" onClick={handleGoogleLogin} className="lp-google-btn">
               <svg width="18" height="18" viewBox="0 0 48 48">
-                <path fill="#4285F4" d="M44.5 20H24v8.5h11.7C34.2 33.6 29.6 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 2.9l6.4-6.4C34.5 5.1 29.5 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c10.8 0 20-7.8 20-21 0-1.4-.1-2.7-.5-4z"/>
-                <path fill="#34A853" d="M6.3 14.7l7 5.1C15 16.1 19.2 13 24 13c3 0 5.8 1.1 7.9 2.9l6.4-6.4C34.5 5.1 29.5 3 24 3c-7.7 0-14.4 4.4-17.7 11.7z"/>
-                <path fill="#FBBC05" d="M24 45c5.4 0 10.3-1.8 14.1-4.9l-6.5-5.3C29.6 36.6 26.9 37.5 24 37.5c-5.5 0-10.2-3.7-11.8-8.7l-7 5.4C8.3 41 15.5 45 24 45z"/>
-                <path fill="#EA4335" d="M44.5 20H24v8.5h11.7c-.8 2.3-2.3 4.2-4.3 5.5l6.5 5.3C41.8 36.1 45 30.5 45 24c0-1.4-.1-2.7-.5-4z"/>
+                <path fill="#4285F4" d="M44.5 20H24v8.5h11.7C34.2 33.6 29.6 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 2.9l6.4-6.4C34.5 5.1 29.5 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c10.8 0 20-7.8 20-21 0-1.4-.1-2.7-.5-4z" />
+                <path fill="#34A853" d="M6.3 14.7l7 5.1C15 16.1 19.2 13 24 13c3 0 5.8 1.1 7.9 2.9l6.4-6.4C34.5 5.1 29.5 3 24 3c-7.7 0-14.4 4.4-17.7 11.7z" />
+                <path fill="#FBBC05" d="M24 45c5.4 0 10.3-1.8 14.1-4.9l-6.5-5.3C29.6 36.6 26.9 37.5 24 37.5c-5.5 0-10.2-3.7-11.8-8.7l-7 5.4C8.3 41 15.5 45 24 45z" />
+                <path fill="#EA4335" d="M44.5 20H24v8.5h11.7c-.8 2.3-2.3 4.2-4.3 5.5l6.5 5.3C41.8 36.1 45 30.5 45 24c0-1.4-.1-2.7-.5-4z" />
               </svg>
               Continue with Google
             </button>

@@ -21,7 +21,7 @@ function App() {
 
           {/* Protected routes */}
           <Route
-            path="/dashboard"
+            path="/admindashboard"
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminDashboard />
@@ -39,10 +39,10 @@ function App() {
           </Route>
 
           {/* Root → if authenticated go to dashboard, else go to login */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<Navigate to="/admindashboard" replace />} />
 
           {/* Catch all */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/admindashboard" replace />} />
         </Routes>
       </AuthProvider>
     </Router>

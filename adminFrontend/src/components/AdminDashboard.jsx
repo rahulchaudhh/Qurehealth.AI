@@ -51,7 +51,7 @@ function AdminDashboard() {
 
     const fetchStats = async () => {
         try {
-            const { data } = await axios.get('/admin/dashboard-stats');
+            const { data } = await axios.get('/admin/admindashboard-stats');
             setStats(data.data);
         } catch (error) {
             console.error('Error fetching stats:', error);
@@ -152,7 +152,9 @@ function AdminDashboard() {
 
     const handleImageError = (e) => {
         e.target.style.display = 'none';
-        e.target.nextSibling.style.display = 'flex';
+        if (e.target.nextSibling) {
+            e.target.nextSibling.style.display = 'flex';
+        }
     };
 
     // Filtered data for search

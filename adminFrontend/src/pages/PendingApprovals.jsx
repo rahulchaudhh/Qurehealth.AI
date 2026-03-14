@@ -82,12 +82,17 @@ function DoctorDetailModal({ doctor, onClose, getProfileImage, handleImageError 
                 <div className="px-6 py-6 space-y-6">
                     {/* Profile Section */}
                     <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <img
-                            src={getProfileImage(doctor)}
-                            onError={handleImageError}
-                            alt={doctor.name}
-                            className="w-20 h-20 rounded-lg object-cover border border-gray-200"
-                        />
+                        <div className="w-20 h-20 flex-shrink-0 relative">
+                            <img
+                                src={getProfileImage(doctor)}
+                                onError={handleImageError}
+                                alt={doctor.name}
+                                className="w-full h-full rounded-lg object-cover border border-gray-200"
+                            />
+                            <div className="hidden w-full h-full rounded-lg bg-gradient-to-br from-indigo-50 to-blue-100 text-indigo-700 font-bold items-center justify-center text-2xl border border-indigo-200 uppercase">
+                                {doctor.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
+                            </div>
+                        </div>
                         <div>
                             <h3 className="text-base font-semibold text-gray-900">{doctor.name}</h3>
                             <p className="text-sm text-gray-600 mt-1">{doctor.email}</p>
@@ -194,12 +199,17 @@ function PendingApprovals({ pendingDoctors, handleApprove, handleReject, actionL
                                         {/* Doctor */}
                                         <td className="px-6 py-3">
                                             <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 flex-shrink-0 relative">
                                                 <img
                                                     src={getProfileImage(doctor)}
                                                     onError={handleImageError}
                                                     alt={doctor.name}
-                                                    className="w-9 h-9 rounded-lg object-cover border border-gray-200 flex-shrink-0"
+                                                    className="w-full h-full rounded-lg object-cover border border-gray-200"
                                                 />
+                                                <div className="hidden w-full h-full rounded-lg bg-indigo-50 text-indigo-700 font-bold items-center justify-center text-[11px] border border-indigo-200 uppercase">
+                                                    {doctor.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
+                                                </div>
+                                            </div>
                                                 <div className="min-w-0">
                                                     <p className="text-sm font-medium text-gray-900 truncate">
                                                         <HighlightText text={doctor.name} highlight={searchQuery} />

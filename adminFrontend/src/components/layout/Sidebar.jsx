@@ -8,13 +8,13 @@ function Sidebar({ sidebarOpen, pendingCount, handleLogout }) {
     const location = useLocation();
 
     const sideItems = [
-        { id: 'overview', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard/overview' },
-        { id: 'pending', label: 'Pending Approvals', icon: ShieldCheck, path: '/dashboard/pending', count: pendingCount },
-        { id: 'doctors', label: 'Doctors Directory', icon: UserCheck, path: '/dashboard/doctors' },
-        { id: 'patients', label: 'Patient Records', icon: Users, path: '/dashboard/patients' },
-        { id: 'appointments', label: 'Appointments', icon: Calendar, path: '/dashboard/appointments' },
-        { id: 'communications', label: 'Communications', icon: Radio, path: '/dashboard/communications' },
-        { id: 'settings', label: 'Settings', icon: Settings, path: '/dashboard/settings' },
+        { id: 'overview', label: 'Dashboard', icon: LayoutDashboard, path: '/admindashboard/overview' },
+        { id: 'pending', label: 'Pending Approvals', icon: ShieldCheck, path: '/admindashboard/pending', count: pendingCount },
+        { id: 'doctors', label: 'Doctors Directory', icon: UserCheck, path: '/admindashboard/doctors' },
+        { id: 'patients', label: 'Patient Records', icon: Users, path: '/admindashboard/patients' },
+        { id: 'appointments', label: 'Appointments', icon: Calendar, path: '/admindashboard/appointments' },
+        { id: 'communications', label: 'Communications', icon: Radio, path: '/admindashboard/communications' },
+        { id: 'settings', label: 'Activity Logs', icon: Settings, path: '/admindashboard/settings' },
     ];
 
     const onSignOut = async () => {
@@ -31,14 +31,14 @@ function Sidebar({ sidebarOpen, pendingCount, handleLogout }) {
         <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-gray-100 flex flex-col transition-all duration-300 ease-in-out z-50`}>
             <div className="h-20 flex items-center px-6 gap-3">
                 <img 
-                    src="/logo.png" 
-                    alt="Qurehealth.AI" 
+                    src="/qurehealth-logo.png" 
+                    alt="QureHealth.AI" 
                     className="h-9 w-auto object-contain flex-shrink-0"
                 />
                 {sidebarOpen && (
                     <div className="flex flex-col">
                         <span className="text-slate-900 font-black text-xl tracking-tighter leading-none">
-                            Qurehealth<span className="text-slate-900">.AI</span>
+                            QureHealth<span className="text-slate-900">.AI</span>
                         </span>
                     </div>
                 )}

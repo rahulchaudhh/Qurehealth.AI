@@ -46,11 +46,11 @@ import {
 } from 'recharts';
 
 const statusStyle = {
-    pending:   'bg-amber-50   text-amber-700  border-amber-200',
+    pending: 'bg-amber-50   text-amber-700  border-amber-200',
     confirmed: 'bg-gray-100   text-gray-700   border-gray-200',
     completed: 'bg-blue-50    text-blue-700   border-blue-200',
     cancelled: 'bg-red-50     text-red-600    border-red-200',
-    missed:    'bg-gray-100   text-gray-500   border-gray-200',
+    missed: 'bg-gray-100   text-gray-500   border-gray-200',
 };
 
 function Avatar({ name = '', src, size = 9 }) {
@@ -76,16 +76,16 @@ function DoctorDashboard() {
     const { user, updateUserProfile } = useContext(AuthContext);
     const navigate = useNavigate();
 
-    const [stats, setStats]                 = useState({ patients: 0, appointments: 0, tasks: 0 });
-    const [appointments, setAppointments]   = useState([]);
-    const [patients, setPatients]           = useState([]);
-    const [view, setView]                   = useState('dashboard');
-    const [loading, setLoading]             = useState(true);
+    const [stats, setStats] = useState({ patients: 0, appointments: 0, tasks: 0 });
+    const [appointments, setAppointments] = useState([]);
+    const [patients, setPatients] = useState([]);
+    const [view, setView] = useState('dashboard');
+    const [loading, setLoading] = useState(true);
     const [appointmentFilter, setAppointmentFilter] = useState('all');
     const [aptView, setAptView] = useState('list'); // 'list' | 'calendar'
-    const [sidebarOpen, setSidebarOpen]     = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(true);
 
-    const [completionModal, setCompletionModal]   = useState({ isOpen: false, appointmentId: null });
+    const [completionModal, setCompletionModal] = useState({ isOpen: false, appointmentId: null });
     const [consultationData, setConsultationData] = useState({ diagnosis: '', prescription: '', doctorNotes: '' });
     const [savingConsultation, setSavingConsultation] = useState(false);
 
@@ -94,9 +94,9 @@ function DoctorDashboard() {
     const [meetingLink, setMeetingLink] = useState('');
     const [savingAccept, setSavingAccept] = useState(false);
 
-    const [profileData, setProfileData]   = useState({ name: '', phone: '', specialization: '', gender: 'other', imageFile: null });
+    const [profileData, setProfileData] = useState({ name: '', phone: '', specialization: '', gender: 'other', imageFile: null });
     const [previewImage, setPreviewImage] = useState(null);
-    const [toast, setToast]               = useState({ message: '', type: '', isVisible: false });
+    const [toast, setToast] = useState({ message: '', type: '', isVisible: false });
 
     // Schedule state
     const ALL_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -109,7 +109,7 @@ function DoctorDashboard() {
     });
     const [savingSchedule, setSavingSchedule] = useState(false);
     const [broadcastModal, setBroadcastModal] = useState({ isOpen: false, message: '', type: 'broadcast' });
-    const [notifications, setNotifications]   = useState([]);
+    const [notifications, setNotifications] = useState([]);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null });
     const [aptDetail, setAptDetail] = useState(null); // appointment detail modal
@@ -131,7 +131,7 @@ function DoctorDashboard() {
         const dist = [
             { name: 'Completed', value: appointments.filter(a => a.status === 'completed').length, color: '#3b82f6' },
             { name: 'Confirmed', value: appointments.filter(a => a.status === 'confirmed').length, color: '#22c55e' },
-            { name: 'Pending',   value: appointments.filter(a => a.status === 'pending').length,   color: '#f59e0b' },
+            { name: 'Pending', value: appointments.filter(a => a.status === 'pending').length, color: '#f59e0b' },
             { name: 'Cancelled', value: appointments.filter(a => a.status === 'cancelled').length, color: '#ef4444' },
         ].filter(s => s.value > 0);
         return dist.length ? dist : [{ name: 'No Data', value: 1, color: '#e2e8f0' }];
@@ -158,17 +158,17 @@ function DoctorDashboard() {
     const searchSuggestions = useMemo(() => {
         if (searchQuery.trim().length === 0) return [];
         const query = searchQuery.toLowerCase();
-        
+
         const matchedPatients = patients
             .filter(p => p.name?.toLowerCase().includes(query) || p.email?.toLowerCase().includes(query))
             .slice(0, 5)
             .map(p => ({ ...p, type: 'patient' }));
-        
+
         const matchedAppointments = appointments
             .filter(a => a.patientName?.toLowerCase().includes(query) || a.patient?.name?.toLowerCase().includes(query))
             .slice(0, 5)
             .map(a => ({ ...a, type: 'appointment' }));
-        
+
         return [...matchedPatients, ...matchedAppointments];
     }, [searchQuery, patients, appointments]);
 
@@ -338,17 +338,23 @@ function DoctorDashboard() {
     const pendingCount = appointments.filter(a => a.status === 'pending').length;
 
     const profilePicSrc = (u) => {
-        if (!u?.profilePicture) return null;
-        return u.profilePicture.startsWith('data:') || u.profilePicture.startsWith('http')
-            ? u.profilePicture : `http://localhost:5001/${u.profilePicture}`;
+        if (!u) return null;
+        if (u.profilePicture) {
+            return u.profilePicture.startsWith('data:') || u.profilePicture.startsWith('http')
+                ? u.profilePicture : `http://localhost:5001/${u.profilePicture}`;
+        }
+        if (u._id) {
+            return `http://localhost:5001/api/doctor/${u._id}/profile-picture`;
+        }
+        return null;
     };
 
     const navItems = [
-        { id: 'dashboard',    label: 'Dashboard',    icon: <LayoutDashboard size={16} /> },
-        { id: 'patients',     label: 'My Patients',  icon: <Users size={16} /> },
+        { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
+        { id: 'patients', label: 'My Patients', icon: <Users size={16} /> },
         { id: 'appointments', label: 'Appointments', icon: <CalendarDays size={16} />, badge: pendingCount },
-        { id: 'schedule',     label: 'Schedule & Fee', icon: <Clock size={16} /> },
-        { id: 'profile',      label: 'Edit Profile', icon: <UserCircle size={16} /> },
+        { id: 'schedule', label: 'Schedule & Fee', icon: <Clock size={16} /> },
+        { id: 'profile', label: 'Edit Profile', icon: <UserCircle size={16} /> },
     ];
 
     const filteredAppts = appointments.filter(a => appointmentFilter === 'all' || a.status === appointmentFilter);
@@ -366,11 +372,11 @@ function DoctorDashboard() {
             {/* Sidebar */}
             <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-gray-100 hidden md:flex flex-col fixed h-full z-20 transition-all duration-300 ease-in-out`}>
                 <div className="h-20 flex items-center px-6 gap-3">
-                    <img src="/logo.png" alt="Qurehealth.AI" className="h-9 w-auto object-contain flex-shrink-0" />
+                    <img src="/qurehealth-logo.png" alt="QureHealth.AI" className="h-9 w-auto object-contain flex-shrink-0" />
                     {sidebarOpen && (
                         <div className="flex flex-col">
                             <span className="text-slate-900 font-black text-xl tracking-tighter leading-none">
-                                Qurehealth<span className="text-slate-900">.AI</span>
+                                QureHealth<span className="text-slate-900">.AI</span>
                             </span>
                         </div>
                     )}
@@ -381,9 +387,8 @@ function DoctorDashboard() {
                         <button
                             key={item.id}
                             onClick={() => setView(item.id)}
-                            className={`w-full flex items-center gap-4 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
-                                view === item.id ? 'bg-blue-50/50 text-blue-600' : 'text-slate-600 hover:text-slate-900 hover:bg-gray-50'
-                            }`}
+                            className={`w-full flex items-center gap-4 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${view === item.id ? 'bg-blue-50/50 text-blue-600' : 'text-slate-600 hover:text-slate-900 hover:bg-gray-50'
+                                }`}
                         >
                             <span className={view === item.id ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-500'}>{item.icon}</span>
                             {sidebarOpen && (
@@ -498,8 +503,8 @@ function DoctorDashboard() {
                                 <NotificationDropdown notifications={notifications} onMarkRead={handleMarkRead} onClose={() => setIsNotificationOpen(false)} />
                             )}
                         </div>
-                        <ProfileDropdown 
-                            user={user} 
+                        <ProfileDropdown
+                            user={user}
                             onLogout={handleLogout}
                             onEditProfile={() => setView('profile')}
                         />
@@ -522,10 +527,10 @@ function DoctorDashboard() {
                             {/* Stat Cards */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                 {[
-                                    { label: 'Total Patients',   value: stats.patients,     icon: <Users size={16} />,        text: 'text-blue-600',   trend: '+8%',  trendUp: true  },
-                                    { label: 'Appointments',     value: stats.appointments, icon: <CalendarDays size={16} />, text: 'text-violet-600', trend: '+12%', trendUp: true  },
-                                    { label: 'Completed',        value: stats.tasks,        icon: <CheckCircle2 size={16} />, text: 'text-green-600',  trend: '+5%',  trendUp: true  },
-                                    { label: "Today's Schedule", value: todayAppts,         icon: <Clock size={16} />,        text: 'text-amber-600',  trend: '+3%',  trendUp: true  },
+                                    { label: 'Total Patients', value: stats.patients, icon: <Users size={16} />, text: 'text-blue-600', trend: '+8%', trendUp: true },
+                                    { label: 'Appointments', value: stats.appointments, icon: <CalendarDays size={16} />, text: 'text-violet-600', trend: '+12%', trendUp: true },
+                                    { label: 'Completed', value: stats.tasks, icon: <CheckCircle2 size={16} />, text: 'text-green-600', trend: '+5%', trendUp: true },
+                                    { label: "Today's Schedule", value: todayAppts, icon: <Clock size={16} />, text: 'text-amber-600', trend: '+3%', trendUp: true },
                                 ].map((s, i) => (
                                     <div key={i} className="bg-white rounded-xl border border-gray-200 p-5">
                                         <div className={`flex items-center gap-2 mb-3 ${s.text}`}>
@@ -557,7 +562,7 @@ function DoctorDashboard() {
                                             <AreaChart data={growthData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                                                 <defs>
                                                     <linearGradient id="drAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.12} />
+                                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.12} />
                                                         <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                                                     </linearGradient>
                                                 </defs>
@@ -629,27 +634,27 @@ function DoctorDashboard() {
                                 ) : (
                                     <div className="divide-y divide-gray-50">
                                         {appointments.slice(0, 5).map(apt => {
-                                            const isMissed = apt.status === 'pending' && apt.date && new Date(apt.date) < new Date().setHours(0,0,0,0);
+                                            const isMissed = apt.status === 'pending' && apt.date && new Date(apt.date) < new Date().setHours(0, 0, 0, 0);
                                             const display = isMissed ? 'missed' : (apt.status || 'pending');
                                             const statusTextColor = {
                                                 confirmed: 'text-blue-600',
                                                 completed: 'text-green-600',
-                                                pending:   'text-amber-600',
+                                                pending: 'text-amber-600',
                                                 cancelled: 'text-red-500',
-                                                missed:    'text-gray-400',
+                                                missed: 'text-gray-400',
                                             }[display] || 'text-gray-400';
                                             return (
-                                            <div key={apt._id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50/70 transition-colors">
-                                                <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                                                    {(apt.patient?.name || '?').charAt(0).toUpperCase()}
+                                                <div key={apt._id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50/70 transition-colors">
+                                                    <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                                        {(apt.patient?.name || '?').charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-semibold text-gray-900 truncate">{apt.patient?.name || 'Unknown'}</p>
+                                                        <p className="text-xs text-gray-400">{apt.date} · {apt.time}</p>
+                                                    </div>
+                                                    <span className={`text-xs font-semibold capitalize ${statusTextColor}`}>{display}</span>
+                                                    <button onClick={() => setAptDetail(apt)} className="text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0">View</button>
                                                 </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-semibold text-gray-900 truncate">{apt.patient?.name || 'Unknown'}</p>
-                                                    <p className="text-xs text-gray-400">{apt.date} · {apt.time}</p>
-                                                </div>
-                                                <span className={`text-xs font-semibold capitalize ${statusTextColor}`}>{display}</span>
-                                                <button onClick={() => setAptDetail(apt)} className="text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0">View</button>
-                                            </div>
                                             );
                                         })}
                                     </div>
@@ -672,9 +677,9 @@ function DoctorDashboard() {
                             {/* Summary Cards */}
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 {[
-                                    { label: 'Total Patients',  value: patients.length, icon: <Users size={16} />,       text: 'text-blue-600'  },
-                                    { label: 'Male Patients',   value: patients.filter(p => p.gender === 'male').length,   icon: <UserCircle size={16} />, text: 'text-indigo-600' },
-                                    { label: 'Female Patients', value: patients.filter(p => p.gender === 'female').length, icon: <UserCircle size={16} />, text: 'text-pink-600'   },
+                                    { label: 'Total Patients', value: patients.length, icon: <Users size={16} />, text: 'text-blue-600' },
+                                    { label: 'Male Patients', value: patients.filter(p => p.gender === 'male').length, icon: <UserCircle size={16} />, text: 'text-indigo-600' },
+                                    { label: 'Female Patients', value: patients.filter(p => p.gender === 'female').length, icon: <UserCircle size={16} />, text: 'text-pink-600' },
                                 ].map((s, i) => (
                                     <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
                                         <div className={`flex items-center gap-2 ${s.text}`}>
@@ -732,8 +737,8 @@ function DoctorDashboard() {
                                                     <td className="px-5 py-3.5">
                                                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border capitalize
                                                             ${p.gender === 'male' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                                              p.gender === 'female' ? 'bg-pink-50 text-pink-700 border-pink-200' :
-                                                              'bg-gray-50 text-gray-500 border-gray-200'}`}>
+                                                                p.gender === 'female' ? 'bg-pink-50 text-pink-700 border-pink-200' :
+                                                                    'bg-gray-50 text-gray-500 border-gray-200'}`}>
                                                             {p.gender || '—'}
                                                         </span>
                                                     </td>
@@ -826,11 +831,10 @@ function DoctorDashboard() {
                                             <div className="flex flex-wrap gap-2">
                                                 {ALL_DAYS.map(day => (
                                                     <button key={day} type="button" onClick={() => toggleDay(day)}
-                                                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
-                                                            scheduleData.days.includes(day)
-                                                                ? 'bg-blue-600 text-white border-blue-600'
-                                                                : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                                                        }`}>
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${scheduleData.days.includes(day)
+                                                            ? 'bg-blue-600 text-white border-blue-600'
+                                                            : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                                            }`}>
                                                         {day.slice(0, 3)}
                                                     </button>
                                                 ))}
@@ -919,7 +923,15 @@ function DoctorDashboard() {
                                     <div className="flex items-center gap-4">
                                         <div className="w-14 h-14 rounded-full bg-gray-100 overflow-hidden border border-gray-200 shrink-0">
                                             {(previewImage || profilePicSrc(user)) ? (
-                                                <img src={previewImage || profilePicSrc(user)} alt="" className="w-full h-full object-cover" />
+                                                <img
+                                                    src={previewImage || profilePicSrc(user)}
+                                                    alt="Profile"
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                        e.currentTarget.onerror = null;
+                                                        e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'Doctor')}&background=6366f1&color=fff&size=128`;
+                                                    }}
+                                                />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium">
                                                     {user?.name?.charAt(0)}
@@ -1047,7 +1059,7 @@ function DoctorDashboard() {
 
                         {/* Footer actions */}
                         <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-end gap-2">
-                            {aptDetail.status === 'pending' && !(aptDetail.date && new Date(aptDetail.date) < new Date().setHours(0,0,0,0)) && (
+                            {aptDetail.status === 'pending' && !(aptDetail.date && new Date(aptDetail.date) < new Date().setHours(0, 0, 0, 0)) && (
                                 <>
                                     <button
                                         onClick={() => { updateAppointmentStatus(aptDetail._id, 'cancelled'); setAptDetail(null); }}

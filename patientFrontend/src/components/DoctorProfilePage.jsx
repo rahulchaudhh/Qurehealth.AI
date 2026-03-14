@@ -49,7 +49,7 @@ export default function DoctorProfilePage() {
         if (!user) {
             navigate('/login');
         } else {
-            navigate('/dashboard');
+            navigate('/patientdashboard');
         }
     };
 

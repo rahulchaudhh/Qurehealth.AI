@@ -113,14 +113,41 @@ export default function Settings() {
             {/* ── Page Header ──────────────────────────────────────── */}
             <div className="flex items-start justify-between pb-4 border-b border-gray-200">
                 <div>
-                    <h1 className="text-lg font-semibold text-gray-900">Admin Settings</h1>
+                    <h1 className="text-lg font-semibold text-gray-900">Activity Logs</h1>
                     <p className="text-xs text-gray-500 mt-1">Configure platform-wide parameters and manage system security.</p>
                 </div>
-                <button onClick={() => { fetchStats(); fetchLogs(0); }}
-                    className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    <RefreshCw size={13} />
-                    Refresh
-                </button>
+                <div className="flex items-center gap-2">
+                    <select
+                        onChange={async (e) => {
+                            const days = e.target.value;
+                            if (!days) return;
+                            if (!window.confirm(`Clear logs older than ${days} day(s)?`)) {
+                                e.target.value = "";
+                                return;
+                            }
+                            try {
+                                const { data } = await axios.delete(`/admin/logs/clear-old?days=${days}`);
+                                showToast(data.message || 'Logs cleared successfully');
+                                fetchStats();
+                                fetchLogs(0);
+                            } catch (err) {
+                                showToast('Failed to clear logs', 'error');
+                            }
+                            e.target.value = "";
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-red-600 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors cursor-pointer focus:outline-none"
+                    >
+                        <option value="">Clear History</option>
+                        <option value="1">Older than 1 Day</option>
+                        <option value="7">Older than 7 Days</option>
+                        <option value="30">Older than 30 Days</option>
+                    </select>
+                    <button onClick={() => { fetchStats(); fetchLogs(0); }}
+                        className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        <RefreshCw size={13} />
+                        Refresh
+                    </button>
+                </div>
             </div>
 
             {/* ── System Stats ─────────────────────────────────────── */}
@@ -176,6 +203,10 @@ export default function Settings() {
                             <option value="BROADCAST_STOPPED">Broadcast Stopped</option>
                             <option value="SETTINGS_CHANGED">Settings Changed</option>
                             <option value="LOGIN">Login</option>
+                            <option value="LOGIN_FAILURE">Login Failure</option>
+                            <option value="PROFILE_UPDATED">Profile Updated</option>
+                            <option value="PATIENT_REGISTERED">Patient Registered</option>
+                            <option value="VERIFICATION_CRITERIA_UPDATED">Verification Criteria Updated</option>
                         </select>
 
                         <select

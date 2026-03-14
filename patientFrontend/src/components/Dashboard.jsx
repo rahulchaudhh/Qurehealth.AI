@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { jsPDF } from "jspdf";
 import { Bell, X, MapPin, Mail, Phone, AlertTriangle, Calendar, Clock, Stethoscope, Star, Download, Trash2, Video, CheckCircle2, Info, XCircle, Shield, CalendarCheck, ChevronRight, User } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
@@ -19,7 +19,16 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user: authUser, logout, loading: authLoading } = useContext(AuthContext);
 
-  const [currentPage, setCurrentPage] = useState('dashboard');
+  const { page } = useParams();
+  const currentPage = page || 'dashboard';
+
+  const setCurrentPage = (newPage) => {
+    if (newPage === 'dashboard') {
+      navigate('/patientdashboard');
+    } else {
+      navigate(`/patientdashboard/${newPage}`);
+    }
+  };
   const [toastData, setToastData] = useState({ message: '', type: '', isVisible: false });
   const [broadcastModal, setBroadcastModal] = useState({ isOpen: false, message: '', type: 'broadcast' });
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
@@ -642,21 +651,21 @@ export default function Dashboard() {
       {/* Header */}
       <header className="bg-white px-10 py-4 flex justify-between items-center border-b border-gray-200 shadow-sm sticky top-0 z-50">
         <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate('/')}>
-          <img 
-            src="/logo.png" 
-            alt="Qurehealth.AI Logo" 
+          <img
+            src="/qurehealth-logo.png"
+            alt="QureHealth.AI Logo"
             className="h-10 w-auto object-contain group-hover:opacity-80 transition-opacity duration-300"
           />
           <span className="text-xl font-bold tracking-tight text-gray-900">
-            Qurehealth.AI
+            QureHealth.AI
           </span>
         </div>
         <nav className="flex gap-8 hidden md:flex">
-          <a href="#" onClick={() => setCurrentPage('dashboard')} className={`text-sm font-medium py-2 cursor-pointer transition-colors ${currentPage === 'dashboard' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>Dashboard</a>
-          <a href="#" onClick={() => setCurrentPage('symptoms')} className={`text-sm font-medium py-2 cursor-pointer transition-colors ${currentPage === 'symptoms' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>Symptom Checker</a>
-          <a href="#" onClick={() => setCurrentPage('doctors')} className={`text-sm font-medium py-2 cursor-pointer transition-colors ${currentPage === 'doctors' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>Find Doctors</a>
-          <a href="#" onClick={() => setCurrentPage('appointments')} className={`text-sm font-medium py-2 cursor-pointer transition-colors ${currentPage === 'appointments' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>Appointments</a>
-          <a href="#" onClick={() => setCurrentPage('history')} className={`text-sm font-medium py-2 cursor-pointer transition-colors ${currentPage === 'history' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>History</a>
+          <button onClick={() => handleNavigation('dashboard')} className={`text-sm font-medium py-2 cursor-pointer transition-colors bg-transparent border-none ${currentPage === 'dashboard' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>Dashboard</button>
+          <button onClick={() => handleNavigation('symptoms')} className={`text-sm font-medium py-2 cursor-pointer transition-colors bg-transparent border-none ${currentPage === 'symptoms' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>Symptom Checker</button>
+          <button onClick={() => handleNavigation('doctors')} className={`text-sm font-medium py-2 cursor-pointer transition-colors bg-transparent border-none ${currentPage === 'doctors' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>Find Doctors</button>
+          <button onClick={() => handleNavigation('appointments')} className={`text-sm font-medium py-2 cursor-pointer transition-colors bg-transparent border-none ${currentPage === 'appointments' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>Appointments</button>
+          <button onClick={() => handleNavigation('history')} className={`text-sm font-medium py-2 cursor-pointer transition-colors bg-transparent border-none ${currentPage === 'history' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>History</button>
         </nav>
         <div className="flex items-center gap-4">
 
@@ -1167,7 +1176,7 @@ export default function Dashboard() {
                   </svg>
                 </div>
                 <span className="text-xl font-bold tracking-tight text-gray-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                  Qurehealth.AI
+                  QureHealth.AI
                 </span>
               </div>
               <p className="text-gray-500 text-sm leading-relaxed mb-5">

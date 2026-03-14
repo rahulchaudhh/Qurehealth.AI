@@ -4,7 +4,7 @@ const {
     getPendingDoctors, approveDoctor, rejectDoctor, getAllDoctors,
     getAllPatients, deletePatient, getPatientHistory, getDashboardStats,
     broadcast, triggerAlert, getBroadcastHistory, stopBroadcast,
-    getAllAppointments, updateAdminAppointmentStatus
+    getAllAppointments, updateAdminAppointmentStatus, deleteAppointment, bulkDeleteAppointments
 } = require('../controllers/adminController');
 const {
     getActivityLogs,
@@ -36,6 +36,8 @@ router.get('/broadcast-history', auth, adminCheck, getBroadcastHistory);
 router.delete('/broadcast/:batchId', auth, adminCheck, stopBroadcast);
 router.get('/appointments', auth, adminCheck, getAllAppointments);
 router.put('/appointments/:id/status', auth, adminCheck, updateAdminAppointmentStatus);
+router.delete('/appointments/:id', auth, adminCheck, deleteAppointment);
+router.post('/appointments/bulk-delete', auth, adminCheck, bulkDeleteAppointments);
 
 // ── Admin Settings Routes ──
 router.get('/logs/activity', auth, adminCheck, getActivityLogs);

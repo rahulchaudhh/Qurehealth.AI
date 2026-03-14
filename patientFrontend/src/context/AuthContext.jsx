@@ -100,11 +100,11 @@ export const AuthProvider = ({ children }) => {
         const u = res.data?.data;
         if (u?.role === 'patient') {
           setUser(u);
-          window.location.href = '/dashboard';
+          window.location.href = '/patientdashboard';
         }
       })
       .catch(() => {
-        window.location.href = '/dashboard';
+        window.location.href = '/patientdashboard';
       });
   };
 

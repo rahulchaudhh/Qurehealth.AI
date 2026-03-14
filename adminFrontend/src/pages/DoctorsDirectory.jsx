@@ -275,8 +275,13 @@ function DoctorProfileModal({ doctor, mode, onClose, onSaved, getProfileImage, h
             <div className="max-w-2xl mx-auto px-6 py-8">
                 {/* Doctor Header */}
                 <div className="flex items-center gap-6 mb-8 pb-8 border-b border-gray-200">
-                    <img src={getProfileImage(doctor)} onError={handleImageError} alt={doctor.name}
-                        className="w-20 h-20 rounded-full object-cover border border-gray-200 flex-shrink-0" />
+                    <div className="w-20 h-20 flex-shrink-0 relative">
+                        <img src={getProfileImage(doctor)} onError={handleImageError} alt={doctor.name}
+                            className="w-full h-full rounded-full object-cover border border-gray-200" />
+                        <div className="hidden w-full h-full rounded-full bg-gradient-to-br from-indigo-50 to-blue-100 text-indigo-700 font-bold items-center justify-center text-2xl border border-indigo-200 uppercase">
+                            {doctor.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
+                        </div>
+                    </div>
                     <div className="min-w-0">
                         <p className="text-xl font-semibold text-gray-900">{doctor.name}</p>
                         <p className="text-sm text-gray-500 mt-0.5">{doctor.email}</p>
@@ -551,8 +556,13 @@ function DoctorsDirectory({ allDoctors, handleDeleteDoctor, actionLoading, getPr
                                     <tr key={doctor._id} className="border-b border-gray-100 hover:bg-gray-50/60 transition-colors cursor-pointer relative">
                                         <td className="px-6 py-3" onClick={() => handleViewProfile(doctor)}>
                                             <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 flex-shrink-0 relative">
                                                 <img src={getProfileImage(doctor)} onError={handleImageError} alt={doctor.name}
-                                                    className="w-9 h-9 rounded-lg object-cover border border-gray-200 flex-shrink-0" />
+                                                    className="w-full h-full rounded-lg object-cover border border-gray-200" />
+                                                <div className="hidden w-full h-full rounded-lg bg-indigo-50 text-indigo-700 font-bold items-center justify-center text-[11px] border border-indigo-200 uppercase">
+                                                    {doctor.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
+                                                </div>
+                                            </div>
                                                 <div className="min-w-0">
                                                     <p className="text-sm font-medium text-gray-900 truncate">
                                                         <HighlightText text={doctor.name} highlight={searchInput || searchQuery} />
