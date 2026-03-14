@@ -1,11 +1,35 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
     Calendar, Clock, User, Stethoscope, Search, RefreshCw, AlertCircle,
-    X, ChevronDown, Star, FileText, Phone, Mail,
+    X, ChevronDown, Star, FileText, Phone, Mail, Filter,
     CheckCircle2, XCircle, Clock3, AlertTriangle, CheckCheck,
-    ExternalLink, Edit3, Loader2, Download, MoreHorizontal
+    ExternalLink, Edit3, Loader2, Download, MoreHorizontal, Trash2, CheckSquare, ListChecks
 } from 'lucide-react';
 import axios from '../api/axios';
+
+const TIME_FILTERS = [
+    { key: 'all', label: 'All Time' },
+    { key: 'today', label: 'Today' },
+    { key: 'week', label: 'This Week' },
+    { key: 'month', label: 'This Month' },
+];
+
+function getDateRange(key) {
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    if (key === 'today') return { from: todayStr, to: todayStr };
+    if (key === 'week') {
+        const day = now.getDay();
+        const sun = new Date(now);
+        sun.setDate(now.getDate() - day);
+        return { from: sun.toISOString().split('T')[0], to: todayStr };
+    }
+    if (key === 'month') {
+        const first = new Date(now.getFullYear(), now.getMonth(), 1);
+        return { from: first.toISOString().split('T')[0], to: todayStr };
+    }
+    return { from: '', to: '' };
+}
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -117,6 +141,19 @@ function AppointmentDetailModal({ appt, onClose, onStatusUpdated }) {
         } finally { setStatusUpdating(false); }
     };
 
+    const handleDelete = async () => {
+        if (!window.confirm('Are you sure you want to permanently delete this appointment? This action cannot be undone.')) return;
+        setStatusUpdating(true);
+        setStatusError('');
+        try {
+            await axios.delete(`/admin/appointments/${appt._id}`);
+            onStatusUpdated(appt._id, 'DELETED');
+            onClose();
+        } catch (err) {
+            setStatusError(err.response?.data?.error || 'Deletion failed.');
+        } finally { setStatusUpdating(false); }
+    };
+
     const fields = [
         { icon: User,        label: 'Patient',        value: appt.patient?.name || '—' },
         { icon: Mail,        label: 'Patient Email',   value: appt.patient?.email || '—' },
@@ -148,9 +185,11 @@ function AppointmentDetailModal({ appt, onClose, onStatusUpdated }) {
                 </div>
 
                 {/* Status + Payment badges row */}
-                <div className="flex items-center gap-2 px-6 pt-4 flex-shrink-0">
-                    <StatusBadge status={appt.status} />
-                    <PaymentBadge status={appt.paymentStatus} />
+                <div className="flex items-center justify-between px-6 pt-4 flex-shrink-0">
+                    <div className="flex items-center gap-2">
+                        <StatusBadge status={appt.status} />
+                        <PaymentBadge status={appt.paymentStatus} />
+                    </div>
                     {appt.paymentMethod && (
                         <span className="text-xs text-gray-400 font-medium capitalize">{appt.paymentMethod}</span>
                     )}
@@ -219,6 +258,14 @@ function AppointmentDetailModal({ appt, onClose, onStatusUpdated }) {
                     </div>
                     {statusError   && <p className="text-xs text-red-600 flex items-center gap-1"><AlertCircle size={11} />{statusError}</p>}
                     {statusSuccess && <p className="text-xs text-teal-600 flex items-center gap-1"><CheckCircle2 size={11} />{statusSuccess}</p>}
+                    
+                    <div className="pt-2">
+                        <button onClick={handleDelete}
+                            disabled={statusUpdating}
+                            className="w-full py-2.5 text-xs font-semibold text-red-600 border border-red-100 hover:bg-red-50 rounded-lg transition-all duration-150 flex items-center justify-center gap-2">
+                            {statusUpdating ? 'Processing...' : 'Delete Appointment'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -235,8 +282,10 @@ function Appointments() {
     const [statusFilter, setStatusFilter] = useState('all');
     const [refreshing, setRefreshing] = useState(false);
     const [selectedAppt, setSelectedAppt] = useState(null);
-    const [dateFrom, setDateFrom] = useState('');
-    const [dateTo, setDateTo] = useState('');
+    const [timeFilter, setTimeFilter] = useState('all');
+    const [selectedIds, setSelectedIds] = useState(new Set());
+    const [bulkDeleting, setBulkDeleting] = useState(false);
+    const [selectionMode, setSelectionMode] = useState(false);
 
     const fetchAppointments = useCallback(async (isRefresh = false) => {
         if (isRefresh) setRefreshing(true); else setLoading(true);
@@ -252,6 +301,10 @@ function Appointments() {
     useEffect(() => { fetchAppointments(); }, [fetchAppointments]);
 
     const handleStatusUpdated = (id, newStatus) => {
+        if (newStatus === 'DELETED') {
+            setAppointments(prev => prev.filter(a => a._id !== id));
+            return;
+        }
         setAppointments(prev => prev.map(a => a._id === id ? { ...a, status: newStatus } : a));
         if (selectedAppt?._id === id) setSelectedAppt(prev => ({ ...prev, status: newStatus }));
     };
@@ -291,6 +344,36 @@ function Appointments() {
         }
     };
 
+    const handleBulkDelete = async () => {
+        if (selectedIds.size === 0) return;
+        if (!window.confirm(`Are you sure you want to delete ${selectedIds.size} selected appointments?`)) return;
+
+        setBulkDeleting(true);
+        try {
+            await axios.post('/admin/appointments/bulk-delete', { ids: Array.from(selectedIds) });
+            setAppointments(prev => prev.filter(a => !selectedIds.has(a._id)));
+            setSelectedIds(new Set());
+        } catch (err) {
+            setError(err.response?.data?.error || `Bulk deletion failed: ${err.message}`);
+        } finally { setBulkDeleting(false); }
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.size === filtered.length && filtered.length > 0) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(filtered.map(a => a._id)));
+        }
+    };
+
+    const toggleSelect = (id) => {
+        const next = new Set(selectedIds);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        setSelectedIds(next);
+    };
+
+    const { from: dateFrom, to: dateTo } = getDateRange(timeFilter);
+
     const filtered = appointments.filter(a => {
         const matchStatus = statusFilter === 'all' || a.status === statusFilter;
         const q = search.toLowerCase();
@@ -310,7 +393,7 @@ function Appointments() {
         return acc;
     }, {});
 
-    const hasFilters = search || statusFilter !== 'all' || dateFrom || dateTo;
+    const hasFilters = search || statusFilter !== 'all' || timeFilter !== 'all';
 
     return (
         <div className="space-y-5">
@@ -332,51 +415,101 @@ function Appointments() {
                         <Download size={13} />
                         Export
                     </button>
+                    <button onClick={() => { 
+                             setSelectionMode(!selectionMode); 
+                             if (selectionMode) setSelectedIds(new Set()); 
+                         }}
+                        className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                            selectionMode 
+                            ? 'bg-blue-50 text-blue-600 border border-blue-200 shadow-sm' 
+                            : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                        }`}>
+                        <ListChecks size={14} className={selectionMode ? 'scale-110' : ''} />
+                        {selectionMode ? 'Stop Selecting' : 'Select'}
+                    </button>
                 </div>
             </div>
 
             {/* ── Filters ───────────────────────────────────────────── */}
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
                 {/* Search */}
-                <div className="relative flex-1 min-w-[220px]">
+                <div className="relative">
                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input type="text" placeholder="Search patient, doctor, reason…"
+                    <input type="text" placeholder="Search by patient name or reason..."
                         value={search} onChange={e => setSearch(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400" />
+                        className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400" />
                 </div>
 
-                {/* Status dropdown */}
-                <div className="relative shrink-0">
-                    <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-                        className="appearance-none pl-3 pr-8 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer">
-                        {FILTERS.map(s => (
-                            <option key={s} value={s}>
-                                {s === 'all' ? `All (${counts.all ?? 0})` : `${s.charAt(0).toUpperCase() + s.slice(1)} (${counts[s] ?? 0})`}
-                            </option>
-                        ))}
-                    </select>
-                    <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                {/* Status Pills */}
+                <div className="flex items-center gap-2 flex-wrap">
+                    <Filter size={14} className="text-gray-400" />
+                    {FILTERS.map(s => {
+                        const isActive = statusFilter === s;
+                        const label = s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1);
+                        return (
+                            <button key={s} onClick={() => setStatusFilter(s)}
+                                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
+                                    isActive
+                                        ? 'bg-blue-600 text-white shadow-sm'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}>
+                                {label}
+                                <span className={`tabular-nums ${isActive ? 'text-blue-100' : 'text-gray-400'}`}>
+                                    {counts[s] ?? 0}
+                                </span>
+                            </button>
+                        );
+                    })}
                 </div>
 
-                {/* Date range */}
-                <div className="flex items-center gap-1.5 shrink-0">
-                    <div className="flex items-center gap-1.5 border border-gray-200 rounded-lg px-3 py-2 bg-white">
-                        <Calendar size={12} className="text-gray-400" />
-                        <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
-                            className="text-xs text-gray-600 bg-transparent focus:outline-none" />
-                    </div>
-                    <span className="text-gray-400 text-xs">—</span>
-                    <div className="flex items-center gap-1.5 border border-gray-200 rounded-lg px-3 py-2 bg-white">
-                        <Calendar size={12} className="text-gray-400" />
-                        <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
-                            className="text-xs text-gray-600 bg-transparent focus:outline-none" />
-                    </div>
-                    {(dateFrom || dateTo) && (
-                        <button onClick={() => { setDateFrom(''); setDateTo(''); }}
-                            className="text-xs text-red-500 hover:text-red-700 font-medium">Clear</button>
-                    )}
+                {/* Time Period Pills */}
+                <div className="flex items-center gap-2 flex-wrap">
+                    <Calendar size={14} className="text-gray-400" />
+                    {TIME_FILTERS.map(t => {
+                        const isActive = timeFilter === t.key;
+                        return (
+                            <button key={t.key} onClick={() => setTimeFilter(t.key)}
+                                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
+                                    isActive
+                                        ? 'bg-blue-600 text-white shadow-sm'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}>
+                                {t.label}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
+
+            {/* ── Bulk Actions Bar ─────────────────────────────────── */}
+            {selectedIds.size > 0 && (
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-6 px-6 py-3 bg-white/80 backdrop-blur-md border border-blue-100 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="flex items-center gap-4 border-r border-gray-100 pr-6">
+                        <div className="flex -space-x-2">
+                             {[...selectedIds].slice(0, 3).map((id, i) => (
+                                 <div key={id} className={`w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 border-2 border-white flex items-center justify-center text-[10px] text-white font-bold shadow-sm z-${30-i*10}`}>
+                                     {i === 2 && selectedIds.size > 3 ? `+${selectedIds.size - 2}` : (i+1)}
+                                 </div>
+                             ))}
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold text-gray-900 leading-tight">{selectedIds.size} Selected</p>
+                            <p className="text-[10px] text-gray-500 font-medium">Appointments</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button onClick={handleBulkDelete} disabled={bulkDeleting}
+                            className="group relative flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-[0_4px_15px_rgba(79,70,229,0.2)] hover:shadow-[0_8px_25px_rgba(79,70,229,0.3)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed">
+                            {bulkDeleting ? <Loader2 size={14} className="animate-spin" /> : null}
+                            <span>Delete Selected</span>
+                        </button>
+                        <button onClick={() => { setSelectedIds(new Set()); setSelectionMode(false); }}
+                            className="px-4 py-2.5 text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* ── Table ─────────────────────────────────────────────── */}
             <div className="bg-white border border-gray-200 rounded-lg overflow-x-auto">
@@ -390,6 +523,16 @@ function Appointments() {
                     <table className="w-full">
                         <thead>
                             <tr className="border-b border-gray-200">
+                                {selectionMode && (
+                                    <th className="px-6 py-3 bg-gray-50 w-10">
+                                        <button onClick={toggleSelectAll} className="p-1 hover:bg-gray-200 rounded transition-colors" title="Select All">
+                                            {selectedIds.size === filtered.length && filtered.length > 0
+                                                ? <CheckSquare size={16} className="text-blue-600" />
+                                                : <div className="w-4 h-4 border-2 border-gray-300 rounded shadow-sm" />
+                                            }
+                                        </button>
+                                    </th>
+                                )}
                                 {['Patient','Doctor','Date & Time','Reason','Status','Payment','Rating'].map(h => (
                                     <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50 whitespace-nowrap">
                                         {h}
@@ -414,7 +557,7 @@ function Appointments() {
                                                     : `No ${statusFilter !== 'all' ? statusFilter : ''} appointments match your filters.`}
                                             </p>
                                             {hasFilters && (
-                                                <button onClick={() => { setSearch(''); setStatusFilter('all'); setDateFrom(''); setDateTo(''); }}
+                                                <button onClick={() => { setSearch(''); setStatusFilter('all'); setTimeFilter('all'); }}
                                                     className="text-xs text-blue-600 hover:underline font-medium mt-1">
                                                     Clear all filters
                                                 </button>
@@ -424,10 +567,21 @@ function Appointments() {
                                 </tr>
                             ) : (
                                 filtered.map(appt => (
-                                    <tr key={appt._id} onClick={() => setSelectedAppt(appt)}
-                                        className="border-b border-gray-100 last:border-0 hover:bg-gray-50/60 transition-colors duration-150 cursor-pointer">
+                                    <tr key={appt._id}
+                                        className={`border-b border-gray-100 last:border-0 hover:bg-gray-50/60 transition-colors duration-150 cursor-pointer ${selectedIds.has(appt._id) ? 'bg-blue-50/50' : ''}`}>
+                                        {/* Selection Checkbox */}
+                                        {selectionMode && (
+                                            <td className="px-6 py-3.5" onClick={e => { e.stopPropagation(); toggleSelect(appt._id); }}>
+                                                <div className="flex items-center justify-center">
+                                                    {selectedIds.has(appt._id)
+                                                        ? <CheckSquare size={16} className="text-blue-600" />
+                                                        : <div className="w-4 h-4 border-2 border-gray-300 rounded shadow-sm" />
+                                                    }
+                                                </div>
+                                            </td>
+                                        )}
                                         {/* Patient */}
-                                        <td className="px-6 py-3.5">
+                                        <td className="px-6 py-3.5" onClick={() => setSelectedAppt(appt)}>
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                                                     <User size={14} className="text-blue-500" />
@@ -439,7 +593,7 @@ function Appointments() {
                                             </div>
                                         </td>
                                         {/* Doctor */}
-                                        <td className="px-6 py-3.5">
+                                        <td className="px-6 py-3.5" onClick={() => setSelectedAppt(appt)}>
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
                                                     <Stethoscope size={14} className="text-indigo-500" />
@@ -453,7 +607,7 @@ function Appointments() {
                                             </div>
                                         </td>
                                         {/* Date */}
-                                        <td className="px-6 py-3.5">
+                                        <td className="px-6 py-3.5" onClick={() => setSelectedAppt(appt)}>
                                             <p className="text-sm text-gray-700 font-medium whitespace-nowrap">{fmt(appt.date)}</p>
                                             {appt.time && (
                                                 <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
@@ -462,21 +616,21 @@ function Appointments() {
                                             )}
                                         </td>
                                         {/* Reason */}
-                                        <td className="px-6 py-3.5">
+                                        <td className="px-6 py-3.5" onClick={() => setSelectedAppt(appt)}>
                                             <p className="text-sm text-gray-600 max-w-[150px] truncate" title={appt.reason}>
                                                 {appt.reason || '—'}
                                             </p>
                                         </td>
                                         {/* Status */}
-                                        <td className="px-6 py-3.5">
+                                        <td className="px-6 py-3.5" onClick={() => setSelectedAppt(appt)}>
                                             <StatusBadge status={appt.status} />
                                         </td>
                                         {/* Payment */}
-                                        <td className="px-6 py-3.5">
+                                        <td className="px-6 py-3.5" onClick={() => setSelectedAppt(appt)}>
                                             <PaymentBadge status={appt.paymentStatus} />
                                         </td>
                                         {/* Rating */}
-                                        <td className="px-6 py-3.5">
+                                        <td className="px-6 py-3.5" onClick={() => setSelectedAppt(appt)}>
                                             {appt.rating?.isRated
                                                 ? <StarRating score={appt.rating.score} />
                                                 : <span className="text-xs text-gray-300">—</span>}
@@ -494,7 +648,7 @@ function Appointments() {
                 <div className="flex items-center justify-between text-xs text-gray-500 px-1">
                     <div>
                         {hasFilters && (
-                            <button onClick={() => { setSearch(''); setStatusFilter('all'); setDateFrom(''); setDateTo(''); }}
+                            <button onClick={() => { setSearch(''); setStatusFilter('all'); setTimeFilter('all'); }}
                                 className="text-red-400 hover:text-red-600 font-medium transition-colors">
                                 Clear all filters
                             </button>

@@ -20,7 +20,7 @@ function GoogleAuthSuccess() {
       setUserFromToken();
     } else {
       // Fallback: reload so AuthContext picks up the cookie
-      window.location.href = '/dashboard';
+      window.location.href = '/patientdashboard';
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

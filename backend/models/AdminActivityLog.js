@@ -20,7 +20,12 @@ const adminActivityLogSchema = new mongoose.Schema(
         'ALERT_TRIGGERED',
         'BROADCAST_STOPPED',
         'SETTINGS_CHANGED',
-        'LOGIN'
+        'LOGIN',
+        'LOGIN_FAILURE',
+        'PROFILE_UPDATED',
+        'PATIENT_REGISTERED',
+        'VERIFICATION_CRITERIA_UPDATED',
+        'APPOINTMENT_DELETED'
       ],
       required: true
     },

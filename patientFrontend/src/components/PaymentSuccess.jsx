@@ -72,7 +72,7 @@ const PaymentSuccess = () => {
                             Your appointment has been confirmed. A confirmation email will be sent shortly.
                         </p>
                         <button
-                            onClick={() => navigate('/dashboard')}
+                            onClick={() => navigate('/patientdashboard')}
                             className="w-full bg-blue-600 text-white py-3 px-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-sm shadow-blue-200"
                         >
                             Go to Dashboard
@@ -88,7 +88,7 @@ const PaymentSuccess = () => {
                             We couldn't verify your payment. Please contact support if the amount was deducted.
                         </p>
                         <button
-                            onClick={() => navigate('/dashboard')}
+                            onClick={() => navigate('/patientdashboard')}
                             className="w-full bg-gray-900 text-white py-3 px-4 rounded-xl font-bold hover:bg-gray-800 transition"
                         >
                             Return to Dashboard

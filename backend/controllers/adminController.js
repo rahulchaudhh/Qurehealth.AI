@@ -21,11 +21,17 @@ const logAdminActivity = async (req, payload) => {
 
 exports.getPendingDoctors = async (req, res) => {
     try {
-        const doctors = await Doctor.find({ status: 'pending' }).select('-password').lean().maxTimeMS(30000);
-        const results = doctors.map(d => {
-            const { profilePicture, ...rest } = d;
-            return { ...rest, hasProfilePicture: !!profilePicture };
-        });
+        const doctors = await Doctor.find({ status: 'pending' })
+            .select('-password -profilePicture')
+            .lean()
+            .maxTimeMS(30000);
+        
+        // Check for existence of profile picture without fetching the whole blob
+        const results = await Promise.all(doctors.map(async (d) => {
+            const doc = await Doctor.findById(d._id).select('profilePicture');
+            return { ...d, hasProfilePicture: !!doc.profilePicture };
+        }));
+
         res.json({ data: results });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -377,11 +383,19 @@ exports.rejectDoctor = async (req, res) => {
 
 exports.getAllDoctors = async (req, res) => {
     try {
-        const doctors = await Doctor.find().select('-password').lean().maxTimeMS(30000);
-        const results = doctors.map(d => {
-            const { profilePicture, ...rest } = d;
-            return { ...rest, hasProfilePicture: !!profilePicture };
-        });
+        // Exclude heavy profilePicture to prevent payload size issues in lists
+        const doctors = await Doctor.find()
+            .select('-password -profilePicture')
+            .lean()
+            .maxTimeMS(30000);
+
+        // Map through to add hasProfilePicture flag efficiently
+        // In a real production app, we might use aggregation for this
+        const results = await Promise.all(doctors.map(async (d) => {
+            const doc = await Doctor.findById(d._id).select('profilePicture');
+            return { ...d, hasProfilePicture: !!doc?.profilePicture };
+        }));
+
         res.json({ data: results });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -390,11 +404,17 @@ exports.getAllDoctors = async (req, res) => {
 
 exports.getAllPatients = async (req, res) => {
     try {
-        const patients = await Patient.find().select('-password').lean().maxTimeMS(30000);
-        const results = patients.map(p => {
-            const { profilePicture, ...rest } = p;
-            return { ...rest, hasProfilePicture: !!profilePicture };
-        });
+        // Exclude heavy profilePicture to prevent payload size issues in lists
+        const patients = await Patient.find()
+            .select('-password -profilePicture')
+            .lean()
+            .maxTimeMS(30000);
+
+        const results = await Promise.all(patients.map(async (p) => {
+            const user = await Patient.findById(p._id).select('profilePicture');
+            return { ...p, hasProfilePicture: !!user?.profilePicture };
+        }));
+
         res.json({ data: results });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -635,3 +655,93 @@ exports.stopBroadcast = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+exports.deleteAppointment = async (req, res) => {
+    try {
+        const appointmentId = req.params.id;
+        
+        // Find first to get context for logging
+        const appointment = await Appointment.findById(appointmentId)
+            .populate('doctor', 'name email')
+            .populate('patient', 'name email');
+
+        if (!appointment) {
+            return res.status(404).json({ error: 'Appointment not found' });
+        }
+
+        const patientName = appointment.patient?.name || 'Unknown Patient';
+        const doctorName = appointment.doctor?.name || 'Unknown Doctor';
+
+        // Perform actual deletion
+        await Appointment.findByIdAndDelete(appointmentId);
+
+        await logAdminActivity(req, {
+            action: 'APPOINTMENT_DELETED',
+            targetType: 'SYSTEM',
+            targetId: appointment._id,
+            targetName: `Appointment with Dr. ${doctorName}`,
+            details: {
+                patientName,
+                doctorName,
+                dateTime: `${appointment.date} ${appointment.time}`,
+                reason: appointment.reason,
+                deletedById: req.user?._id?.toString() || 'admin'
+            }
+        });
+
+        res.json({ success: true, message: `Appointment for ${patientName} deleted successfully` });
+    } catch (error) {
+        console.error('BACKEND ERROR in deleteAppointment:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.bulkDeleteAppointments = async (req, res) => {
+    try {
+        const { ids } = req.body;
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ error: 'No appointment IDs provided' });
+        }
+
+        // Fetch details for logging before deletion
+        const appointmentsToDelete = await Appointment.find({ _id: { $in: ids } })
+            .populate('patient', 'name')
+            .populate('doctor', 'name')
+            .lean();
+
+        if (appointmentsToDelete.length === 0) {
+            return res.status(404).json({ error: 'No appointments found for the provided IDs' });
+        }
+
+        // Perform deletion
+        const result = await Appointment.deleteMany({ _id: { $in: ids } });
+
+        // Log the bulk activity
+        await logAdminActivity(req, {
+            action: 'APPOINTMENT_DELETED',
+            targetType: 'SYSTEM',
+            targetId: null,
+            targetName: `Bulk Deletion of ${appointmentsToDelete.length} appointments`,
+            details: {
+                count: appointmentsToDelete.length,
+                deletedIds: ids,
+                deletedById: req.user?._id?.toString() || 'admin',
+                summary: appointmentsToDelete.map(a => 
+                    `${a.patient?.name || 'Unknown Patient'} with Dr. ${a.doctor?.name || 'Unknown Doctor'} (${a.date})`
+                ).join(', ')
+            }
+        });
+
+        res.json({ 
+            success: true, 
+            message: `Successfully deleted ${result.deletedCount} appointments`,
+            deletedCount: result.deletedCount
+        });
+    } catch (error) {
+        console.error('BACKEND ERROR in bulkDeleteAppointments:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+

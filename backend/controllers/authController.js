@@ -239,7 +239,16 @@ exports.register = async (req, res) => {
       });
 
       setAuthCookie(res, token);
-
+      
+      await logSystemActivity({
+        action: 'PATIENT_REGISTERED',
+        targetType: 'PATIENT',
+        targetId: patient._id,
+        targetName: patient.name,
+        targetEmail: patient.email,
+        details: { source: 'patient_signup' }
+      });
+      
       res.status(201).json({
         data: patientObj
       });
@@ -322,6 +331,20 @@ exports.login = async (req, res) => {
         return res.json({ data: doctorObj });
       }
     }
+
+    // Failed login attempt
+    await logSystemActivity({
+      action: 'LOGIN_FAILURE',
+      targetType: 'SYSTEM',
+      targetEmail: email,
+      details: { 
+        ip: req.ip || req.connection?.remoteAddress,
+        userAgent: req.get('user-agent'),
+        reason: 'Invalid credentials'
+      },
+      status: 'FAILURE',
+      errorMessage: 'Invalid credentials'
+    });
 
     return res.status(401).json({ error: 'Invalid credentials' });
 
@@ -448,6 +471,19 @@ exports.updateProfile = async (req, res) => {
       success: true,
       data: updatedUser
     });
+
+    // Fire-and-forget logging
+    logSystemActivity({
+      action: 'PROFILE_UPDATED',
+      targetType: updatedUser.role.toUpperCase(),
+      targetId: updatedUser._id,
+      targetName: updatedUser.name,
+      targetEmail: updatedUser.email,
+      details: { 
+        updatedFields: Object.keys(req.body).filter(k => k !== 'password'),
+        role: updatedUser.role
+      }
+    }).catch(err => console.error('Logging failed:', err.message));
 
   } catch (error) {
     console.error('Update profile error:', error);

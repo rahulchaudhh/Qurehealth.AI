@@ -16,7 +16,7 @@ function App() {
 
           {/* Protected routes */}
           <Route
-            path="/dashboard"
+            path="/doctordashboard"
             element={
               <ProtectedRoute allowedRoles={['doctor']}>
                 <DoctorDashboard />
@@ -25,10 +25,10 @@ function App() {
           />
 
           {/* Root redirect to dashboard (ProtectedRoute handles auth check) */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<Navigate to="/doctordashboard" replace />} />
 
           {/* Catch all */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/doctordashboard" replace />} />
         </Routes>
       </AuthProvider>
     </Router>

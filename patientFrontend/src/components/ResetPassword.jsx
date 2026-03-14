@@ -45,9 +45,9 @@ function ResetPassword() {
     <div className="auth-container">
       <div className="auth-card">
         <div className="flex items-center justify-center gap-1 mb-4">
-          <img src="/logo.png" alt="Qurehealth.AI" className="w-8 h-8 object-contain" />
+          <img src="/qurehealth-logo.png" alt="QureHealth.AI" className="w-8 h-8 object-contain" />
           <span className="text-xl font-bold tracking-tight text-slate-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
-            Qurehealth<span className="text-slate-900">.AI</span>
+            QureHealth<span className="text-slate-900">.AI</span>
           </span>
         </div>
 

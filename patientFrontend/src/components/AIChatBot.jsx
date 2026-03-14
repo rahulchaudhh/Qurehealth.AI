@@ -269,7 +269,7 @@ export default function AIChatBot({ defaultOpen = false, lang: langProp = 'en' }
     useEffect(() => { setLang(langProp); }, [langProp]);
 
     const handleBookDoctor = useCallback(specialty => {
-        if (isLoggedIn) navigate('/dashboard', { state: { page: 'doctors', specialty } });
+        if (isLoggedIn) navigate('/patientdashboard', { state: { page: 'doctors', specialty } });
         else navigate('/login');
     }, [isLoggedIn, navigate]);
 

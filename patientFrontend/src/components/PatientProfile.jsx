@@ -72,7 +72,7 @@ function PatientProfile() {
             {/* ── Top bar ── */}
             <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
                 <button
-                    onClick={() => navigate('/dashboard')}
+                    onClick={() => navigate('/patientdashboard')}
                     className="flex items-center gap-2 text-gray-500 hover:text-gray-800 text-sm font-medium transition-colors"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -165,7 +165,7 @@ function PatientProfile() {
                         {/* quick links */}
                         <div className="px-5 py-3 space-y-1">
                             <button
-                                onClick={() => navigate('/dashboard')}
+                                onClick={() => navigate('/patientdashboard')}
                                 className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-teal-600 hover:bg-teal-50 transition-colors"
                             >
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

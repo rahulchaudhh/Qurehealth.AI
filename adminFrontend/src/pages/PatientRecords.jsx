@@ -107,12 +107,17 @@ function ViewDetailsModal({ patient, onClose, getProfileImage, handleImageError 
 
                 {/* Avatar + Name */}
                 <div className="flex items-center gap-4 px-6 pt-5 pb-4 flex-shrink-0">
-                    <img
-                        src={getProfileImage(patient)}
-                        onError={handleImageError}
-                        alt={patient.name}
-                        className="w-14 h-14 rounded-xl object-cover border border-gray-200 flex-shrink-0"
-                    />
+                    <div className="w-14 h-14 flex-shrink-0 relative">
+                        <img
+                            src={getProfileImage(patient)}
+                            onError={handleImageError}
+                            alt={patient.name}
+                            className="w-full h-full rounded-xl object-cover border border-gray-200"
+                        />
+                        <div className="hidden w-full h-full rounded-xl bg-gradient-to-br from-indigo-50 to-blue-100 text-indigo-700 font-bold items-center justify-center text-lg border border-indigo-200 uppercase">
+                            {patient.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'PT'}
+                        </div>
+                    </div>
                     <div>
                         <h3 className="text-lg font-bold text-gray-900">{patient.name}</h3>
                         <p className="text-xs text-gray-500 font-mono mt-0.5">ID: #{patient._id.slice(-8).toUpperCase()}</p>
@@ -426,8 +431,13 @@ function PatientRecords({ allPatients, handleDeletePatient, actionLoading, getPr
                                     {/* Patient */}
                                     <td className="px-6 py-3.5">
                                         <div className="flex items-center gap-3">
-                                            <img src={getProfileImage(patient)} onError={handleImageError} alt={patient.name}
-                                                className="w-9 h-9 rounded-lg object-cover border border-gray-200 flex-shrink-0" />
+                                            <div className="w-9 h-9 flex-shrink-0 relative">
+                                                <img src={getProfileImage(patient)} onError={handleImageError} alt={patient.name}
+                                                    className="w-full h-full rounded-lg object-cover border border-gray-200" />
+                                                <div className="hidden w-full h-full rounded-lg bg-indigo-50 text-indigo-700 font-bold items-center justify-center text-[11px] border border-indigo-200 uppercase">
+                                                    {patient.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'PT'}
+                                                </div>
+                                            </div>
                                             <div className="min-w-0">
                                                 <p className="text-sm font-semibold text-gray-900 truncate">
                                                     <HighlightText text={patient.name} highlight={searchInput || searchQuery} />

@@ -142,7 +142,7 @@ function Header({
                                                 onClick={() => {
                                                     setSearchQuery(doc.name);
                                                     setShowSuggestions(false);
-                                                    navigate('/dashboard/doctors');
+                                                    navigate('/admindashboard/doctors');
                                                 }}
                                                 className="w-full flex items-center justify-between px-3 py-2 hover:bg-slate-50 rounded-xl transition-all group"
                                             >
@@ -178,7 +178,7 @@ function Header({
                                                 onClick={() => {
                                                     setSearchQuery(p.name);
                                                     setShowSuggestions(false);
-                                                    navigate('/dashboard/patients');
+                                                    navigate('/admindashboard/patients');
                                                 }}
                                                 className="w-full flex items-center justify-between px-3 py-2 hover:bg-slate-50 rounded-xl transition-all group"
                                             >
@@ -265,7 +265,7 @@ function Header({
                                 <button
                                     onClick={() => {
                                         setShowNotifications(false);
-                                        navigate('/dashboard/overview');
+                                        navigate('/admindashboard/overview');
                                     }}
                                     className="w-full py-2.5 text-[10px] font-black text-black bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors uppercase tracking-[0.2em]"
                                 >
@@ -336,21 +336,21 @@ function Header({
                             {/* Menu Items */}
                             <div className="px-3 py-3 space-y-1">
                                 <button
-                                    onClick={() => { setShowProfileDropdown(false); navigate('/dashboard/overview'); }}
+                                    onClick={() => { setShowProfileDropdown(false); navigate('/admindashboard/overview'); }}
                                     className="w-full text-left px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-xl transition-colors flex items-center gap-3"
                                 >
                                     <User size={18} className="text-blue-500" />
                                     My Profile
                                 </button>
                                 <button
-                                    onClick={() => { setShowProfileDropdown(false); navigate('/dashboard/doctors'); }}
+                                    onClick={() => { setShowProfileDropdown(false); navigate('/admindashboard/doctors'); }}
                                     className="w-full text-left px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-xl transition-colors flex items-center gap-3"
                                 >
                                     <Users size={18} className="text-blue-500" />
                                     Manage Doctors
                                 </button>
                                 <button
-                                    onClick={() => { setShowProfileDropdown(false); navigate('/dashboard/patients'); }}
+                                    onClick={() => { setShowProfileDropdown(false); navigate('/admindashboard/patients'); }}
                                     className="w-full text-left px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-xl transition-colors flex items-center gap-3"
                                 >
                                     <BarChart2 size={18} className="text-blue-500" />

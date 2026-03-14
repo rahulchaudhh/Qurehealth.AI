@@ -58,22 +58,28 @@ exports.getActivityLogs = async (req, res) => {
   }
 };
 
-// Clear old logs (older than 30 days)
+// Clear old logs (flexible timeframe)
 exports.clearOldLogs = async (req, res) => {
   try {
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const days = parseInt(req.query.days) || 30;
+    const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
     
     const result = await AdminActivityLog.deleteMany({
-      timestamp: { $lt: thirtyDaysAgo }
+      timestamp: { $lt: cutoffDate }
     });
 
     // Log the activity
     try {
       await AdminActivityLog.create({
-        adminId: 'admin',
+        adminId: req.user?._id || 'admin',
         action: 'SETTINGS_CHANGED',
         targetType: 'SYSTEM',
-        details: { logsDeleted: result.deletedCount },
+        details: { 
+          action: 'LOG_PURGE',
+          days,
+          logsDeleted: result.deletedCount,
+          cutoff: cutoffDate
+        },
         ipAddress: req.ip || req.connection.remoteAddress,
         userAgent: req.get('user-agent'),
         status: 'SUCCESS'
@@ -82,16 +88,18 @@ exports.clearOldLogs = async (req, res) => {
       console.error('Failed to log activity:', logErr.message);
     }
 
-    console.log('✅ Old logs cleared:', result.deletedCount);
+    console.log(`✅ Logs older than ${days} days cleared:`, result.deletedCount);
     res.json({
-      message: `${result.deletedCount} old logs deleted`,
-      deleted: result.deletedCount
+      message: `${result.deletedCount} logs older than ${days} days deleted`,
+      deleted: result.deletedCount,
+      days
     });
   } catch (error) {
     console.error('❌ Error clearing logs:', error);
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // Get system statistics
 exports.getSystemStats = async (req, res) => {

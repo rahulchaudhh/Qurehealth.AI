@@ -66,63 +66,71 @@ function App() {
       <Router>
         <AuthProvider>
           <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password/:token" element={<ResetPassword />} />
-          <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
-          {/* Emergency: visit /clear to wipe stuck localStorage token */}
-          <Route path="/clear" element={<ClearAndRedirect />} />
+            {/* Public routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
+            <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
+            {/* Emergency: visit /clear to wipe stuck localStorage token */}
+            <Route path="/clear" element={<ClearAndRedirect />} />
 
-          {/* Company pages */}
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/careers" element={<CareersPage />} />
-          <Route path="/blog" element={<BlogPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/doctor/:id" element={<DoctorProfilePage />} />
+            {/* Company pages */}
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/careers" element={<CareersPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/doctor/:id" element={<DoctorProfilePage />} />
 
-          {/* Protected routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={['patient']}>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+            {/* Protected routes */}
+            <Route
+              path="/patientdashboard"
+              element={
+                <ProtectedRoute allowedRoles={['patient']}>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/patientdashboard/:page"
+              element={
+                <ProtectedRoute allowedRoles={['patient']}>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/patient/profile"
-            element={
-              <ProtectedRoute allowedRoles={['patient']}>
-                <PatientProfile />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/patient/profile"
+              element={
+                <ProtectedRoute allowedRoles={['patient']}>
+                  <PatientProfile />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/payment/success"
-            element={
-              <ProtectedRoute allowedRoles={['patient']}>
-                <PaymentSuccess />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/payment/success"
+              element={
+                <ProtectedRoute allowedRoles={['patient']}>
+                  <PaymentSuccess />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/medical-record/:id"
-            element={
-              <ProtectedRoute allowedRoles={['patient']}>
-                <MedicalRecordView />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/medical-record/:id"
+              element={
+                <ProtectedRoute allowedRoles={['patient']}>
+                  <MedicalRecordView />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Catch all - redirect to home */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* Catch all - redirect to home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </AuthProvider>
       </Router>
     </ErrorBoundary>

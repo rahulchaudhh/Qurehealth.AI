@@ -28,9 +28,9 @@ function Register() {
 
   useEffect(() => {
     if (!loading && isAuthenticated && user) {
-      if (user.role === 'admin') navigate('/admin/dashboard');
-      else if (user.role === 'doctor') navigate('/doctor/dashboard');
-      else navigate('/dashboard');
+      if (user.role === 'admin') navigate('/admin/patientdashboard');
+      else if (user.role === 'doctor') navigate('/doctor/patientdashboard');
+      else navigate('/patientdashboard');
     }
   }, [isAuthenticated, user, loading, navigate]);
 

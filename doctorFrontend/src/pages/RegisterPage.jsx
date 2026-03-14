@@ -43,7 +43,7 @@ function Register() {
         setLoading(false);
 
         if (result.success) {
-            navigate('/dashboard');
+            navigate('/doctordashboard');
         } else {
             setError(result.error);
         }
@@ -54,9 +54,9 @@ function Register() {
             <div className="auth-card">
                 <h2 className="auth-title">Doctor Register</h2>
                 <div className="flex items-center justify-center gap-1 mb-6 group">
-                    <img src="/logo.png" alt="Qurehealth.AI" className="w-8 h-8 object-contain" />
+                    <img src="/qurehealth-logo.png" alt="QureHealth.AI" className="w-8 h-8 object-contain" />
                     <span className="text-xl font-bold tracking-tight text-gray-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                        Qurehealth<span className="text-blue-600">.AI</span>
+                        QureHealth<span className="text-blue-600">.AI</span>
                     </span>
                 </div>
 
