@@ -32,6 +32,12 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText 
             iconColor: 'text-amber-500',
             buttonBg: 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm',
             icon: <AlertTriangle className="w-6 h-6" />,
+        },
+        neutral: {
+            iconBg: 'transparent',
+            iconColor: 'text-gray-900',
+            buttonBg: 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm',
+            icon: null,
         }
     };
 
@@ -42,7 +48,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText 
             {/* Backdrop */}
             <div
                 className={`
-                    absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity duration-200
+                    absolute inset-0 bg-black/40 transition-opacity duration-200
                     ${isExiting ? 'opacity-0' : 'opacity-100'}
                 `}
                 onClick={handleCancel}
@@ -57,12 +63,14 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText 
                 <div className="p-6">
                     <div className="flex gap-4 items-start">
                         {/* Icon */}
-                        <div className={`
-                            w-12 h-12 rounded-full flex items-center justify-center shrink-0
-                            ${currentStyle.iconBg} ${currentStyle.iconColor}
-                        `}>
-                            {currentStyle.icon}
-                        </div>
+                        {currentStyle.icon && (
+                            <div className={`
+                                w-12 h-12 rounded-full flex items-center justify-center shrink-0
+                                ${currentStyle.iconBg} ${currentStyle.iconColor}
+                            `}>
+                                {currentStyle.icon}
+                            </div>
+                        )}
 
                         {/* Content */}
                         <div className="flex-1">

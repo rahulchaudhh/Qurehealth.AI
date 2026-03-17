@@ -9,10 +9,9 @@ export default function StepPatientDetails({ patientDetails, onChange, user }) {
   };
 
   const inputCls = (field) =>
-    `w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all outline-none font-medium ${
-      errors[field]
-        ? 'border-red-300 bg-red-50 focus:border-red-400 focus:ring-4 focus:ring-red-100'
-        : 'border-gray-200 bg-white text-gray-800 placeholder:text-gray-300 hover:border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100'
+    `w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all outline-none font-medium ${errors[field]
+      ? 'border-red-300 bg-red-50 focus:border-red-400 focus:ring-4 focus:ring-red-100'
+      : 'border-gray-200 bg-white text-gray-800 placeholder:text-gray-300 hover:border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100'
     }`;
 
   return (
@@ -44,7 +43,7 @@ export default function StepPatientDetails({ patientDetails, onChange, user }) {
               type="email"
               value={patientDetails.email}
               onChange={(e) => handleChange('email', e.target.value)}
-              placeholder="your@email.com"
+              placeholder="Enter your email address"
               className={inputCls('email')}
             />
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}

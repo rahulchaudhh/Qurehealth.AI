@@ -51,7 +51,7 @@ function AdminDashboard() {
 
     const fetchStats = async () => {
         try {
-            const { data } = await axios.get('/admin/admindashboard-stats');
+            const { data } = await axios.get('/admin/dashboard-stats');
             setStats(data.data);
         } catch (error) {
             console.error('Error fetching stats:', error);
@@ -139,21 +139,23 @@ function AdminDashboard() {
     };
 
     const getProfileImage = (item) => {
-        if (item.profilePicture && (item.profilePicture.startsWith('http') || item.profilePicture.startsWith('data:'))) {
+        if (item.profilePicture && (item.profilePicture.startsWith('http') || item.profilePicture.startsWith('data:') || item.profilePicture.startsWith('//'))) {
             return item.profilePicture;
         }
         if (item.hasProfilePicture) {
+            // Patient objects don't have specialization property in our system
             return item.specialization
                 ? `/api/doctor/${item._id}/profile-picture`
-                : `/api/admin/patient/${item._id}/profile-picture`;
+                : `/api/admin/patients/${item._id}/profile-picture`;
         }
         return `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=random`;
     };
 
     const handleImageError = (e) => {
         e.target.style.display = 'none';
-        if (e.target.nextSibling) {
-            e.target.nextSibling.style.display = 'flex';
+        // Use nextElementSibling to avoid issues with text nodes or React comments
+        if (e.target.nextElementSibling) {
+            e.target.nextElementSibling.style.display = 'flex';
         }
     };
 

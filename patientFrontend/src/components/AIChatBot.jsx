@@ -49,9 +49,8 @@ function ChatBubble({ msg, onBookDoctor }) {
 
             {/* AI avatar */}
             {isAI && (
-                <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center shadow-sm flex-shrink-0"
-                    style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
-                    <Bot className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center shadow-sm">
+                    <img src="/chatbot-icon.svg" alt="AI Bot" className="w-full h-full object-cover rounded-full" />
                 </div>
             )}
 
@@ -391,9 +390,8 @@ export default function AIChatBot({ defaultOpen = false, lang: langProp = 'en' }
         return (
             <button onClick={() => { setOpen(true); setHasUnread(false); }}
                 className="fixed bottom-6 right-6 z-[9997] w-14 h-14 rounded-full flex items-center justify-center transition-all hover:scale-110 shadow-xl relative"
-                style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}
                 aria-label="Open Your Health Assistant AI">
-                <Bot className="w-7 h-7 text-white" />
+                <img src="/chatbot-icon.svg" alt="AI Bot" className="w-full h-full object-cover rounded-full shadow-lg" />
                 {hasUnread && (
                     <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white" />
                 )}
@@ -420,17 +418,15 @@ export default function AIChatBot({ defaultOpen = false, lang: langProp = 'en' }
 
                 <div className="flex items-center gap-3 relative z-10">
                     {/* Avatar */}
-                    <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg"
-                        style={{ background: 'linear-gradient(135deg,#8b5cf6,#6d28d9)' }}>
-                        <Bot className="w-6 h-6 text-white" />
+                    <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <img src="/chatbot-icon.svg" alt="AI Bot" className="w-full h-full object-cover rounded-full" />
                     </div>
 
                     {/* Name + online status */}
                     <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-white leading-tight">Your Health Assistant AI</p>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
-                            <span className="text-xs text-violet-200">We're online</span>
+                           
                         </div>
                     </div>
 
@@ -489,9 +485,8 @@ export default function AIChatBot({ defaultOpen = false, lang: langProp = 'en' }
                             {/* Typing dots */}
                             {loading && messages[messages.length - 1]?.text === '' && (
                                 <div className="flex gap-2.5 mb-4 items-end">
-                                    <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center shadow-sm"
-                                        style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
-                                        <Bot className="w-4 h-4 text-white" />
+                                    <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center shadow-sm">
+                                        <img src="/chatbot-icon.svg" alt="AI Bot" className="w-full h-full object-cover rounded-full" />
                                     </div>
                                     <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm border border-gray-100">
                                         <TypingDots />

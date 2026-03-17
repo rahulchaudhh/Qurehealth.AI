@@ -1,0 +1,32 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Soft Blob -->
+  <path d="M165 100C165 135.899 135.899 165 100 165C64.1015 165 35 135.899 35 100C35 64.1015 64.1015 35 100 35C135.899 35 165 64.1015 165 100Z" fill="#EBF5FF" fill-opacity="0.8"/>
+  <path d="M180 80C180 110 150 140 120 140C90 140 60 110 60 80C60 50 90 20 120 20C150 20 180 50 180 80Z" fill="#F0F9FF" fill-opacity="0.6"/>
+
+  <!-- Robot Head Outline -->
+  <rect x="50" y="65" width="100" height="80" rx="40" stroke="#2D3748" stroke-width="3" fill="white"/>
+  
+  <!-- Antennae -->
+  <line x1="75" y1="65" x2="65" y2="40" stroke="#2D3748" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="65" cy="40" r="5" fill="white" stroke="#2D3748" stroke-width="2"/>
+  <line x1="125" y1="65" x2="135" y2="40" stroke="#2D3748" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="135" cy="40" r="5" fill="white" stroke="#2D3748" stroke-width="2"/>
+
+  <!-- Face / Screen Area -->
+  <rect x="70" y="85" width="60" height="40" rx="15" fill="#F7FAFC" stroke="#A0AEC0" stroke-width="1"/>
+
+  <!-- Three Dots (Aesthetic Blue) -->
+  <circle cx="82" cy="105" r="5" fill="#4299E1"/>
+  <circle cx="100" cy="105" r="5" fill="#63B3ED"/>
+  <circle cx="118" cy="105" r="5" fill="#90CDF4"/>
+
+  <!-- Plus Accents -->
+  <line x1="30" y1="75" x2="40" y2="75" stroke="#CBD5E0" stroke-width="2" stroke-linecap="round"/>
+  <line x1="35" y1="70" x2="35" y2="80" stroke="#CBD5E0" stroke-width="2" stroke-linecap="round"/>
+  
+  <line x1="160" y1="140" x2="170" y2="140" stroke="#CBD5E0" stroke-width="2" stroke-linecap="round"/>
+  <line x1="165" y1="135" x2="165" y2="145" stroke="#CBD5E0" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Subtle Smile -->
+  <path d="M90 130C95 133 105 133 110 130" stroke="#2D3748" stroke-width="2" stroke-linecap="round"/>
+</svg>

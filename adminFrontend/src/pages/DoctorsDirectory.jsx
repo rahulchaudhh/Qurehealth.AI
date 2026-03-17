@@ -7,10 +7,10 @@ import axios from '../api/axios';
 
 function StatusBadge({ status }) {
     const cfg = {
-        approved:  { label: 'Approved',  text: 'text-purple-700', bg: 'bg-purple-50' },
-        rejected:  { label: 'Rejected',  text: 'text-red-700',    bg: 'bg-red-50'    },
-        pending:   { label: 'Pending',   text: 'text-amber-700',  bg: 'bg-amber-50'  },
-        suspended: { label: 'Suspended', text: 'text-gray-700',   bg: 'bg-gray-100'  },
+        approved: { label: 'Approved', text: 'text-purple-700', bg: 'bg-purple-50' },
+        rejected: { label: 'Rejected', text: 'text-red-700', bg: 'bg-red-50' },
+        pending: { label: 'Pending', text: 'text-amber-700', bg: 'bg-amber-50' },
+        suspended: { label: 'Suspended', text: 'text-gray-700', bg: 'bg-gray-100' },
     };
     const c = cfg[status] || cfg.pending;
     return (
@@ -145,12 +145,12 @@ function AddDoctorModal({ onClose, onSuccess }) {
                             <div className="grid grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                                    <input name="name" value={form.name} onChange={handleChange} placeholder="Dr. John Smith"
+                                    <input name="name" value={form.name} onChange={handleChange} placeholder="Dr. rohan chaudhary"
                                         className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                                    <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="doctor@example.com"
+                                    <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="Enter email address"
                                         className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400" />
                                 </div>
                             </div>
@@ -178,7 +178,7 @@ function AddDoctorModal({ onClose, onSuccess }) {
                             <div className="grid grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                                    <input name="phone" value={form.phone} onChange={handleChange} placeholder="+1 (555) 000-0000"
+                                    <input name="phone" value={form.phone} onChange={handleChange} placeholder="980000000000"
                                         className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400" />
                                 </div>
                                 <div>
@@ -556,13 +556,13 @@ function DoctorsDirectory({ allDoctors, handleDeleteDoctor, actionLoading, getPr
                                     <tr key={doctor._id} className="border-b border-gray-100 hover:bg-gray-50/60 transition-colors cursor-pointer relative">
                                         <td className="px-6 py-3" onClick={() => handleViewProfile(doctor)}>
                                             <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 flex-shrink-0 relative">
-                                                <img src={getProfileImage(doctor)} onError={handleImageError} alt={doctor.name}
-                                                    className="w-full h-full rounded-lg object-cover border border-gray-200" />
-                                                <div className="hidden w-full h-full rounded-lg bg-indigo-50 text-indigo-700 font-bold items-center justify-center text-[11px] border border-indigo-200 uppercase">
-                                                    {doctor.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
+                                                <div className="w-9 h-9 flex-shrink-0 relative">
+                                                    <img src={getProfileImage(doctor)} onError={handleImageError} alt={doctor.name}
+                                                        className="w-full h-full rounded-lg object-cover border border-gray-200" />
+                                                    <div className="hidden w-full h-full rounded-lg bg-indigo-50 text-indigo-700 font-bold items-center justify-center text-[11px] border border-indigo-200 uppercase">
+                                                        {doctor.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
+                                                    </div>
                                                 </div>
-                                            </div>
                                                 <div className="min-w-0">
                                                     <p className="text-sm font-medium text-gray-900 truncate">
                                                         <HighlightText text={doctor.name} highlight={searchInput || searchQuery} />

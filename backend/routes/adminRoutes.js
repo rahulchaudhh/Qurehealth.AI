@@ -4,7 +4,8 @@ const {
     getPendingDoctors, approveDoctor, rejectDoctor, getAllDoctors,
     getAllPatients, deletePatient, getPatientHistory, getDashboardStats,
     broadcast, triggerAlert, getBroadcastHistory, stopBroadcast,
-    getAllAppointments, updateAdminAppointmentStatus, deleteAppointment, bulkDeleteAppointments
+    getAllAppointments, updateAdminAppointmentStatus, deleteAppointment, bulkDeleteAppointments,
+    getPatientProfilePicture, getDoctorProfilePicture
 } = require('../controllers/adminController');
 const {
     getActivityLogs,
@@ -38,6 +39,10 @@ router.get('/appointments', auth, adminCheck, getAllAppointments);
 router.put('/appointments/:id/status', auth, adminCheck, updateAdminAppointmentStatus);
 router.delete('/appointments/:id', auth, adminCheck, deleteAppointment);
 router.post('/appointments/bulk-delete', auth, adminCheck, bulkDeleteAppointments);
+
+// Profile Picture Routes (Publicly accessible for browser img tags)
+router.get('/patients/:id/profile-picture', getPatientProfilePicture);
+router.get('/doctors/:id/profile-picture', getDoctorProfilePicture);
 
 // ── Admin Settings Routes ──
 router.get('/logs/activity', auth, adminCheck, getActivityLogs);

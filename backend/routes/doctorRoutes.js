@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
     registerDoctor, loginDoctor, getDoctorMe, getDoctorStats,
-    getDoctorPatients, getAllDoctors, getDoctorById,
+    getDoctorPatients, getPatientDetail, getPatientProfilePicture, getAllDoctors, getDoctorById,
     getDoctorProfilePicture, getDoctorReviews, getAvailableSlots,
     updateSchedule, deleteDoctor
 } = require('../controllers/doctorController');
@@ -14,6 +14,8 @@ router.post('/login', loginDoctor);
 router.get('/me', auth, getDoctorMe);
 router.get('/stats', auth, getDoctorStats);
 router.get('/patients', auth, getDoctorPatients);
+router.get('/patient/:id', auth, getPatientDetail);
+router.get('/patient/:id/profile-picture', auth, getPatientProfilePicture);
 router.put('/schedule', auth, updateSchedule);                // Update schedule & fee
 router.get('/all', getAllDoctors);
 router.get('/:id/reviews', getDoctorReviews);                 // Get reviews

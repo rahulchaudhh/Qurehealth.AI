@@ -1,0 +1,17 @@
+
+> qurehealthai@1.0.0 start
+> node server.js
+
+[dotenv@17.2.3] injecting env (16) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+Attempting to connect to MongoDB...
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+Server running on port 5001
+MongoDB Connected
+Connection pool warmed up
+Fetching all doctors for admin...
+Found 23 doctors. Processing profiles...
+Sending processed doctors list
+Fetching all doctors for admin...
+Found 23 doctors. Processing profiles...
+Sending processed doctors list
+Keep-alive ping failed: Connection to ac-jcocgck-shard-00-01.wpprnkb.mongodb.net:27017 interrupted due to server monitor timeout

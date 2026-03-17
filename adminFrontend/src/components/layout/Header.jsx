@@ -147,8 +147,19 @@ function Header({
                                                 className="w-full flex items-center justify-between px-3 py-2 hover:bg-slate-50 rounded-xl transition-all group"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">
-                                                        {doc.name.charAt(0)}
+                                                    <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 relative">
+                                                        {(doc.profilePicture || doc.hasProfilePicture) ? (
+                                                            <img 
+                                                                src={doc.profilePicture || `/api/admin/doctors/${doc._id}/profile-picture`} 
+                                                                alt={doc.name}
+                                                                referrerPolicy="no-referrer"
+                                                                className="w-full h-full object-cover"
+                                                                onError={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'flex'; }}
+                                                            />
+                                                        ) : null}
+                                                        <div className={`w-full h-full bg-indigo-50 text-indigo-600 items-center justify-center font-bold text-xs ${(doc.profilePicture || doc.hasProfilePicture) ? 'hidden' : 'flex'}`}>
+                                                            {doc.name.charAt(0)}
+                                                        </div>
                                                     </div>
                                                     <div className="text-left">
                                                         <div className="text-xs font-bold text-slate-800">
@@ -183,8 +194,19 @@ function Header({
                                                 className="w-full flex items-center justify-between px-3 py-2 hover:bg-slate-50 rounded-xl transition-all group"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">
-                                                        {p.name.charAt(0)}
+                                                    <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 relative">
+                                                        {(p.profilePicture || p.hasProfilePicture) ? (
+                                                            <img 
+                                                                src={p.profilePicture || `/api/admin/patients/${p._id}/profile-picture`} 
+                                                                alt={p.name}
+                                                                referrerPolicy="no-referrer"
+                                                                className="w-full h-full object-cover"
+                                                                onError={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'flex'; }}
+                                                            />
+                                                        ) : null}
+                                                        <div className={`w-full h-full bg-emerald-50 text-emerald-600 items-center justify-center font-bold text-xs ${(p.profilePicture || p.hasProfilePicture) ? 'hidden' : 'flex'}`}>
+                                                            {p.name.charAt(0)}
+                                                        </div>
                                                     </div>
                                                     <div className="text-left">
                                                         <div className="text-xs font-bold text-slate-800">

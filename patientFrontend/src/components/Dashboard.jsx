@@ -12,6 +12,7 @@ import FindDoctors from './FindDoctors';
 import Appointments from './Appointments';
 import MedicalHistory from './MedicalHistory';
 import BookingWizard from './booking/BookingWizard';
+import AIChatBot from './AIChatBot';
 
 
 
@@ -556,27 +557,32 @@ export default function Dashboard() {
   };
 
   const analyzeSymptoms = async () => {
-    if (symptoms.length === 0) {
-      toast.warn('Please add at least one symptom');
+    if (symptoms.length < 2) {
+      toast.warn('Please add at least 2 symptoms for an accurate prediction.');
       return;
     }
 
     try {
       const res = await api.post('/predict', { symptoms });
 
-      // Backend returns { predicted_disease: "Disease Name" }
-      const diseaseName = res.data.predicted_disease || res.data.prediction || "Unknown Condition";
-
-      const result = [{
-        name: diseaseName,
-        probability: res.data.confidence ? Math.round(res.data.confidence * 100) : 95,
-        description: 'Based on your symptoms and our AI analysis.'
-      }];
+      // Handle the new predictions array or fallback to single prediction
+      const result = res.data.predictions 
+        ? res.data.predictions.map(p => ({
+            name: p.name,
+            probability: p.probability,
+            description: 'Based on your symptoms and our AI analysis.'
+          }))
+        : [{
+            name: res.data.predicted_disease || res.data.prediction || "Unknown Condition",
+            probability: res.data.confidence ? Math.round(res.data.confidence * 100) : 95,
+            description: 'Based on your symptoms and our AI analysis.'
+          }];
 
       setPrediction(result);
 
-      // Get the recommended specialties for the predicted disease
-      const recommendedSpecialties = specialtyMap[diseaseName] || ["General Physician"];
+      // Get the recommended specialties for the top predicted disease
+      const primaryDiseaseName = result[0].name;
+      const recommendedSpecialties = specialtyMap[primaryDiseaseName] || ["General Physician"];
 
       // Filter doctors based on prediction (case-insensitive)
       let filtered = doctors.filter(d =>
@@ -585,7 +591,7 @@ export default function Dashboard() {
 
       // Fallback: If no specialist found, show all approved doctors
       if (filtered.length === 0) {
-        console.warn(`No specialist found for ${diseaseName}, falling back to all doctors.`);
+        console.warn(`No specialist found for ${primaryDiseaseName}, falling back to all doctors.`);
         filtered = doctors;
       }
 
@@ -1280,6 +1286,7 @@ export default function Dashboard() {
         message={broadcastModal.message}
         type={broadcastModal.type}
       />
+      <AIChatBot lang="en" />
     </div >
   );
 }

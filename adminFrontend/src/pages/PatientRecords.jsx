@@ -112,6 +112,7 @@ function ViewDetailsModal({ patient, onClose, getProfileImage, handleImageError 
                             src={getProfileImage(patient)}
                             onError={handleImageError}
                             alt={patient.name}
+                            referrerPolicy="no-referrer"
                             className="w-full h-full rounded-xl object-cover border border-gray-200"
                         />
                         <div className="hidden w-full h-full rounded-xl bg-gradient-to-br from-indigo-50 to-blue-100 text-indigo-700 font-bold items-center justify-center text-lg border border-indigo-200 uppercase">
@@ -433,6 +434,7 @@ function PatientRecords({ allPatients, handleDeletePatient, actionLoading, getPr
                                         <div className="flex items-center gap-3">
                                             <div className="w-9 h-9 flex-shrink-0 relative">
                                                 <img src={getProfileImage(patient)} onError={handleImageError} alt={patient.name}
+                                                    referrerPolicy="no-referrer"
                                                     className="w-full h-full rounded-lg object-cover border border-gray-200" />
                                                 <div className="hidden w-full h-full rounded-lg bg-indigo-50 text-indigo-700 font-bold items-center justify-center text-[11px] border border-indigo-200 uppercase">
                                                     {patient.name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'PT'}

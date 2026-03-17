@@ -40,7 +40,7 @@ const posts = [
         avatar: 'R',
         readTime: '6 min read',
         date: 'Nov 28, 2024',
-        color: 'from-emerald-500 to-teal-600',
+        color: 'from-indigo-600 to-violet-700',
         tags: ['Engineering', 'Product'],
     },
     {
@@ -98,12 +98,12 @@ export default function BlogPage() {
             <CompanyNav />
 
             {/* Hero */}
-            <section className="pt-32 pb-16 px-6 bg-gradient-to-br from-slate-50 to-emerald-50/40">
+            <section className="pt-32 pb-16 px-6 bg-gradient-to-br from-slate-50 to-rose-50/40">
                 <div className="max-w-4xl mx-auto text-center">
-                    <span className="inline-block px-4 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold uppercase tracking-wide mb-6">Qurehealth Blog</span>
+                    <span className="inline-block px-4 py-1.5 rounded-full bg-rose-50 text-rose-600 text-xs font-bold uppercase tracking-wide mb-6">Qurehealth Blog</span>
                     <h1 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6 font-outfit leading-tight">
                         Insights on AI,<br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">medicine & Nepal</span>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-indigo-600">medicine & Nepal</span>
                     </h1>
                     <p className="text-lg text-slate-600 max-w-xl mx-auto">
                         Deep dives from our engineering, clinical, and product teams — focused on healthcare in Nepal.

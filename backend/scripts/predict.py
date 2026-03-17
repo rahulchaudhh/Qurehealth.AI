@@ -60,13 +60,23 @@ def predict():
                 input_vector[0, idx] = 1
                 
         # Predict
-        prediction = model.predict(input_vector)
-        predicted_disease = str(prediction[0])
+        probabilities = model.predict_proba(input_vector)[0]
+        classes = model.classes_
         
-        # Return both keys for compatibility
+        # Get top 2 predictions
+        top_indices = np.argsort(probabilities)[::-1][:2]
+        
+        predictions = []
+        for idx in top_indices:
+            predictions.append({
+                "name": str(classes[idx]),
+                "probability": int(round(probabilities[idx] * 100))
+            })
+            
         print(json.dumps({
-            "predicted_disease": predicted_disease,
-            "prediction": predicted_disease
+            "predicted_disease": predictions[0]["name"],
+            "prediction": predictions[0]["name"],
+            "predictions": predictions
         }))
         
     except Exception as e:

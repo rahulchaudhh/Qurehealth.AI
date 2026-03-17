@@ -69,13 +69,13 @@ export default function SymptomChecker({
           )}
           <button
             onClick={analyzeSymptoms}
-            disabled={symptoms.length === 0}
-            className={`w-full py-3 rounded-lg text-sm font-bold uppercase tracking-wide transition-all shadow-md ${symptoms.length > 0
+            disabled={symptoms.length < 2}
+            className={`w-full py-3 rounded-lg text-sm font-bold uppercase tracking-wide transition-all shadow-md ${symptoms.length >= 2
               ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white cursor-pointer hover:shadow-lg hover:from-blue-700 hover:to-blue-800 transform hover:-translate-y-0.5'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
               }`}
           >
-            Analyze Symptoms
+            {symptoms.length < 2 ? `Add ${2 - symptoms.length} More Symptom` : 'Analyze Symptoms'}
           </button>
         </div>
       </div>
@@ -102,22 +102,24 @@ export function PredictionResults({
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Prediction Results</h1>
       <p className="text-base text-gray-600 mb-8">Based on symptoms: <span className="font-medium text-gray-900">{symptoms.join(', ')}</span></p>
 
-      <div className="mb-10">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-5">Possible Conditions</h2>
-        {prediction && prediction.map((disease, idx) => (
-          <div key={idx} className="bg-white p-6 rounded-xl border border-gray-200 mb-4 shadow-sm hover:shadow-md transition-shadow">
-            <div className="mb-4">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-xl font-bold text-gray-900">{disease.name}</h3>
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-bold">{disease.probability}% Match</span>
+      <div className="mb-6">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Possible Conditions</h2>
+        <div className="space-y-3">
+          {prediction && prediction.map((disease, idx) => (
+            <div key={idx} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="mb-3">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-lg font-bold text-gray-900">{disease.name}</h3>
+                  <span className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">{disease.probability}% Match</span>
+                </div>
+                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-600 rounded-full" style={{ width: `${disease.probability}%` }}></div>
+                </div>
               </div>
-              <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-full bg-blue-600 rounded-full" style={{ width: `${disease.probability}%` }}></div>
-              </div>
+              <p className="text-xs text-gray-600 leading-relaxed">{disease.description}</p>
             </div>
-            <p className="text-sm text-gray-600 leading-relaxed">{disease.description}</p>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       <div className="bg-gray-50 border-l-4 border-gray-300 p-4 rounded-r-lg mb-10 shadow-sm">

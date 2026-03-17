@@ -24,12 +24,12 @@ export default function AboutPage() {
             <CompanyNav />
 
             {/* Hero */}
-            <section className="pt-32 pb-20 px-6 bg-gradient-to-br from-slate-50 to-indigo-50/40">
+            <section className="pt-32 pb-20 px-6 bg-gradient-to-br from-slate-50 to-rose-50/40">
                 <div className="max-w-4xl mx-auto text-center">
-                    <span className="inline-block px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold uppercase tracking-wide mb-6">Our Story</span>
+                    <span className="inline-block px-4 py-1.5 rounded-full bg-rose-50 text-rose-600 text-xs font-bold uppercase tracking-wide mb-6">Our Mission</span>
                     <h1 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6 font-outfit leading-tight">
                         Healthcare in Nepal<br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">shouldn't be a privilege.</span>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-indigo-600">shouldn't be a privilege.</span>
                     </h1>
                     <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
                         Qurehealth.AI was founded with a single mission — use the power of artificial intelligence to give every person in Nepal,

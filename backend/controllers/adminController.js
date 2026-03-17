@@ -22,15 +22,20 @@ const logAdminActivity = async (req, payload) => {
 exports.getPendingDoctors = async (req, res) => {
     try {
         const doctors = await Doctor.find({ status: 'pending' })
-            .select('-password -profilePicture')
+            .select('-password')
             .lean()
             .maxTimeMS(30000);
-        
-        // Check for existence of profile picture without fetching the whole blob
-        const results = await Promise.all(doctors.map(async (d) => {
-            const doc = await Doctor.findById(d._id).select('profilePicture');
-            return { ...d, hasProfilePicture: !!doc.profilePicture };
-        }));
+
+        const results = doctors.map(d => {
+            const hasPic = !!(d.profilePicture && d.profilePicture.length > 5);
+            const isUrl = hasPic && (d.profilePicture.startsWith('http') || d.profilePicture.startsWith('//'));
+            const { profilePicture, ...rest } = d;
+            return {
+                ...rest,
+                hasProfilePicture: hasPic,
+                profilePicture: isUrl ? profilePicture : null
+            };
+        });
 
         res.json({ data: results });
     } catch (error) {
@@ -383,37 +388,54 @@ exports.rejectDoctor = async (req, res) => {
 
 exports.getAllDoctors = async (req, res) => {
     try {
-        // Exclude heavy profilePicture to prevent payload size issues in lists
+        console.log('Fetching all doctors for admin...');
         const doctors = await Doctor.find()
-            .select('-password -profilePicture')
+            .select('-password')
             .lean()
             .maxTimeMS(30000);
 
-        // Map through to add hasProfilePicture flag efficiently
-        // In a real production app, we might use aggregation for this
-        const results = await Promise.all(doctors.map(async (d) => {
-            const doc = await Doctor.findById(d._id).select('profilePicture');
-            return { ...d, hasProfilePicture: !!doc?.profilePicture };
-        }));
+        console.log(`Found ${doctors.length} doctors. Processing profiles...`);
 
+        const results = doctors.map(d => {
+            const hasPic = !!(d.profilePicture && d.profilePicture.length > 5);
+            const isUrl = hasPic && (d.profilePicture.startsWith('http') || d.profilePicture.startsWith('//'));
+            const { profilePicture, ...rest } = d;
+            return {
+                ...rest,
+                hasProfilePicture: hasPic,
+                profilePicture: isUrl ? profilePicture : null
+            };
+        });
+
+        console.log('Sending processed doctors list');
         res.json({ data: results });
     } catch (error) {
+        console.error('BACKEND ERROR in getAllDoctors:', error);
         res.status(500).json({ error: error.message });
     }
 };
 
 exports.getAllPatients = async (req, res) => {
     try {
-        // Exclude heavy profilePicture to prevent payload size issues in lists
+        // Fetch with everything, then strip profilePicture for the list payload
         const patients = await Patient.find()
-            .select('-password -profilePicture')
+            .select('-password')
             .lean()
             .maxTimeMS(30000);
 
-        const results = await Promise.all(patients.map(async (p) => {
-            const user = await Patient.findById(p._id).select('profilePicture');
-            return { ...p, hasProfilePicture: !!user?.profilePicture };
-        }));
+        const results = patients.map(p => {
+            const hasPic = !!(p.profilePicture && p.profilePicture.length > 5);
+            const isUrl = hasPic && (p.profilePicture.startsWith('http') || p.profilePicture.startsWith('//'));
+            
+            // For the list view, we only keep the profilePicture if it's a URL (like Google)
+            // Heavy base64 strings are still stripped and served via the separate endpoint
+            const { profilePicture, ...rest } = p;
+            return {
+                ...rest,
+                hasProfilePicture: hasPic,
+                profilePicture: isUrl ? profilePicture : null
+            };
+        });
 
         res.json({ data: results });
     } catch (error) {
@@ -742,6 +764,93 @@ exports.bulkDeleteAppointments = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+// @desc    Get patient profile picture (for admin view)
+// @route   GET /api/admin/patients/:id/profile-picture
+exports.getPatientProfilePicture = async (req, res) => {
+    try {
+        const patient = await Patient.findById(req.params.id).select('profilePicture');
+        if (!patient || !patient.profilePicture) {
+            return res.status(404).json({ error: 'Profile picture not found' });
+        }
+
+        const pic = patient.profilePicture;
+
+        // 1. Handle External URLs (e.g. Google Auth)
+        if (pic.startsWith('http')) {
+            return res.redirect(pic);
+        }
+
+        // 2. Handle Data URIs
+        if (pic.startsWith('data:')) {
+            const matches = pic.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
+            if (matches && matches.length === 3) {
+                const contentType = matches[1];
+                const base64Data = matches[2];
+                const buffer = Buffer.from(base64Data, 'base64');
+                res.set('Content-Type', contentType);
+                res.set('Cache-Control', 'public, max-age=86400');
+                return res.send(buffer);
+            }
+        }
+
+        // 3. Fallback for raw Base64 or corrupted data URI
+        try {
+            const pureBase64 = pic.includes('base64,') ? pic.split('base64,')[1] : pic;
+            const buffer = Buffer.from(pureBase64, 'base64');
+            res.set('Content-Type', 'image/jpeg'); // Default to JPEG if unknown
+            res.set('Cache-Control', 'public, max-age=86400');
+            return res.send(buffer);
+        } catch (e) {
+            console.error('Failed to parse profile picture fallback:', e);
+            res.status(400).json({ error: 'Invalid image format' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// @desc    Get doctor profile picture (for admin view)
+// @route   GET /api/admin/doctors/:id/profile-picture
+exports.getDoctorProfilePicture = async (req, res) => {
+    try {
+        const doctor = await Doctor.findById(req.params.id).select('profilePicture');
+        if (!doctor || !doctor.profilePicture) {
+            return res.status(404).json({ error: 'Profile picture not found' });
+        }
+
+        const pic = doctor.profilePicture;
+
+        if (pic.startsWith('http')) {
+            return res.redirect(pic);
+        }
+
+        if (pic.startsWith('data:')) {
+            const matches = pic.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
+            if (matches && matches.length === 3) {
+                const contentType = matches[1];
+                const base64Data = matches[2];
+                const buffer = Buffer.from(base64Data, 'base64');
+                res.set('Content-Type', contentType);
+                res.set('Cache-Control', 'public, max-age=86400');
+                return res.send(buffer);
+            }
+        }
+
+        try {
+            const pureBase64 = pic.includes('base64,') ? pic.split('base64,')[1] : pic;
+            const buffer = Buffer.from(pureBase64, 'base64');
+            res.set('Content-Type', 'image/jpeg');
+            res.set('Cache-Control', 'public, max-age=86400');
+            return res.send(buffer);
+        } catch (e) {
+            res.status(400).json({ error: 'Invalid image format' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 
 
 

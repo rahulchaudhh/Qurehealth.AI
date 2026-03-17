@@ -15,15 +15,17 @@ const formatDOB = (iso) => {
 };
 
 function PatientProfile() {
-    const { user, updateUserProfile, logout } = useContext(AuthContext);
+    const { user, updateUserProfile, logout, setUserFromToken } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
         dateOfBirth: '',
-        gender: 'male'
+        gender: 'male',
+        profilePicture: null
     });
+    const [previewUrl, setPreviewUrl] = useState(null);
     const [loading, setLoading] = useState(false);
     const [toast, setToast] = useState({ show: false, type: '', text: '' });
 
@@ -33,8 +35,10 @@ function PatientProfile() {
                 name: user.name || '',
                 phone: user.phone || '',
                 dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split('T')[0] : '',
-                gender: user.gender || 'male'
+                gender: user.gender || 'male',
+                profilePicture: null
             });
+            setPreviewUrl(user.profilePicture || null);
         }
     }, [user]);
 
@@ -47,13 +51,32 @@ function PatientProfile() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setFormData({ ...formData, profilePicture: file });
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const { data } = await axios.put('/auth/profile', formData);
+            const dataToSubmit = new FormData();
+            Object.keys(formData).forEach(key => {
+                if (formData[key] !== null && formData[key] !== '') {
+                    dataToSubmit.append(key, formData[key]);
+                }
+            });
+
+            const { data } = await axios.put('/auth/profile', dataToSubmit, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
             updateUserProfile(data.data);
             showToast('success', 'Profile updated successfully!');
+            // Re-fetch me to get full large base64 image if we didn't return it
+            if (setUserFromToken) setUserFromToken();
         } catch (error) {
             console.error('Error updating profile:', error);
             showToast('error', 'Failed to update profile. Please try again.');
@@ -62,9 +85,10 @@ function PatientProfile() {
         }
     };
 
-    const avatarSrc = user?.gender?.toLowerCase() === 'female'
+    const defaultAvatar = user?.gender?.toLowerCase() === 'female'
         ? '/avatar_female.png'
         : '/avatar_male.png';
+    const avatarSrc = previewUrl || defaultAvatar;
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -87,7 +111,7 @@ function PatientProfile() {
             {/* ── Toast ── */}
             {toast.show && (
                 <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-sm font-medium transition-all
-                    ${toast.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                    ${toast.type === 'success' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
                     {toast.type === 'success'
                         ? <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                         : <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -103,13 +127,27 @@ function PatientProfile() {
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
                         {/* gradient header */}
-                        <div className="h-20 bg-gradient-to-r from-teal-400 to-cyan-500" />
+                        <div className="h-20 bg-gradient-to-r from-blue-500 to-indigo-600" />
 
                         {/* avatar */}
                         <div className="flex flex-col items-center -mt-10 pb-6 px-5">
-                            <div className="w-20 h-20 rounded-full border-4 border-white shadow-md overflow-hidden bg-teal-50">
-                                <img src={avatarSrc} alt="avatar" className="w-full h-full object-cover" />
-                            </div>
+                            <label className="relative cursor-pointer group">
+                                <div className="w-20 h-20 rounded-full border-4 border-white shadow-md overflow-hidden bg-blue-50 relative">
+                                    <img src={avatarSrc} alt="avatar" className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleImageChange}
+                                />
+                            </label>
                             <h2 className="mt-3 text-lg font-bold text-gray-900 text-center leading-tight">
                                 {user?.name || 'Patient'}
                             </h2>
@@ -122,7 +160,7 @@ function PatientProfile() {
                         <ul className="divide-y divide-gray-50 px-5 py-2">
                             <InfoRow
                                 icon={
-                                    <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
                                             d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
@@ -131,7 +169,7 @@ function PatientProfile() {
                             />
                             <InfoRow
                                 icon={
-                                    <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
                                             d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                     </svg>
@@ -140,7 +178,7 @@ function PatientProfile() {
                             />
                             <InfoRow
                                 icon={
-                                    <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
                                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
@@ -149,7 +187,7 @@ function PatientProfile() {
                             />
                             <InfoRow
                                 icon={
-                                    <svg className="w-4 h-4 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
                                             d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
@@ -166,7 +204,7 @@ function PatientProfile() {
                         <div className="px-5 py-3 space-y-1">
                             <button
                                 onClick={() => navigate('/patientdashboard')}
-                                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-teal-600 hover:bg-teal-50 transition-colors"
+                                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors"
                             >
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -218,7 +256,7 @@ function PatientProfile() {
                                         placeholder="Your full name"
                                         required
                                         className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-white text-gray-900 text-sm
-                                            focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all"
+                                            focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
                                     />
                                 </FormField>
 
@@ -241,7 +279,7 @@ function PatientProfile() {
                                         onChange={handleChange}
                                         placeholder="e.g. 9800000000"
                                         className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-white text-gray-900 text-sm
-                                            focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all"
+                                            focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
                                     />
                                 </FormField>
 
@@ -254,7 +292,7 @@ function PatientProfile() {
                                         onChange={handleChange}
                                         max={new Date().toISOString().split('T')[0]}
                                         className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-white text-gray-900 text-sm
-                                            focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all"
+                                            focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
                                     />
                                 </FormField>
 
@@ -265,7 +303,7 @@ function PatientProfile() {
                                         value={formData.gender}
                                         onChange={handleChange}
                                         className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-white text-gray-900 text-sm
-                                            focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all"
+                                            focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
                                     >
                                         <option value="male">Male</option>
                                         <option value="female">Female</option>
@@ -277,7 +315,7 @@ function PatientProfile() {
                             {/* Account type badge */}
                             <div className="pt-2">
                                 <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Account Type</p>
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-100">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
                                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                                     </svg>
@@ -291,7 +329,7 @@ function PatientProfile() {
                                     type="submit"
                                     disabled={loading}
                                     className={`inline-flex items-center gap-2 px-7 py-2.5 rounded-xl text-sm font-semibold text-white
-                                        bg-teal-500 hover:bg-teal-600 focus:ring-4 focus:ring-teal-100 transition-all
+                                        bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-100 transition-all
                                         ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
                                 >
                                     {loading

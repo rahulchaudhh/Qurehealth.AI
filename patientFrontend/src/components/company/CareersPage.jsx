@@ -35,12 +35,12 @@ export default function CareersPage() {
             <CompanyNav />
 
             {/* Hero */}
-            <section className="pt-32 pb-20 px-6 bg-gradient-to-br from-slate-50 to-purple-50/40">
-                <div className="max-w-4xl mx-auto text-center">
-                    <span className="inline-block px-4 py-1.5 rounded-full bg-purple-50 text-purple-600 text-xs font-bold uppercase tracking-wide mb-6">We're Hiring</span>
+            <section className="pt-32 pb-16 px-6 bg-gradient-to-br from-slate-50 to-rose-50/40">
+                <div className="max-w-3xl mx-auto text-center">
+                    <span className="inline-block px-4 py-1.5 rounded-full bg-rose-50 text-rose-600 text-xs font-bold uppercase tracking-wide mb-6">Join our mission</span>
                     <h1 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6 font-outfit leading-tight">
-                        Build the future of<br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600">healthcare in Nepal</span>
+                        Help us democratize<br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-indigo-600">healthcare in Nepal</span>
                     </h1>
                     <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed mb-8">
                         Join a small, mission-driven team working to make quality healthcare accessible to every person across Nepal's 77 districts.

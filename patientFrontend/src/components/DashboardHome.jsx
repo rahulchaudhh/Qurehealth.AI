@@ -13,13 +13,13 @@ export default function DashboardHome({ user, myAppointments, setCurrentPage }) 
           className="group relative bg-white p-6 rounded-2xl border border-gray-100 cursor-pointer hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300"
           onClick={() => setCurrentPage('symptoms')}
         >
-          <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-5 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
-            <Search size={24} />
+          <div className="w-16 h-16 rounded-xl flex items-center justify-center mb-5 group-hover:shadow-lg transition-all duration-300 overflow-hidden">
+            <img src="/check_symptoms.png" alt="Check Symptoms" className="w-full h-full object-cover" />
           </div>
           <h3 className="text-lg font-bold text-gray-900 mb-1.5">Check Symptoms</h3>
           <p className="text-xs text-gray-500 leading-relaxed font-medium">AI-powered intelligent disease prediction and analysis</p>
-          <div className="mt-4 flex items-center text-[10px] font-bold text-blue-600 uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-            Start Analysis <ArrowRight size={12} className="ml-1" />
+          <div className="mt-4 flex items-center text-xs font-bold text-blue-600 uppercase tracking-widest group-hover:gap-2 transition-all">
+            START ANALYSIS <ArrowRight size={14} className="ml-1" />
           </div>
         </div>
 
@@ -27,13 +27,13 @@ export default function DashboardHome({ user, myAppointments, setCurrentPage }) 
           className="group relative bg-white p-6 rounded-2xl border border-gray-100 cursor-pointer hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300"
           onClick={() => setCurrentPage('doctors')}
         >
-          <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 mb-5 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
-            <UserRound size={24} />
+          <div className="w-16 h-16 rounded-xl flex items-center justify-center mb-5 group-hover:shadow-lg transition-all duration-300 overflow-hidden">
+            <img src="/find_doctors.png" alt="Find Doctors" className="w-full h-full object-cover" />
           </div>
           <h3 className="text-lg font-bold text-gray-900 mb-1.5">Find Doctors</h3>
           <p className="text-xs text-gray-500 leading-relaxed font-medium">Book consultations with verified top health specialists</p>
-          <div className="mt-4 flex items-center text-[10px] font-bold text-emerald-600 uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-            Find Specialist <ArrowRight size={12} className="ml-1" />
+          <div className="mt-4 flex items-center text-xs font-bold text-blue-600 uppercase tracking-widest group-hover:gap-2 transition-all">
+            FIND SPECIALIST <ArrowRight size={14} className="ml-1" />
           </div>
         </div>
 
@@ -41,13 +41,13 @@ export default function DashboardHome({ user, myAppointments, setCurrentPage }) 
           className="group relative bg-white p-6 rounded-2xl border border-gray-100 cursor-pointer hover:border-purple-200 hover:shadow-xl hover:shadow-purple-500/5 transition-all duration-300"
           onClick={() => setCurrentPage('appointments')}
         >
-          <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 mb-5 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
-            <Calendar size={24} />
+          <div className="w-16 h-16 rounded-xl flex items-center justify-center mb-5 group-hover:shadow-lg transition-all duration-300 overflow-hidden">
+            <img src="/my_appointments.png" alt="My Appointments" className="w-full h-full object-cover" />
           </div>
           <h3 className="text-lg font-bold text-gray-900 mb-1.5">My Appointments</h3>
           <p className="text-xs text-gray-500 leading-relaxed font-medium">Manage your upcoming and past medical consultations</p>
-          <div className="mt-4 flex items-center text-[10px] font-bold text-purple-600 uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-            Manage Schedule <ArrowRight size={12} className="ml-1" />
+          <div className="mt-4 flex items-center text-xs font-bold text-blue-600 uppercase tracking-widest group-hover:gap-2 transition-all">
+            MANAGE SCHEDULE <ArrowRight size={14} className="ml-1" />
           </div>
         </div>
 
@@ -55,13 +55,13 @@ export default function DashboardHome({ user, myAppointments, setCurrentPage }) 
           className="group relative bg-white p-6 rounded-2xl border border-gray-100 cursor-pointer hover:border-amber-200 hover:shadow-xl hover:shadow-amber-500/5 transition-all duration-300"
           onClick={() => setCurrentPage('history')}
         >
-          <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 mb-5 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300">
-            <ClipboardList size={24} />
+          <div className="w-16 h-16 rounded-xl flex items-center justify-center mb-5 group-hover:shadow-lg transition-all duration-300 overflow-hidden">
+            <img src="/medical_history.png" alt="Medical History" className="w-full h-full object-cover" />
           </div>
           <h3 className="text-lg font-bold text-gray-900 mb-1.5">Medical History</h3>
           <p className="text-xs text-gray-500 leading-relaxed font-medium">Access and download your complete health records</p>
-          <div className="mt-4 flex items-center text-[10px] font-bold text-amber-600 uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-            View Records <ArrowRight size={12} className="ml-1" />
+          <div className="mt-4 flex items-center text-xs font-bold text-blue-600 uppercase tracking-widest group-hover:gap-2 transition-all">
+            VIEW RECORDS <ArrowRight size={14} className="ml-1" />
           </div>
         </div>
       </div>
@@ -71,9 +71,6 @@ export default function DashboardHome({ user, myAppointments, setCurrentPage }) 
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
-                <Calendar size={18} />
-              </div>
               <h2 className="text-lg font-bold text-gray-900">Upcoming Visits</h2>
             </div>
             <button
@@ -137,9 +134,6 @@ export default function DashboardHome({ user, myAppointments, setCurrentPage }) 
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-amber-50 text-amber-600 rounded-lg">
-                <Zap size={18} />
-              </div>
               <h2 className="text-lg font-bold text-gray-900">Health Insights</h2>
             </div>
           </div>
@@ -151,8 +145,8 @@ export default function DashboardHome({ user, myAppointments, setCurrentPage }) 
               className="group block p-4 bg-blue-50/30 rounded-xl border border-blue-50 hover:border-blue-100 hover:bg-blue-50/50 transition-all"
             >
               <div className="flex gap-4 items-center">
-                <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center shrink-0">
-                  <Droplets size={20} />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+                  <img src="/stay_hydrated.png" alt="Stay Hydrated" className="w-full h-full object-cover" />
                 </div>
                 <div>
                   <div className="text-sm font-bold text-gray-900 mb-0.5 flex items-center gap-1">
@@ -171,8 +165,8 @@ export default function DashboardHome({ user, myAppointments, setCurrentPage }) 
               className="group block p-4 bg-emerald-50/30 rounded-xl border border-emerald-50 hover:border-emerald-100 hover:bg-emerald-50/50 transition-all"
             >
               <div className="flex gap-4 items-center">
-                <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
-                  <Apple size={20} />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+                  <img src="/balanced_diet.png" alt="Balanced Diet" className="w-full h-full object-cover" />
                 </div>
                 <div>
                   <div className="text-sm font-bold text-gray-900 mb-0.5 flex items-center gap-1">
@@ -191,8 +185,8 @@ export default function DashboardHome({ user, myAppointments, setCurrentPage }) 
               className="group block p-4 bg-purple-50/30 rounded-xl border border-purple-50 hover:border-purple-100 hover:bg-purple-50/50 transition-all"
             >
               <div className="flex gap-4 items-center">
-                <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center shrink-0">
-                  <Moon size={20} />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+                  <img src="/quality_sleep.png" alt="Quality Sleep" className="w-full h-full object-cover" />
                 </div>
                 <div>
                   <div className="text-sm font-bold text-gray-900 mb-0.5 flex items-center gap-1">
@@ -207,31 +201,29 @@ export default function DashboardHome({ user, myAppointments, setCurrentPage }) 
         </div>
       </div>
 
-      <div className="relative bg-gradient-to-r from-red-500 to-red-600 p-8 rounded-2xl shadow-2xl overflow-hidden">
-        <div className="absolute inset-0 bg-black opacity-10"></div>
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full opacity-10 -mr-32 -mt-32"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full opacity-10 -ml-24 -mb-24"></div>
+      <div className="relative bg-white p-8 rounded-2xl border-2 border-red-50 shadow-xl shadow-red-500/5 overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-red-50 rounded-full opacity-40 -mr-32 -mt-32"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-red-50 rounded-full opacity-40 -ml-24 -mb-24"></div>
 
         <div className="relative flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-white">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="text-4xl">🚨</span>
-              <h2 className="text-2xl font-bold">24/7 Emergency Services</h2>
-            </div>
-            <p className="text-red-100 text-sm mb-2">Immediate medical assistance available anytime</p>
-            <div className="flex gap-4 text-sm">
+          <div className="text-gray-900">
+            <h2 className="text-2xl font-bold mb-3">24/7 Emergency Services</h2>
+            <p className="text-gray-500 text-sm mb-4 font-medium">Immediate medical assistance available anytime</p>
+            <div className="flex flex-wrap gap-6 text-sm">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-white">Helpline:</span>
-                <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full font-bold">102</span>
+                <span className="font-bold text-gray-400 uppercase text-[10px] tracking-wider">Helpline:</span>
+                <span className="bg-red-50 text-red-600 px-3 py-1 rounded-lg font-bold">102</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-white">Ambulance:</span>
-                <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full font-bold">1-4200-1990</span>
+                <span className="font-bold text-gray-400 uppercase text-[10px] tracking-wider">Ambulance:</span>
+                <span className="bg-red-50 text-red-600 px-3 py-1 rounded-lg font-bold font-mono">1-4200-1990</span>
               </div>
             </div>
           </div>
-          <button className="px-8 py-4 bg-white text-red-600 rounded-xl text-base font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-2">
-            <span className="text-xl">📞</span>
+          <button
+            onClick={() => window.location.href = 'tel:102'}
+            className="px-8 py-3.5 bg-red-600 text-white rounded-xl text-sm font-bold shadow-md hover:bg-red-700 hover:scale-[1.02] transition-all duration-300 flex items-center gap-2 active:scale-95"
+          >
             Call Emergency Now
           </button>
         </div>

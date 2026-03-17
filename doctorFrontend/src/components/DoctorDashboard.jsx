@@ -46,11 +46,11 @@ import {
 } from 'recharts';
 
 const statusStyle = {
-    pending: 'bg-amber-50   text-amber-700  border-amber-200',
-    confirmed: 'bg-gray-100   text-gray-700   border-gray-200',
-    completed: 'bg-blue-50    text-blue-700   border-blue-200',
-    cancelled: 'bg-red-50     text-red-600    border-red-200',
-    missed: 'bg-gray-100   text-gray-500   border-gray-200',
+    pending: 'text-amber-600',
+    confirmed: 'text-gray-700',
+    completed: 'text-blue-600',
+    cancelled: 'text-red-500',
+    missed: 'text-gray-400',
 };
 
 function Avatar({ name = '', src, size = 9 }) {
@@ -66,7 +66,7 @@ function Badge({ status, date }) {
     const isMissed = status === 'pending' && date && new Date(date) < new Date().setHours(0, 0, 0, 0);
     const display = isMissed ? 'missed' : status;
     return (
-        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border capitalize ${statusStyle[display] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+        <span className={`text-xs font-semibold capitalize ${statusStyle[display] || 'text-gray-500'}`}>
             {display}
         </span>
     );
@@ -113,6 +113,8 @@ function DoctorDashboard() {
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null });
     const [aptDetail, setAptDetail] = useState(null); // appointment detail modal
+    const [patientDetail, setPatientDetail] = useState(null); // patient profile detail modal
+    const [patientDetailLoading, setPatientDetailLoading] = useState(false);
 
     // Search state
     const [searchQuery, setSearchQuery] = useState('');
@@ -207,6 +209,19 @@ function DoctorDashboard() {
         } catch (err) { console.error(err); }
     };
 
+    const fetchPatientDetail = async (patientId) => {
+        setPatientDetailLoading(true);
+        try {
+            const { data } = await axios.get(`/doctor/patient/${patientId}`);
+            setPatientDetail(data.data);
+        } catch (err) {
+            console.error('Error fetching patient detail:', err);
+            showToast('Failed to load patient details', 'error');
+        } finally {
+            setPatientDetailLoading(false);
+        }
+    };
+
     useEffect(() => {
         const checkNotifications = async () => {
             try {
@@ -266,6 +281,20 @@ function DoctorDashboard() {
                     await fetchAll();
                     showToast('Appointment removed.');
                 } catch (err) { showToast(err.response?.data?.error || 'Failed to remove', 'error'); }
+            }
+        });
+    };
+
+    const handleDeclineClick = (id) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Decline Appointment',
+            message: 'Are you sure you want to decline this appointment? This action cannot be undone.',
+            type: 'neutral',
+            confirmText: 'Yes, Decline',
+            cancelText: 'No, Keep it',
+            onConfirm: async () => {
+                await updateAppointmentStatus(id, 'cancelled');
             }
         });
     };
@@ -527,14 +556,13 @@ function DoctorDashboard() {
                             {/* Stat Cards */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                 {[
-                                    { label: 'Total Patients', value: stats.patients, icon: <Users size={16} />, text: 'text-blue-600', trend: '+8%', trendUp: true },
-                                    { label: 'Appointments', value: stats.appointments, icon: <CalendarDays size={16} />, text: 'text-violet-600', trend: '+12%', trendUp: true },
-                                    { label: 'Completed', value: stats.tasks, icon: <CheckCircle2 size={16} />, text: 'text-green-600', trend: '+5%', trendUp: true },
-                                    { label: "Today's Schedule", value: todayAppts, icon: <Clock size={16} />, text: 'text-amber-600', trend: '+3%', trendUp: true },
+                                    { label: 'Total Patients', value: stats.patients, text: 'text-blue-600', trend: '+8%', trendUp: true },
+                                    { label: 'Appointments', value: stats.appointments, text: 'text-violet-600', trend: '+12%', trendUp: true },
+                                    { label: 'Completed', value: stats.tasks, text: 'text-green-600', trend: '+5%', trendUp: true },
+                                    { label: "Today's Schedule", value: todayAppts, text: 'text-amber-600', trend: '+3%', trendUp: true },
                                 ].map((s, i) => (
                                     <div key={i} className="bg-white rounded-xl border border-gray-200 p-5">
                                         <div className={`flex items-center gap-2 mb-3 ${s.text}`}>
-                                            {s.icon}
                                             <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{s.label}</p>
                                         </div>
                                         <div className="flex items-baseline gap-2">
@@ -677,14 +705,11 @@ function DoctorDashboard() {
                             {/* Summary Cards */}
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 {[
-                                    { label: 'Total Patients', value: patients.length, icon: <Users size={16} />, text: 'text-blue-600' },
-                                    { label: 'Male Patients', value: patients.filter(p => p.gender === 'male').length, icon: <UserCircle size={16} />, text: 'text-indigo-600' },
-                                    { label: 'Female Patients', value: patients.filter(p => p.gender === 'female').length, icon: <UserCircle size={16} />, text: 'text-pink-600' },
+                                    { label: 'Total Patients', value: patients.length, text: 'text-blue-600' },
+                                    { label: 'Male Patients', value: patients.filter(p => p.gender === 'male').length, text: 'text-indigo-600' },
+                                    { label: 'Female Patients', value: patients.filter(p => p.gender === 'female').length, text: 'text-pink-600' },
                                 ].map((s, i) => (
-                                    <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
-                                        <div className={`flex items-center gap-2 ${s.text}`}>
-                                            {s.icon}
-                                        </div>
+                                    <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 shrink-0 px-8">
                                         <div>
                                             <p className="text-xs text-gray-500 font-medium">{s.label}</p>
                                             <p className="text-xl font-bold text-gray-900">{s.value}</p>
@@ -707,6 +732,7 @@ function DoctorDashboard() {
                                                 <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Email</th>
                                                 <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Phone</th>
                                                 <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3">Gender</th>
+                                                <th className="text-left text-xs font-semibold text-gray-500 px-5 py-3"></th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -721,10 +747,18 @@ function DoctorDashboard() {
                                                     </td>
                                                 </tr>
                                             ) : patients.map(p => (
-                                                <tr key={p._id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60 transition-colors">
+                                                <tr key={p._id} onClick={() => fetchPatientDetail(p._id)} className="border-b border-gray-50 last:border-0 hover:bg-blue-50/40 transition-colors cursor-pointer">
                                                     <td className="px-5 py-3.5">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                                            {p.hasProfilePicture ? (
+                                                                <img
+                                                                    src={`/api/doctor/patient/${p._id}/profile-picture`}
+                                                                    alt={p.name}
+                                                                    className="w-8 h-8 rounded-full object-cover shrink-0"
+                                                                    onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                                                                />
+                                                            ) : null}
+                                                            <div className={`w-8 h-8 rounded-full bg-blue-50 text-blue-600 items-center justify-center text-xs font-bold shrink-0 ${p.hasProfilePicture ? 'hidden' : 'flex'}`}>
                                                                 {p.name.charAt(0).toUpperCase()}
                                                             </div>
                                                             <div>
@@ -740,6 +774,11 @@ function DoctorDashboard() {
                                                                 p.gender === 'female' ? 'bg-pink-50 text-pink-700 border-pink-200' :
                                                                     'bg-gray-50 text-gray-500 border-gray-200'}`}>
                                                             {p.gender || '—'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-5 py-3.5">
+                                                        <span className="text-xs text-blue-600 font-medium flex items-center gap-1">
+                                                            View <ArrowUpRight size={12} />
                                                         </span>
                                                     </td>
                                                 </tr>
@@ -786,7 +825,7 @@ function DoctorDashboard() {
                                     appointments={appointments}
                                     onSelectAppointment={setAptDetail}
                                     onAccept={apt => { setAcceptModal({ isOpen: true, appointmentId: apt._id }); setMeetingLink(''); }}
-                                    onDecline={apt => updateAppointmentStatus(apt._id, 'cancelled')}
+                                    onDecline={apt => handleDeclineClick(apt._id)}
                                     onComplete={apt => setCompletionModal({ isOpen: true, appointmentId: apt._id })}
                                     onMeet={apt => apt.meetingLink && window.open(apt.meetingLink, '_blank')}
                                 />
@@ -1062,7 +1101,7 @@ function DoctorDashboard() {
                             {aptDetail.status === 'pending' && !(aptDetail.date && new Date(aptDetail.date) < new Date().setHours(0, 0, 0, 0)) && (
                                 <>
                                     <button
-                                        onClick={() => { updateAppointmentStatus(aptDetail._id, 'cancelled'); setAptDetail(null); }}
+                                        onClick={() => { handleDeclineClick(aptDetail._id); setAptDetail(null); }}
                                         className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                                         Decline
                                     </button>
@@ -1231,12 +1270,102 @@ function DoctorDashboard() {
             )}
 
             <ConfirmModal
-                isOpen={confirmModal.isOpen}
+                {...confirmModal}
                 onClose={() => setConfirmModal(m => ({ ...m, isOpen: false }))}
-                onConfirm={confirmModal.onConfirm}
-                title={confirmModal.title}
-                message={confirmModal.message}
             />
+
+            {/* ── Patient Detail Modal ── */}
+            {(patientDetail || patientDetailLoading) && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => !patientDetailLoading && setPatientDetail(null)}>
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] overflow-hidden relative" onClick={e => e.stopPropagation()}>
+                        {patientDetailLoading ? (
+                            <div className="flex flex-col items-center justify-center py-20">
+                                <div className="w-10 h-10 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin mb-3"></div>
+                                <p className="text-sm text-gray-500">Loading patient details...</p>
+                            </div>
+                        ) : patientDetail && (
+                            <>
+                                {/* Header */}
+                                <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-5 text-white relative">
+                                    <button onClick={() => setPatientDetail(null)} className="absolute top-4 right-4 p-1 rounded-full hover:bg-white/20 transition-colors">
+                                        <X size={18} />
+                                    </button>
+                                    <div className="flex items-center gap-4">
+                                        {patientDetail.patient.hasProfilePicture ? (
+                                            <img
+                                                src={`/api/doctor/patient/${patientDetail.patient._id}/profile-picture`}
+                                                alt={patientDetail.patient.name}
+                                                className="w-14 h-14 rounded-full object-cover border-2 border-white/30"
+                                                onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                                            />
+                                        ) : null}
+                                        <div className={`w-14 h-14 rounded-full bg-white/20 items-center justify-center text-xl font-bold ${patientDetail.patient.hasProfilePicture ? 'hidden' : 'flex'}`}>
+                                            {patientDetail.patient.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <h2 className="text-lg font-bold">{patientDetail.patient.name}</h2>
+                                            <p className="text-sm text-blue-100">{patientDetail.patient.email}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="overflow-y-auto max-h-[calc(85vh-120px)] custom-scrollbar">
+                                    {/* Patient Info Grid */}
+                                    <div className="px-6 py-5 border-b border-gray-100">
+                                        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Patient Information</h3>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                            {[
+                                                { label: 'Phone', value: patientDetail.patient.phone || 'Not provided' },
+                                                { label: 'Gender', value: patientDetail.patient.gender ? patientDetail.patient.gender.charAt(0).toUpperCase() + patientDetail.patient.gender.slice(1) : 'Not specified' },
+                                                { label: 'Date of Birth', value: patientDetail.patient.dateOfBirth ? new Date(patientDetail.patient.dateOfBirth).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : 'Not provided' },
+                                                { label: 'Member Since', value: new Date(patientDetail.patient.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) },
+                                                { label: 'Total Visits', value: patientDetail.appointments.length },
+                                                { label: 'Completed', value: patientDetail.appointments.filter(a => a.status === 'completed').length }
+                                            ].map((item, i) => (
+                                                <div key={i} className="bg-gray-50 rounded-xl px-4 py-3">
+                                                    <p className="text-xs text-gray-400 font-medium mb-0.5">{item.label}</p>
+                                                    <p className="text-sm font-semibold text-gray-900">{item.value}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Appointment History */}
+                                    <div className="px-6 py-5">
+                                        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Appointment History</h3>
+                                        {patientDetail.appointments.length === 0 ? (
+                                            <div className="text-center py-10 text-sm text-gray-400">No appointments found</div>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {patientDetail.appointments.map(apt => (
+                                                    <div key={apt._id} className="border border-gray-100 rounded-xl p-4 hover:border-gray-200 transition-colors">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <Calendar size={14} className="text-gray-400" />
+                                                                <span className="text-sm font-semibold text-gray-800">
+                                                                    {new Date(apt.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                                                                </span>
+                                                                <span className="text-xs text-gray-400">{apt.time}</span>
+                                                            </div>
+                                                            <span className={`text-xs font-semibold capitalize ${statusStyle[apt.status] || 'text-gray-500'}`}>
+                                                                {apt.status}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-xs text-gray-500 mb-1"><span className="font-medium text-gray-600">Reason:</span> {apt.reason}</p>
+                                                        {apt.diagnosis && <p className="text-xs text-gray-500"><span className="font-medium text-gray-600">Diagnosis:</span> {apt.diagnosis}</p>}
+                                                        {apt.prescription && <p className="text-xs text-gray-500 mt-0.5"><span className="font-medium text-gray-600">Prescription:</span> {apt.prescription}</p>}
+                                                        {apt.doctorNotes && <p className="text-xs text-gray-500 mt-0.5"><span className="font-medium text-gray-600">Notes:</span> {apt.doctorNotes}</p>}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
 
             <BroadcastModal
                 isOpen={broadcastModal.isOpen}

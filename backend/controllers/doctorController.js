@@ -243,15 +243,115 @@ exports.getDoctorPatients = async (req, res) => {
         const patientIds = await Appointment.distinct('patient', { doctor: req.user._id });
 
         const Patient = require('../models/Patient');
-        const patients = await Patient.find({ _id: { $in: patientIds } }).select('-password -profilePicture').maxTimeMS(30000);
+        // Fetch patients with basic info
+        const patients = await Patient.find({ _id: { $in: patientIds } })
+            .select('name email phone gender dateOfBirth createdAt profilePicture')
+            .lean()
+            .maxTimeMS(30000);
+
+        // Transform to include hasProfilePicture and exclude the actual image data from the list for performance
+        const patientsWithFlag = patients.map(p => {
+            const hasPic = !!p.profilePicture;
+            const { profilePicture, ...rest } = p;
+            return { ...rest, hasProfilePicture: hasPic };
+        });
 
         res.json({
             success: true,
-            count: patients.length,
-            data: patients
+            count: patientsWithFlag.length,
+            data: patientsWithFlag
         });
     } catch (error) {
         console.error('Get Doctor Patients Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// @desc    Get single patient detail with appointment history for this doctor
+// @route   GET /api/doctor/patient/:id
+// @access  Private (Doctor)
+exports.getPatientDetail = async (req, res) => {
+    try {
+        const Patient = require('../models/Patient');
+        const patient = await Patient.findById(req.params.id).select('-password -profilePicture').lean();
+        if (!patient) {
+            return res.status(404).json({ error: 'Patient not found' });
+        }
+
+        // Check if this patient has a profile picture
+        const picCheck = await Patient.findById(req.params.id).select('profilePicture').lean();
+        patient.hasProfilePicture = !!(picCheck && picCheck.profilePicture);
+
+        // Get appointment history between this doctor and this patient
+        const appointments = await Appointment.find({
+            doctor: req.user._id,
+            patient: req.params.id
+        })
+        .select('date time reason status diagnosis prescription doctorNotes paymentStatus rating createdAt')
+        .sort({ date: -1 })
+        .lean()
+        .maxTimeMS(15000);
+
+        // Auto-mark past pending/confirmed appointments as 'missed'
+        const now = new Date();
+        const missedIds = [];
+        for (const apt of appointments) {
+            if ((apt.status === 'pending' || apt.status === 'confirmed') && apt.date) {
+                const aptDate = new Date(apt.date + 'T23:59:59');
+                if (aptDate < now) {
+                    missedIds.push(apt._id);
+                    apt.status = 'missed';
+                }
+            }
+        }
+        // Batch update in DB (fire-and-forget)
+        if (missedIds.length > 0) {
+            Appointment.updateMany(
+                { _id: { $in: missedIds } },
+                { $set: { status: 'missed' } }
+            ).catch(err => console.error('Auto-miss update failed:', err.message));
+        }
+
+        res.json({
+            success: true,
+            data: {
+                patient,
+                appointments
+            }
+        });
+    } catch (error) {
+        console.error('Get Patient Detail Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// @desc    Get patient profile picture (for doctor view)
+// @route   GET /api/doctor/patient/:id/profile-picture
+// @access  Private (Doctor)
+exports.getPatientProfilePicture = async (req, res) => {
+    try {
+        const Patient = require('../models/Patient');
+        const patient = await Patient.findById(req.params.id).select('profilePicture');
+        if (!patient || !patient.profilePicture) {
+            return res.status(404).json({ error: 'Profile picture not found' });
+        }
+
+        // Handle data URI format: data:image/jpeg;base64,...
+        const matches = patient.profilePicture.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
+        if (!matches || matches.length !== 3) {
+            // It might be a URL (Google profile picture)
+            return res.redirect(patient.profilePicture);
+        }
+
+        const contentType = matches[1];
+        const base64Data = matches[2];
+        const buffer = Buffer.from(base64Data, 'base64');
+
+        res.set('Content-Type', contentType);
+        res.set('Cache-Control', 'public, max-age=86400');
+        res.send(buffer);
+    } catch (error) {
+        console.error('Get Patient Profile Picture Error:', error);
         res.status(500).json({ error: error.message });
     }
 };
