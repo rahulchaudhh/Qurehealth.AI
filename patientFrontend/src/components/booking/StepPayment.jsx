@@ -1,4 +1,4 @@
-import { Building2, CreditCard } from 'lucide-react';
+import { Building2, CreditCard, Wallet } from 'lucide-react';
 
 const PAYMENT_METHODS = [
   {
@@ -11,14 +11,22 @@ const PAYMENT_METHODS = [
     badge: null,
   },
   {
+    id: 'esewa',
+    name: 'eSewa',
+    desc: 'Pay securely via eSewa digital wallet',
+    iconBg: 'bg-green-50/50',
+    imgUrl: 'https://esewa.com.np/common/images/esewa-logo.png',
+    badge: 'eSewa',
+    badgeBg: 'bg-green-100 text-green-700',
+  },
+  {
     id: 'card',
     name: 'Credit / Debit Card',
     desc: 'Visa, Mastercard & more — powered by Stripe',
-    icon: CreditCard,
-    iconBg: 'bg-blue-100',
-    iconColor: 'text-blue-600',
+    iconBg: 'bg-blue-50/50',
+    imgUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg',
     badge: 'Stripe',
-    badgeBg: 'bg-blue-100 text-blue-600',
+    badgeBg: 'bg-indigo-100 text-indigo-700',
   },
 ];
 
@@ -37,7 +45,7 @@ export default function StepPayment({ paymentMethod, onChange, doctor }) {
 
       {/* Methods */}
       <div className="space-y-2.5">
-        {PAYMENT_METHODS.map(({ id, name, desc, icon: Icon, iconBg, iconColor, badge, badgeBg }) => {
+        {PAYMENT_METHODS.map(({ id, name, desc, icon: Icon, iconBg, iconColor, badge, badgeBg, imgUrl }) => {
           const selected = paymentMethod === id;
           return (
             <button
@@ -59,9 +67,13 @@ export default function StepPayment({ paymentMethod, onChange, doctor }) {
                 {selected && <div className="w-2 h-2 rounded-full bg-blue-600" />}
               </div>
 
-              {/* Icon */}
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}>
-                <Icon size={18} className={iconColor} strokeWidth={1.8} />
+              {/* Icon / Image */}
+              <div className={`w-12 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg || ''}`}>
+                {imgUrl ? (
+                  <img src={imgUrl} alt={name} className="w-8 object-contain" />
+                ) : (
+                  <Icon size={18} className={iconColor} strokeWidth={1.8} />
+                )}
               </div>
 
               {/* Label */}

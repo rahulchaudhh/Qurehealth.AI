@@ -440,19 +440,20 @@ export default function Dashboard() {
     }
   }, [authUser]);
 
-  const handleBookAppointment = async (e) => {
-    e.preventDefault();
+  const handleBookAppointment = async (e, overrides = {}) => {
+    e?.preventDefault?.();
+    const finalData = { ...bookingData, ...overrides };
 
     // Validate required fields before sending
-    if (!bookingData.time) {
+    if (!finalData.time) {
       toast.error('Please select a time slot.');
       return;
     }
-    if (!bookingData.date) {
+    if (!finalData.date) {
       toast.error('Please select a date.');
       return;
     }
-    if (!bookingData.reason || !bookingData.reason.trim()) {
+    if (!finalData.reason || !finalData.reason.trim()) {
       toast.error('Please enter a reason for your visit.');
       return;
     }
@@ -468,12 +469,19 @@ export default function Dashboard() {
       setIsBooking(true);
       const res = await api.post('/appointments', {
         doctorId,
-        date: bookingData.date,
-        time: bookingData.time,
-        reason: bookingData.reason.trim()
+        date: finalData.date,
+        time: finalData.time,
+        reason: finalData.reason.trim(),
+        paymentMethod: finalData.paymentMethod || 'pay-at-clinic'
       });
 
-      toast.success('Appointment booked successfully!');
+      if (finalData.paymentMethod === 'esewa') {
+        toast.info('Initiating eSewa Secure Payment...', { icon: '🔒' });
+      } else if (finalData.paymentMethod === 'card' || finalData.paymentMethod === 'stripe') {
+        toast.info('Preparing secure card payment...', { icon: '🔒' });
+      } else {
+        toast.success('Appointment booked successfully!');
+      }
 
       // Do NOT close the wizard here — BookingWizard will advance to the confirmation step.
       // Re-fetch appointments so the list has fully populated doctor objects
@@ -929,122 +937,157 @@ export default function Dashboard() {
           }}
         />
       )}
-
-
       {/* Appointment Details Modal */}
       {
-        viewAppointment && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fadeIn transform transition-all">
-              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <h2 className="text-xl font-bold text-gray-900">Appointment Details</h2>
-                <button
-                  onClick={() => setViewAppointment(null)}
-                  className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <X size={24} strokeWidth={2} />
-                </button>
-              </div>
+        viewAppointment && (() => {
+          const isMissed = new Date(viewAppointment.date) < new Date().setHours(0, 0, 0, 0) && viewAppointment.status === 'pending';
+          const dispStatus = isMissed ? 'missed' : viewAppointment.status;
+          const statusCfg = dispStatus === 'confirmed'
+              ? { bg: 'bg-blue-50', iconBg: 'bg-blue-600', titleColor: 'text-blue-700', subColor: 'text-blue-500', icon: CheckCircle2, title: 'Confirmed', sub: 'Your appointment is confirmed.' }
+              : dispStatus === 'completed'
+              ? { bg: 'bg-blue-50', iconBg: 'bg-blue-600', titleColor: 'text-blue-700', subColor: 'text-blue-400', icon: Star, title: 'Completed', sub: 'Consultation has been completed.' }
+              : dispStatus === 'cancelled'
+              ? { bg: 'bg-gray-50', iconBg: 'bg-gray-400', titleColor: 'text-gray-700', subColor: 'text-gray-500', icon: AlertTriangle, title: 'Cancelled', sub: 'This appointment was cancelled.' }
+              : dispStatus === 'missed'
+              ? { bg: 'bg-red-50', iconBg: 'bg-red-500', titleColor: 'text-red-700', subColor: 'text-red-500', icon: AlertTriangle, title: 'Missed', sub: 'You missed this appointment.' }
+              : { bg: 'bg-amber-50', iconBg: 'bg-amber-500', titleColor: 'text-amber-700', subColor: 'text-amber-600', icon: Clock, title: 'Pending', sub: 'Awaiting confirmation.' };
+          const StatusIcon = statusCfg.icon;
 
-              <div className="p-6 space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Doctor</h3>
-                  <p className="text-lg font-bold text-gray-900">{viewAppointment.doctor.name}</p>
-                  <p className="text-sm text-blue-600">{viewAppointment.doctor.specialization}</p>
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300" style={{ background: 'rgba(0,0,0,0.5)' }}>
+              <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-fadeIn transform transition-all">
+                
+                {/* ── Title bar ── */}
+                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                  <div>
+                      <h2 className="text-sm font-bold text-gray-900 leading-none">Appointment Details</h2>
+                      <p className="text-xs text-gray-400 mt-0.5">Consultation info</p>
+                  </div>
+                  <button
+                    onClick={() => setViewAppointment(null)}
+                    className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <X size={14} strokeWidth={2.5} />
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Date</h3>
-                    <p className="text-gray-900">{new Date(viewAppointment.date).toLocaleDateString()}</p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Time</h3>
-                    <p className="text-gray-900">{viewAppointment.time}</p>
-                  </div>
+                {/* ── Status banner ── */}
+                <div className={`flex items-center gap-3 px-5 py-4 ${statusCfg.bg}`}>
+                    <span className={`w-9 h-9 rounded-full ${statusCfg.iconBg} flex items-center justify-center flex-shrink-0`}>
+                        <StatusIcon size={16} className="text-white" strokeWidth={2.5} />
+                    </span>
+                    <div className="min-w-0">
+                        <p className={`text-sm font-bold leading-none ${statusCfg.titleColor}`}>
+                            {statusCfg.title}
+                        </p>
+                        <p className={`text-xs mt-1 ${statusCfg.subColor}`}>
+                            {statusCfg.sub}
+                        </p>
+                    </div>
                 </div>
 
-                <div>
-                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Status</h3>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${(new Date(viewAppointment.date) < new Date().setHours(0, 0, 0, 0) && viewAppointment.status === 'pending') ? 'bg-red-100 text-red-700' :
-                    viewAppointment.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
-                      viewAppointment.status === 'completed' ? 'bg-blue-50 text-blue-700 border border-blue-100' :
-                        viewAppointment.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                          'bg-yellow-100 text-yellow-700'
-                    }`}>
-                    {(new Date(viewAppointment.date) < new Date().setHours(0, 0, 0, 0) && viewAppointment.status === 'pending') ? 'Missed' : viewAppointment.status}
-                  </span>
-                </div>
+                {/* ── Rows ── */}
+                <div className="px-5 pt-1 pb-2">
+                    <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
+                        <span className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider w-24 flex-shrink-0">
+                            <User size={12} strokeWidth={2.5} className="text-gray-300" />
+                            Doctor
+                        </span>
+                        <div className="text-sm font-semibold text-gray-800 text-right leading-snug">
+                            <span>{viewAppointment.doctor?.name || '—'}</span>
+                            {viewAppointment.doctor?.specialization && (
+                                <span className="block text-xs font-medium text-blue-500 mt-0.5">
+                                    {viewAppointment.doctor.specialization}
+                                </span>
+                            )}
+                        </div>
+                    </div>
 
-                {viewAppointment.reason && (
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Reason</h3>
-                    <p className="text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                      {viewAppointment.reason}
-                    </p>
-                  </div>
-                )}
-              </div>
+                    <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
+                        <span className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider w-24 flex-shrink-0">
+                            <Calendar size={12} strokeWidth={2.5} className="text-gray-300" />
+                            Date
+                        </span>
+                        <div className="text-sm font-semibold text-gray-800 text-right leading-snug">
+                            <span>{new Date(viewAppointment.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                            <span className="block text-xs font-medium text-gray-400 mt-0.5">{viewAppointment.time}</span>
+                        </div>
+                    </div>
 
-              <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
-                {viewAppointment.status === 'confirmed' && (
-                  <>
-                    <button
-                      onClick={() => {
-                        const startDt = (() => {
-                          const [timePart, meridiem] = viewAppointment.time.split(' ');
-                          let [h, m] = timePart.split(':').map(Number);
-                          if (meridiem?.toUpperCase() === 'PM' && h !== 12) h += 12;
-                          if (meridiem?.toUpperCase() === 'AM' && h === 12) h = 0;
-                          const d = new Date(`${viewAppointment.date}T00:00:00`);
-                          d.setHours(h, m, 0, 0);
-                          return d;
-                        })();
-                        const endDt = new Date(startDt.getTime() + 30 * 60 * 1000);
-                        const fmt = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
-                        const params = new URLSearchParams({
-                          action: 'TEMPLATE',
-                          text: `Consultation with ${viewAppointment.doctor.name}`,
-                          dates: `${fmt(startDt)}/${fmt(endDt)}`,
-                          details: `Appointment with ${viewAppointment.doctor.name} (${viewAppointment.doctor.specialization || 'Specialist'})\nReason: ${viewAppointment.reason || 'Consultation'}${viewAppointment.meetingLink ? '\nMeeting Link: ' + viewAppointment.meetingLink : ''}`,
-                          ...(viewAppointment.meetingLink ? { location: viewAppointment.meetingLink } : {}),
-                        });
-                        window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, '_blank');
-                      }}
-                      className="px-5 py-2.5 bg-white text-emerald-600 border border-emerald-200 rounded-lg text-sm font-bold hover:bg-emerald-50 transition-colors flex items-center gap-2"
-                    >
-                      <Calendar size={16} strokeWidth={2} />
-                      Add to Calendar
-                    </button>
-                    {viewAppointment.meetingLink && (
-                      <a
-                        href={viewAppointment.meetingLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-5 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors flex items-center gap-2"
-                      >
-                        <Video size={16} strokeWidth={2} />
-                        Join Meeting
-                      </a>
+                    {viewAppointment.reason && (
+                        <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
+                            <span className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider w-24 flex-shrink-0 mt-0.5">
+                                <Info size={12} strokeWidth={2.5} className="text-gray-300" />
+                                Reason
+                            </span>
+                            <div className="text-sm font-medium text-gray-600 text-right leading-snug break-words">
+                                {viewAppointment.reason}
+                            </div>
+                        </div>
                     )}
-                  </>
-                )}
-                <button
-                  onClick={() => setViewAppointment(null)}
-                  className="px-5 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-bold hover:bg-black transition-colors"
-                >
-                  Close
-                </button>
+                </div>
+
+                {/* ── Footer ── */}
+                <div className="px-5 pb-5 pt-4 flex justify-end gap-3">
+                  {viewAppointment.status === 'confirmed' && (
+                    <>
+                      <button
+                        onClick={() => {
+                          const startDt = (() => {
+                            const [timePart, meridiem] = viewAppointment.time.split(' ');
+                            let [h, m] = timePart.split(':').map(Number);
+                            if (meridiem?.toUpperCase() === 'PM' && h !== 12) h += 12;
+                            if (meridiem?.toUpperCase() === 'AM' && h === 12) h = 0;
+                            const d = new Date(`${viewAppointment.date}T00:00:00`);
+                            d.setHours(h, m, 0, 0);
+                            return d;
+                          })();
+                          const endDt = new Date(startDt.getTime() + 30 * 60 * 1000);
+                          const fmt = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+                          const params = new URLSearchParams({
+                            action: 'TEMPLATE',
+                            text: `Consultation with ${viewAppointment.doctor.name}`,
+                            dates: `${fmt(startDt)}/${fmt(endDt)}`,
+                            details: `Appointment with ${viewAppointment.doctor.name} (${viewAppointment.doctor.specialization || 'Specialist'})\nReason: ${viewAppointment.reason || 'Consultation'}${viewAppointment.meetingLink ? '\nMeeting Link: ' + viewAppointment.meetingLink : ''}`,
+                            ...(viewAppointment.meetingLink ? { location: viewAppointment.meetingLink } : {}),
+                          });
+                          window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, '_blank');
+                        }}
+                        className="px-5 py-2.5 bg-white text-blue-600 border border-blue-200 rounded-lg text-sm font-bold hover:bg-blue-50 transition-colors flex items-center gap-2"
+                      >
+                        <Calendar size={16} strokeWidth={2} />
+                        Add to Calendar
+                      </button>
+                      {viewAppointment.meetingLink && (
+                        <a
+                          href={viewAppointment.meetingLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-5 py-2.5 text-[#1a73e8] hover:text-[#1557b0] text-sm font-bold transition-colors flex items-center gap-2"
+                        >
+                          <Video size={16} strokeWidth={2} />
+                          Join Meeting
+                        </a>
+                      )}
+                    </>
+                  )}
+                  <button
+                    onClick={() => setViewAppointment(null)}
+                    className="px-5 py-2.5 text-gray-500 hover:text-gray-900 text-sm font-bold transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )
+          );
+        })()
       }
 
       {/* Medical History Details Modal */}
       {
         viewHistory && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 transition-all duration-300">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fadeIn transform transition-all">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white">
                 <h2 className="text-xl font-bold text-gray-900">Medical Record</h2>
@@ -1138,7 +1181,7 @@ export default function Dashboard() {
       {/* Delete Confirmation Modal */}
       {
         deleteConfirmation.isOpen && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 transition-all duration-300">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4 transition-all duration-300">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-fadeIn transform transition-all scale-100">
               <div className="p-6 text-center">
                 <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">

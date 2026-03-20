@@ -8,6 +8,7 @@ import LandingPage from './components/LandingPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import PatientProfile from './components/PatientProfile';
 import PaymentSuccess from './components/PaymentSuccess';
+import PaymentFailure from './components/PaymentFailure';
 import MedicalRecordView from './components/MedicalRecordView';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
@@ -115,6 +116,15 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['patient']}>
                   <PaymentSuccess />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/payment/failure"
+              element={
+                <ProtectedRoute allowedRoles={['patient']}>
+                  <PaymentFailure />
                 </ProtectedRoute>
               }
             />

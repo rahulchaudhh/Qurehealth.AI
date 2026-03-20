@@ -230,7 +230,7 @@ function Register() {
         )}
 
         {successMsg && role === 'patient' && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
             <div
               className="bg-white rounded-2xl shadow-xl px-10 py-12 w-full max-w-md flex flex-col items-center"
               style={{ animation: 'fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}

@@ -22,7 +22,7 @@ exports.bookAppointment = async (req, res) => {
                 date,
                 time,
                 status: { $in: ['pending', 'confirmed'] }
-            }).select('_id').maxTimeMS(30000)
+            }).select('_id patient status paymentStatus').maxTimeMS(30000)
         ]);
 
         if (!doctor) {
@@ -30,7 +30,17 @@ exports.bookAppointment = async (req, res) => {
         }
 
         if (existingAppointment) {
-            return res.status(400).json({ error: 'Time slot already booked. Please choose another time.' });
+            // Allow the same patient to retry booking an abandoned pending slot
+            if (
+                existingAppointment.patient.toString() === req.user._id.toString() &&
+                existingAppointment.status === 'pending' &&
+                existingAppointment.paymentStatus === 'pending'
+            ) {
+                // Delete the abandoned attempt so they can create a fresh one with a new token/redirect
+                await Appointment.findByIdAndDelete(existingAppointment._id);
+            } else {
+                return res.status(400).json({ error: 'Time slot already booked. Please choose another time.' });
+            }
         }
 
         // Validate against doctor's schedule if set
@@ -57,7 +67,7 @@ exports.bookAppointment = async (req, res) => {
                 const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
                     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
                 });
-                await sendEmail({
+                sendEmail({
                     to: patient.email,
                     subject: `📅 Appointment Request Received — Dr. ${doctor.name}`,
                     html: `
@@ -90,7 +100,7 @@ exports.bookAppointment = async (req, res) => {
                             <p style="color:#94a3b8;font-size:12px;margin:0;">© ${new Date().getFullYear()} QureHealth.AI — This is an automated notification.</p>
                         </div>
                     </div>`
-                });
+                }).catch(err => console.error('Background email failed:', err.message));
             }
         } catch (emailError) {
             console.error('Booking email failed (non-critical):', emailError.message);
@@ -247,7 +257,7 @@ exports.updateAppointmentStatus = async (req, res) => {
                                </div>`
                             : '';
 
-                        await sendEmail({
+                        sendEmail({
                             to: patient.email,
                             subject: `✅ Appointment Confirmed — Dr. ${req.user.name}`,
                             html: `
@@ -307,7 +317,7 @@ exports.updateAppointmentStatus = async (req, res) => {
                                     </p>
                                 </div>
                             </div>`
-                        });
+                        }).catch(err => console.error('Background email failed:', err.message));
                         console.log(`✅ Confirmation email sent to ${patient.email}`);
                     }
                 } catch (emailError) {
@@ -353,7 +363,7 @@ exports.cancelAppointment = async (req, res) => {
                 const formattedDate = new Date(appointment.date + 'T00:00:00').toLocaleDateString('en-US', {
                     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
                 });
-                await sendEmail({
+                sendEmail({
                     to: patient.email,
                     subject: `❌ Appointment Cancelled — Dr. ${doctor?.name || 'Doctor'}`,
                     html: `
@@ -373,7 +383,7 @@ exports.cancelAppointment = async (req, res) => {
                             <p style="color:#94a3b8;font-size:12px;margin:0;">© ${new Date().getFullYear()} QureHealth.AI — This is an automated notification.</p>
                         </div>
                     </div>`
-                });
+                }).catch(err => console.error('Background email failed:', err.message));
             }
         } catch (emailError) {
             console.error('Cancellation email failed (non-critical):', emailError.message);

@@ -8,6 +8,7 @@ import StepPatientDetails from './StepPatientDetails';
 import StepPayment from './StepPayment';
 import StepConfirmation from './StepConfirmation';
 import StripePaymentModal from './StripePaymentModal';
+import api from '../../api/axios';
 
 export default function BookingWizard({
   doctor,
@@ -37,6 +38,7 @@ export default function BookingWizard({
   const [bookedAppointmentId, setBookedAppointmentId] = useState(null);
   const [showStripe, setShowStripe] = useState(false);
   const [pendingBookingData, setPendingBookingData] = useState(null);
+  const [isProcessingEsewa, setIsProcessingEsewa] = useState(false);
 
   // Lock body scroll
   useEffect(() => {
@@ -70,16 +72,57 @@ export default function BookingWizard({
   const goBack = () => setCurrentStep((s) => Math.max(s - 1, 1));
 
   const handleConfirm = async () => {
-    const finalBookingData = { ...bookingData, reason: patientDetails.reason };
+    const finalBookingData = { ...bookingData, reason: patientDetails.reason, paymentMethod };
     setBookingData(finalBookingData);
 
     if (paymentMethod === 'card') {
       // For card: show Stripe modal FIRST — appointment is created only after payment succeeds
       setPendingBookingData(finalBookingData);
       setShowStripe(true);
+    } else if (paymentMethod === 'esewa') {
+      setIsProcessingEsewa(true);
+      try {
+        // 1. Create appointment first
+        const result = await onSubmit({ preventDefault: () => {} }, { paymentMethod });
+        const appointmentId = result?._id || result?.appointment?._id;
+        
+        if (!appointmentId) throw new Error('Failed to create appointment');
+
+        // 2. Initiate eSewa payment
+        const fee = doctor?.fee ? parseFloat(String(doctor.fee).replace(/[^0-9.]/g, '')) : 0;
+        
+        const { data } = await api.post('/payment/initiate-esewa', {
+          amount: fee.toString(),
+          appointmentId: appointmentId
+        });
+
+        if (data.success && data.paymentData) {
+          // 3. Submit form to eSewa to redirect user
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = 'https://rc-epay.esewa.com.np/api/epay/main/v2/form';
+
+          Object.keys(data.paymentData).forEach(key => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = data.paymentData[key];
+            form.appendChild(input);
+          });
+
+          document.body.appendChild(form);
+          form.submit();
+        } else {
+          throw new Error('Failed to initiate eSewa payment');
+        }
+      } catch (error) {
+        console.error('eSewa error:', error);
+        setIsProcessingEsewa(false);
+        // You might want to show a toast here to inform the user
+      }
     } else {
       // For Pay at Clinic: create appointment immediately
-      const result = await onSubmit({ preventDefault: () => {} });
+      const result = await onSubmit({ preventDefault: () => {} }, { paymentMethod });
       const appointmentId = result?._id || result?.appointment?._id || null;
       setBookedAppointmentId(appointmentId);
       setIsConfirmed(true);
@@ -91,7 +134,7 @@ export default function BookingWizard({
   // At this point we create the appointment
   const handleStripeSuccess = async (paymentIntentId) => {
     setShowStripe(false);
-    const result = await onSubmit({ preventDefault: () => {} });
+    const result = await onSubmit({ preventDefault: () => {} }, { paymentMethod: 'card' });
     const appointmentId = result?._id || result?.appointment?._id || null;
     setBookedAppointmentId(appointmentId);
     setIsConfirmed(true);
@@ -104,7 +147,7 @@ export default function BookingWizard({
     : doctor?.name || 'Doctor';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[92vh]">
         <div className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-gray-100">
           <div className="flex items-center justify-between mb-4">
@@ -231,14 +274,14 @@ export default function BookingWizard({
               <button
                 type="button"
                 onClick={handleConfirm}
-                disabled={!canProceed() || isBooking}
+                disabled={!canProceed() || isBooking || isProcessingEsewa}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                  canProceed() && !isBooking
+                  canProceed() && !isBooking && !isProcessingEsewa
                     ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-100 active:scale-[0.98]'
                     : 'bg-gray-100 text-gray-300 cursor-not-allowed'
                 }`}
               >
-                {isBooking ? (
+                {isBooking || isProcessingEsewa ? (
                   <>
                     <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -246,7 +289,7 @@ export default function BookingWizard({
                     </svg>
                     Booking…
                   </>
-                ) : paymentMethod === 'card' ? (
+                ) : paymentMethod === 'card' || paymentMethod === 'esewa' ? (
                   <>
                     Proceed to Payment
                     <ChevronRight size={16} strokeWidth={2.5} />

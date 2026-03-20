@@ -24,7 +24,7 @@ export default function DashboardHome({ user, myAppointments, setCurrentPage }) 
         </div>
 
         <div
-          className="group relative bg-white p-6 rounded-2xl border border-gray-100 cursor-pointer hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300"
+          className="group relative bg-white p-6 rounded-2xl border border-gray-100 cursor-pointer hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300"
           onClick={() => setCurrentPage('doctors')}
         >
           <div className="w-16 h-16 rounded-xl flex items-center justify-center mb-5 group-hover:shadow-lg transition-all duration-300 overflow-hidden">
@@ -98,7 +98,7 @@ export default function DashboardHome({ user, myAppointments, setCurrentPage }) 
                       <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-tight">{apt.doctor.specialization || 'Specialist'}</div>
                     </div>
                     <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${apt.status === 'confirmed'
-                      ? 'text-emerald-700 bg-emerald-50'
+                      ? 'text-blue-700 bg-blue-50'
                       : 'text-amber-700 bg-amber-50'
                       }`}>
                       {apt.status}
@@ -120,7 +120,7 @@ export default function DashboardHome({ user, myAppointments, setCurrentPage }) 
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="mt-4 flex items-center justify-center gap-2 w-full py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-100"
+                      className="mt-4 flex items-center justify-center gap-2 w-full py-2 text-[#1a73e8] hover:text-[#1557b0] text-xs font-bold transition-all underline decoration-blue-100 hover:decoration-blue-200"
                     >
                       Join Consultation <ExternalLink size={12} />
                     </a>
@@ -162,7 +162,7 @@ export default function DashboardHome({ user, myAppointments, setCurrentPage }) 
               href="https://www.hsph.harvard.edu/nutritionsource/healthy-eating-plate/"
               target="_blank"
               rel="noopener noreferrer"
-              className="group block p-4 bg-emerald-50/30 rounded-xl border border-emerald-50 hover:border-emerald-100 hover:bg-emerald-50/50 transition-all"
+              className="group block p-4 bg-blue-50/30 rounded-xl border border-blue-50 hover:border-blue-100 hover:bg-blue-50/50 transition-all"
             >
               <div className="flex gap-4 items-center">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
@@ -171,7 +171,7 @@ export default function DashboardHome({ user, myAppointments, setCurrentPage }) 
                 <div>
                   <div className="text-sm font-bold text-gray-900 mb-0.5 flex items-center gap-1">
                     Balanced Diet
-                    <ExternalLink size={10} className="text-gray-300 group-hover:text-emerald-600 transition-colors" />
+                    <ExternalLink size={10} className="text-gray-300 group-hover:text-blue-600 transition-colors" />
                   </div>
                   <div className="text-[11px] text-gray-500 font-medium">Nutrient-rich seasonal vegetables</div>
                 </div>

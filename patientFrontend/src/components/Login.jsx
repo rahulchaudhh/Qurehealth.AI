@@ -138,7 +138,7 @@ function Login() {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   className="lp-input"
-                  placeholder="you@example.com"
+                  placeholder="rohan@gmail.com"
                   required
                 />
               </div>

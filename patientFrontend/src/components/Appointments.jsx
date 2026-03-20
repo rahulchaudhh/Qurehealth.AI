@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Search, Calendar, Clock, ArrowLeft, CalendarDays, Plus, Stethoscope, Video, Info, XCircle, Trash2, Star, Filter, CreditCard, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Search, Calendar, Clock, ArrowLeft, CalendarDays, Plus, Stethoscope, Video, Info, XCircle, Trash2, Star, Filter, CreditCard, CheckCircle2, AlertCircle, MessageCircle } from 'lucide-react';
 import RatingModal from './RatingModal';
 import PaymentDetailModal from './PaymentDetailModal';
+import ChatModal from './chat/ChatModal';
 
 export default function Appointments({
   myAppointments,
@@ -14,10 +15,13 @@ export default function Appointments({
   handleCancelAppointment,
   handleDeleteRecord,
   onRateAppointment,
+  onRefresh,
 }) {
   const [ratingModalApt, setRatingModalApt] = useState(null);
   const [paymentModalApt, setPaymentModalApt] = useState(null);
+  const [chatModalApt, setChatModalApt] = useState(null); // State for chat modal
   const [dateFilter, setDateFilter] = useState('all');
+  const [sortOrder, setSortOrder] = useState('newest');
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
@@ -85,8 +89,20 @@ export default function Appointments({
     return matchesFilter && matchesDate && matchesSearch;
   });
 
+  const sorted = [...filtered].sort((a, b) => {
+    const aptDateA = new Date(a.date);
+    const { hours: hA, minutes: mA } = parseTime(a.time);
+    const dateTimeA = new Date(aptDateA.getFullYear(), aptDateA.getMonth(), aptDateA.getDate(), hA, mA, 0).getTime();
+
+    const aptDateB = new Date(b.date);
+    const { hours: hB, minutes: mB } = parseTime(b.time);
+    const dateTimeB = new Date(aptDateB.getFullYear(), aptDateB.getMonth(), aptDateB.getDate(), hB, mB, 0).getTime();
+
+    return sortOrder === 'newest' ? dateTimeB - dateTimeA : dateTimeA - dateTimeB;
+  });
+
   const badgeStyle = {
-    confirmed: 'text-emerald-600',
+    confirmed: 'text-blue-600',
     completed: 'text-blue-600',
     cancelled: 'text-gray-400',
     pending: 'text-amber-600',
@@ -201,13 +217,26 @@ export default function Appointments({
         </div>
       </div>
 
-      {/* Result count */}
-      <p className="text-sm font-medium text-neutral-500 mb-4">
-        Showing <span className="font-bold text-neutral-800">{filtered.length}</span> of <span className="font-bold text-neutral-800">{enriched.length}</span> appointments
-      </p>
+      {/* Result count & Sort */}
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm font-medium text-neutral-500">
+          Showing <span className="font-bold text-neutral-800">{sorted.length}</span> of <span className="font-bold text-neutral-800">{enriched.length}</span> appointments
+        </p>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Sort by:</span>
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="text-sm font-medium bg-white border border-neutral-200 text-neutral-800 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 cursor-pointer"
+          >
+            <option value="newest">Recent</option>
+            <option value="oldest">Oldest</option>
+          </select>
+        </div>
+      </div>
 
       {/* Appointments List */}
-      {filtered.length === 0 ? (
+      {sorted.length === 0 ? (
         <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
           <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-5">
             <CalendarDays size={32} className="text-gray-300" />
@@ -226,7 +255,7 @@ export default function Appointments({
         </div>
       ) : (
         <div className="space-y-0 divide-y divide-neutral-100">
-          {filtered.map(apt => {
+          {sorted.map(apt => {
             const aptDate = new Date(apt.date);
             const isToday = aptDate.toDateString() === now.toDateString();
             const isTomorrow = aptDate.toDateString() === new Date(now.getTime() + 86400000).toDateString();
@@ -294,18 +323,38 @@ export default function Appointments({
                     {apt.effectiveStatus === 'confirmed' && !apt.isPastDateTime && (
                       <>
                         <button
-                          onClick={() => {/* Existing Start logic */ }}
+                          onClick={() => {
+                            const startDt = (() => {
+                              const [timePart, meridiem] = apt.time.split(' ');
+                              let [h, m] = timePart.split(':').map(Number);
+                              if (meridiem?.toUpperCase() === 'PM' && h !== 12) h += 12;
+                              if (meridiem?.toUpperCase() === 'AM' && h === 12) h = 0;
+                              const d = new Date(`${apt.date}T00:00:00`);
+                              d.setHours(h, m, 0, 0);
+                              return d;
+                            })();
+                            const endDt = new Date(startDt.getTime() + 30 * 60 * 1000);
+                            const fmt = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+                            const params = new URLSearchParams({
+                              action: 'TEMPLATE',
+                              text: `Consultation with ${apt.doctor.name}`,
+                              dates: `${fmt(startDt)}/${fmt(endDt)}`,
+                              details: `Appointment with ${apt.doctor.name} (${apt.doctor.specialization || 'Specialist'})\nReason: ${apt.reason || 'Consultation'}${apt.meetingLink ? '\nMeeting Link: ' + apt.meetingLink : ''}`,
+                              ...(apt.meetingLink ? { location: apt.meetingLink } : {}),
+                            });
+                            window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, '_blank');
+                          }}
                           className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-full text-[10px] font-bold shadow-md shadow-blue-100 hover:bg-blue-700 transition-all"
                         >
-                          <Stethoscope size={12} strokeWidth={3} />
-                          Start Consultation
+                          <Calendar size={12} strokeWidth={3} />
+                          Add to Calendar
                         </button>
                         {apt.meetingLink && (
                           <a
                             href={apt.meetingLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-full text-[10px] font-bold shadow-md shadow-emerald-100 hover:bg-emerald-700 transition-all"
+                            className="flex items-center gap-1.5 px-4 py-2 text-[#1a73e8] hover:text-[#1557b0] text-[10px] font-bold transition-all"
                           >
                             <Video size={12} strokeWidth={3} />
                             Join Meeting
@@ -333,6 +382,13 @@ export default function Appointments({
                         <Star size={12} fill="currentColor" /> {apt.rating.score}/5 Rated
                       </span>
                     )}
+                    <button
+                      onClick={() => setChatModalApt(apt)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-blue-600 hover:text-blue-800 transition-colors text-[10px] font-bold bg-blue-50 hover:bg-blue-100 rounded-full"
+                    >
+                      <MessageCircle size={12} strokeWidth={2.5} />
+                      MESSAGE
+                    </button>
                     <button
                       onClick={() => setViewAppointment(apt)}
                       className="flex items-center gap-1.5 px-3 py-1.5 text-neutral-400 hover:text-black transition-colors text-[10px] font-bold"
@@ -391,6 +447,17 @@ export default function Appointments({
         <PaymentDetailModal
           appointment={paymentModalApt}
           onClose={() => setPaymentModalApt(null)}
+        />
+      )}
+      
+      {/* Chat Modal */}
+      {chatModalApt && (
+        <ChatModal
+          isOpen={true}
+          onClose={() => setChatModalApt(null)}
+          appointmentId={chatModalApt._id}
+          doctorName={chatModalApt.doctor?.name}
+          doctorImage={chatModalApt.doctor?.hasProfilePicture ? `/api/doctor/${chatModalApt.doctor._id}/profile-picture` : null}
         />
       )}
     </main>

@@ -1,10 +1,11 @@
-import { X, CheckCircle2, AlertCircle, CreditCard, Calendar, Clock, User, Hash, Building2 } from 'lucide-react';
+import { X, CheckCircle2, AlertCircle, CreditCard, Calendar, Clock, User, Hash, Building2, Wallet } from 'lucide-react';
 
-// Only two real payment methods in the app
+// Only known payment methods in the app
 const METHOD_CONFIG = {
     stripe:          { label: 'Credit / Debit Card', sub: 'Powered by Stripe', icon: CreditCard },
     card:            { label: 'Credit / Debit Card', sub: 'Powered by Stripe', icon: CreditCard },
     'pay-at-clinic': { label: 'Pay at Clinic',       sub: 'Cash or card at reception', icon: Building2 },
+    esewa:           { label: 'eSewa',               sub: 'eSewa Digital Wallet', icon: Wallet },
 };
 
 function Row({ icon: Icon, label, children }) {
@@ -56,10 +57,10 @@ export default function PaymentDetailModal({ appointment, onClose }) {
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300"
             style={{ background: 'rgba(0,0,0,0.5)' }}
         >
-            <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden">
+            <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-fadeIn transform transition-all">
 
                 {/* ── Title bar ── */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
@@ -107,7 +108,12 @@ export default function PaymentDetailModal({ appointment, onClose }) {
                     </Row>
 
                     <Row icon={MethodIcon} label="Method">
-                        <span className="text-sm font-semibold text-gray-800">{mc.label}</span>
+                        <span className="text-sm font-semibold text-gray-800 flex items-center justify-end gap-2">
+                            {method === 'esewa' ? (
+                                <img src="https://esewa.com.np/common/images/esewa_logo.png" alt="eSewa" className="h-4 object-contain" onError={(e) => e.target.style.display='none'} />
+                            ) : null}
+                            {mc.label}
+                        </span>
                         <span className="block text-xs text-gray-400 font-normal mt-0.5">{mc.sub}</span>
                     </Row>
 
@@ -141,7 +147,7 @@ export default function PaymentDetailModal({ appointment, onClose }) {
                 <div className="px-5 pb-5 pt-1 flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-5 py-2.5 bg-gray-900 text-white text-sm font-bold rounded-xl hover:bg-black transition-colors"
+                        className="px-5 py-2.5 text-gray-500 hover:text-gray-900 text-sm font-bold transition-colors"
                     >
                         Close
                     </button>

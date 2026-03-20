@@ -8,6 +8,7 @@ import ConfirmModal from './modals/ConfirmModal';
 import NotificationDropdown from './dropdowns/NotificationDropdown';
 import ProfileDropdown from './dropdowns/ProfileDropdown';
 import DoctorSchedule, { ListView } from './schedule/DoctorSchedule';
+import ChatModal from './chat/ChatModal';
 import {
     LayoutDashboard,
     Users,
@@ -29,7 +30,8 @@ import {
     Video,
     Link,
     Search,
-    MoreHorizontal
+    MoreHorizontal,
+    MessageCircle
 } from 'lucide-react';
 import {
     AreaChart,
@@ -113,6 +115,7 @@ function DoctorDashboard() {
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null });
     const [aptDetail, setAptDetail] = useState(null); // appointment detail modal
+    const [chatModalApt, setChatModalApt] = useState(null); // chat modal state
     const [patientDetail, setPatientDetail] = useState(null); // patient profile detail modal
     const [patientDetailLoading, setPatientDetailLoading] = useState(false);
 
@@ -1098,6 +1101,12 @@ function DoctorDashboard() {
 
                         {/* Footer actions */}
                         <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-end gap-2">
+                            {/* Message Patient button — always visible */}
+                            <button
+                                onClick={() => { setChatModalApt(aptDetail); setAptDetail(null); }}
+                                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
+                                <MessageCircle size={13} /> Message
+                            </button>
                             {aptDetail.status === 'pending' && !(aptDetail.date && new Date(aptDetail.date) < new Date().setHours(0, 0, 0, 0)) && (
                                 <>
                                     <button
@@ -1365,6 +1374,17 @@ function DoctorDashboard() {
                         )}
                     </div>
                 </div>
+            )}
+
+            {/* Chat Modal */}
+            {chatModalApt && (
+                <ChatModal
+                    isOpen={true}
+                    onClose={() => setChatModalApt(null)}
+                    appointmentId={chatModalApt._id}
+                    patientName={chatModalApt.patient?.name}
+                    patientImage={chatModalApt.patient?.hasProfilePicture ? `/api/doctor/patient/${chatModalApt.patient._id}/profile-picture` : null}
+                />
             )}
 
             <BroadcastModal

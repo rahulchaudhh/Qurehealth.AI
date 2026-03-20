@@ -470,7 +470,7 @@ function PatientRecords({ allPatients, handleDeletePatient, actionLoading, getPr
                                         <StatusBadge status={patient.status} />
                                     </td>
                                     {/* Actions */}
-                                    <td className="px-6 py-3.5 text-right" onClick={e => e.stopPropagation()}>
+                                    <td className="px-6 py-3.5 text-right relative" onClick={e => e.stopPropagation()}>
                                         <ActionsDropdown
                                             patient={patient}
                                             onViewDetails={setViewModal}

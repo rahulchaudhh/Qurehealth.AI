@@ -32,8 +32,7 @@ function ResetPassword() {
     try {
       await axios.post(`/auth/reset-password/${token}`, { password });
       setSuccess(true);
-      // Redirect to login after 3 seconds
-      setTimeout(() => navigate('/login', { replace: true }), 3000);
+      // Success screen will stay until user navigates
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to reset password. The link may have expired.');
     } finally {
@@ -72,7 +71,7 @@ function ResetPassword() {
             <div style={{ fontSize: '28px', marginBottom: '8px' }}>✅</div>
             <strong>Password Reset Successful!</strong>
             <p style={{ margin: '8px 0 0', color: '#15803d' }}>
-              Redirecting to login page...
+              Your password has been successfully reset. You can now log in with your new password.
             </p>
           </div>
         ) : (
