@@ -483,7 +483,7 @@ function Appointments() {
 
             {/* ── Bulk Actions Bar ─────────────────────────────────── */}
             {selectedIds.size > 0 && (
-                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-6 px-6 py-3 bg-white/80 backdrop-blur-md border border-blue-100 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-6 px-6 py-3 bg-white border border-blue-100 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className="flex items-center gap-4 border-r border-gray-100 pr-6">
                         <div className="flex -space-x-2">
                              {[...selectedIds].slice(0, 3).map((id, i) => (

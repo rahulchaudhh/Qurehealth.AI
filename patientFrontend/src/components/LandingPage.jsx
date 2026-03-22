@@ -186,12 +186,12 @@ export default function LandingPage() {
             {/* ══════════════ NAVBAR ══════════════ */}
             <nav className="fixed top-10 left-0 right-0 transition-all duration-300" style={{ zIndex: 9999 }}>
                 <div className={`max-w-7xl mx-auto px-6 ${scrolled ? 'py-0' : 'py-2'}`}>
-                    <div className={`backdrop-blur-xl bg-white/70 border border-white/50 shadow-sm rounded-full px-6 py-3 flex justify-between items-center transition-all duration-300 ${scrolled ? 'shadow-lg bg-white/90' : ''}`}>
+                    <div className={`bg-white/95 border border-white/50 shadow-sm rounded-full px-6 py-3 flex justify-between items-center transition-all duration-300 ${scrolled ? 'shadow-lg bg-white/90' : ''}`}>
 
                         {/* Logo */}
                         <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                            <img src="/qurehealth-logo.png" alt="QureHealth.AI" className="w-9 h-9 object-contain" />
-                            <span className="text-xl font-bold tracking-tight text-slate-800 font-outfit">QureHealth<span className="text-black">.AI</span></span>
+                            <img src="/qurehealth-logo.png" alt="Qurehealth.AI" className="w-9 h-9 object-contain" />
+                            <span className="text-xl font-bold tracking-tight text-slate-800 font-outfit">Qurehealth<span className="text-black">.AI</span></span>
                         </div>
 
                         {/* Nav Links — desktop */}
@@ -240,7 +240,7 @@ export default function LandingPage() {
 
                     {/* Mobile dropdown */}
                     {mobileOpen && (
-                        <div className="md:hidden mt-2 mx-2 bg-white/95 backdrop-blur-xl border border-white/60 rounded-3xl shadow-2xl p-5 flex flex-col gap-1">
+                        <div className="md:hidden mt-2 mx-2 bg-white border border-white/60 rounded-3xl shadow-2xl p-5 flex flex-col gap-1">
                             {navLinks.map(l => (
                                 <a key={l.href} href={l.href}
                                     onClick={() => setMobileOpen(false)}
@@ -319,7 +319,7 @@ export default function LandingPage() {
             </section>
 
             {/* ══════════════ STATS BAR ══════════════ */}
-            <section className="py-10 border-y border-slate-100 bg-white/60 backdrop-blur-sm">
+            <section className="py-10 border-y border-slate-100 bg-white/60">
                 <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
                     {[
                         { value: 95, suffix: '%', label: 'AI Accuracy' },
@@ -342,7 +342,7 @@ export default function LandingPage() {
                 <div className="max-w-5xl mx-auto text-center">
                     <span className="inline-block px-3 py-1 bg-indigo-50 text-indigo-600 text-xs font-bold uppercase tracking-wide rounded-full mb-4">Product Demo</span>
                     <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 font-outfit">See it in action</h2>
-                    <p className="text-slate-500 mb-10 max-w-xl mx-auto">From symptom entry to specialist booking — watch how QureHealth.AI works in under 60 seconds.</p>
+                    <p className="text-slate-500 mb-10 max-w-xl mx-auto">From symptom entry to specialist booking — watch how Qurehealth.AI works in under 60 seconds.</p>
 
                     {/* Browser mockup frame */}
                     <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-indigo-100 border border-slate-200 bg-white">
@@ -571,7 +571,7 @@ export default function LandingPage() {
             {/* ══════════════ TESTIMONIALS ══════════════ */}
             <FadeInSection id="testimonials" className="py-24 px-6 bg-slate-50/80">
                 <div className="max-w-7xl mx-auto">
-                    <SectionHeader badge="Testimonials" title="What Our Patients Say" subtitle="Real stories from real people who transformed their health with QureHealth.AI" />
+                    <SectionHeader badge="Testimonials" title="What Our Patients Say" subtitle="Real stories from real people who transformed their health with Qurehealth.AI" />
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {[
@@ -624,7 +624,7 @@ export default function LandingPage() {
             {/* ══════════════ FAQ ══════════════ */}
             <FadeInSection id="faq" className="py-24 px-6">
                 <div className="max-w-3xl mx-auto">
-                    <SectionHeader badge="FAQ" title="Frequently Asked Questions" subtitle="Everything you need to know about QureHealth.AI" />
+                    <SectionHeader badge="FAQ" title="Frequently Asked Questions" subtitle="Everything you need to know about Qurehealth.AI" />
 
                     <div className="space-y-3">
                         {faqs.map((f, i) => (
@@ -716,7 +716,7 @@ export default function LandingPage() {
             <FadeInSection id="about" className="py-24 px-6 bg-gradient-to-br from-indigo-50/60 to-purple-50/40">
                 <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
                     <div>
-                        <span className="text-indigo-600 font-bold uppercase tracking-wide text-sm">About QureHealth.AI</span>
+                        <span className="text-indigo-600 font-bold uppercase tracking-wide text-sm">About Qurehealth.AI</span>
                         <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-3 mb-5 font-outfit leading-tight">
                             Built to close Nepal's healthcare access gap
                         </h2>
@@ -724,7 +724,7 @@ export default function LandingPage() {
                             Nepal has just 1 doctor for every 1,724 patients — one of the lowest ratios in South Asia. Millions in rural areas wait weeks to see a specialist, or never get access at all.
                         </p>
                         <p className="text-slate-600 leading-relaxed mb-8">
-                            We built QureHealth.AI to change that. Our AI symptom checker gives instant preliminary guidance while connecting patients with verified specialists in minutes, not weeks.
+                            We built Qurehealth.AI to change that. Our AI symptom checker gives instant preliminary guidance while connecting patients with verified specialists in minutes, not weeks.
                         </p>
                         <div className="flex flex-wrap gap-4 mb-8">
                             {[
@@ -771,7 +771,7 @@ export default function LandingPage() {
                         {[
                             { icon: MessageSquare, color: 'text-indigo-600', bg: 'bg-indigo-50', title: 'General Support', detail: 'support@qurehealth.ai', sub: 'For patient & account queries', href: 'mailto:support@qurehealth.ai' },
                             { icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50', title: 'Doctor Onboarding', detail: 'doctors@qurehealth.ai', sub: 'Join our specialist network', href: 'mailto:doctors@qurehealth.ai' },
-                            { icon: Zap, color: 'text-green-600', bg: 'bg-green-50', title: 'WhatsApp Support', detail: '+977 9817831552', sub: 'Chat with us directly on WhatsApp', href: 'https://wa.me/9779817831552?text=Hello%20QureHealth.AI' },
+                            { icon: Zap, color: 'text-green-600', bg: 'bg-green-50', title: 'WhatsApp Support', detail: '+977 9817831552', sub: 'Chat with us directly on WhatsApp', href: 'https://wa.me/9779817831552?text=Hello%20Qurehealth.AI' },
                         ].map((c, i) => (
                             <a key={i} href={c.href} className="flex items-start gap-4 p-6 rounded-2xl border border-slate-100 hover:border-indigo-200 hover:shadow-lg transition-all group">
                                 <div className={`w-12 h-12 ${c.bg} rounded-xl flex-shrink-0 flex items-center justify-center group-hover:scale-110 transition-transform`}>
@@ -850,8 +850,8 @@ export default function LandingPage() {
                     {/* Brand col — wider */}
                     <div className="md:col-span-2">
                         <div className="flex items-center gap-2 mb-4">
-                            <img src="/qurehealth-logo.png" alt="QureHealth.AI" className="w-8 h-8 object-contain" />
-                            <span className="text-xl font-bold font-outfit tracking-tight text-slate-900">QureHealth<span className="text-black">.AI</span></span>
+                            <img src="/qurehealth-logo.png" alt="Qurehealth.AI" className="w-8 h-8 object-contain" />
+                            <span className="text-xl font-bold font-outfit tracking-tight text-slate-900">Qurehealth<span className="text-black">.AI</span></span>
                         </div>
                         <p className="text-slate-500 text-sm leading-relaxed mb-6 max-w-xs">
                             AI-powered diagnostics and instant specialist care — built to make quality healthcare accessible to everyone.

@@ -13,13 +13,13 @@ export default function CompanyNav() {
     ];
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-100">
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
                 {/* Logo */}
                 <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/')}>
-                    <img src="/qurehealth-logo.png" alt="QureHealth.AI" className="w-8 h-8 object-contain" />
+                    <img src="/qurehealth-logo.png" alt="Qurehealth.AI" className="w-8 h-8 object-contain" />
                     <span className="text-lg font-bold tracking-tight text-slate-800 font-outfit">
-                        QureHealth<span className="text-black">.AI</span>
+                        Qurehealth<span className="text-black">.AI</span>
                     </span>
                 </div>
 

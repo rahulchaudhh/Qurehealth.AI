@@ -76,7 +76,7 @@ function buildSystemPrompt({ lang = 'en', patientContext = '' }) {
         {
             role: 'user',
             parts: [{
-                text: `You are QureHealth AI — a friendly health assistant for Qurehealth.AI platform.
+                text: `You are Qurehealth AI — a friendly health assistant for Qurehealth.AI platform.
 
 YOUR BEHAVIOUR:
 • For greetings (hi, hello, how are you): respond warmly and ask how you can help.
@@ -91,8 +91,8 @@ YOUR BEHAVIOUR:
             role: 'model',
             parts: [{
                 text: lang === 'ne'
-                    ? 'नमस्ते! म QureHealth AI हुँ। तपाईंलाई कसरी मद्दत गर्न सक्छु?'
-                    : 'Hello! I am QureHealth AI, your health assistant. How can I help you today?'
+                    ? 'नमस्ते! म Qurehealth AI हुँ। तपाईंलाई कसरी मद्दत गर्न सक्छु?'
+                    : 'Hello! I am Qurehealth AI, your health assistant. How can I help you today?'
             }],
         },
     ];
@@ -192,7 +192,7 @@ const chatWithAI = async (req, res) => {
 
             const rawContext = ragChunks.map(c => c.text).join('\n\n');
 
-            const ragPrompt = `You are QureHealth AI, a friendly medical assistant.
+            const ragPrompt = `You are Qurehealth AI, a friendly medical assistant.
 Use ONLY the medical reference text below to answer the user's question in clear, easy-to-read language.
 - Write in complete sentences.
 - Use simple headings if helpful (e.g. **Definition**, **Treatment**).

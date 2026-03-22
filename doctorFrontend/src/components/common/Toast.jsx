@@ -91,7 +91,7 @@ const Toast = ({ message, type = 'success', onClose, duration = 3000 }) => {
             <div
                 className={`
                     pointer-events-auto flex items-center gap-4 px-6 py-5 
-                    backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border 
+                    rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border 
                     transform transition-all duration-300 ease-out
                     ${currentStyle.bg} ${currentStyle.border}
                     ${isExiting ? 'opacity-0 scale-95 translate-y-2' : 'opacity-100 scale-100 translate-y-0 animate-bounce-in'}

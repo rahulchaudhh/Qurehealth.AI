@@ -19,6 +19,13 @@ function Login() {
     }
   }, [loading, user, navigate]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('message') === 'unauthorized') {
+      setError('Please log in to access this page.');
+    }
+  }, []);
+
   function handleGoogleLogin() {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     if (!clientId) { setError('Google Sign-In is not configured.'); return; }
@@ -120,8 +127,8 @@ function Login() {
 
             {/* Brand */}
             <div className="lp-brand">
-              <img src="/qurehealth-logo.png" alt="QureHealth.AI" className="lp-brand-img" />
-              <span className="lp-brand-name">QureHealth<span className="lp-brand-accent">.AI</span></span>
+              <img src="/qurehealth-logo.png" alt="Qurehealth.AI" className="lp-brand-img" />
+              <span className="lp-brand-name">Qurehealth<span className="lp-brand-accent">.AI</span></span>
             </div>
 
             <h1 className="lp-form-title">Welcome back</h1>

@@ -23,7 +23,7 @@ const ActionModal = ({ isOpen, onClose, type, onAction, loading }) => {
     };
 
     return (
-        <div onClick={handleClose} className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
+        <div onClick={handleClose} className="fixed inset-0 z-[60] bg-black/40 animate-in fade-in duration-300">
             <div onClick={e => e.stopPropagation()} className="bg-white w-full h-full flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
                 {/* Header: Soft and Airy */}
                 <div className={`p-8 flex justify-center items-center border-b border-slate-200 ${isBroadcast ? 'bg-amber-50/40' : 'bg-rose-50/40'}`}>

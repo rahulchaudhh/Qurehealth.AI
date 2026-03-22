@@ -50,7 +50,7 @@ const BroadcastModal = ({ isOpen, onClose, message, type = 'broadcast' }) => {
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
             {/* Backdrop with a more organic blur */}
             <div
-                className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-700"
+                className="absolute inset-0 bg-slate-900/40 animate-in fade-in duration-700"
                 onClick={() => canClose && onClose()}
             />
 

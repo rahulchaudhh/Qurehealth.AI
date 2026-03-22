@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import api from '../api/axios'; // Wait, let me check what axios import they use. I'll use standard axios if unsure but they likely have an instance. I'll use `import { toast } from 'react-toastify'` for errors.
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { CheckCircle2, AlertCircle, ArrowRight, Loader2, Calendar } from 'lucide-react';
+import api from '../api/axios';
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
@@ -14,7 +15,7 @@ export default function PaymentSuccess() {
         const data = searchParams.get('data');
         
         if (!data) {
-          setError('No payment data received');
+          setError('No payment data received from eSewa');
           setVerifying(false);
           return;
         }
@@ -22,11 +23,13 @@ export default function PaymentSuccess() {
         const response = await api.get(`/payment/verify-esewa?data=${data}`);
         
         if (response.data.success) {
-          setTimeout(() => {
-            navigate('/history');
-          }, 3000);
+          // Success! Redirect to history after 5 seconds
+          const timer = setTimeout(() => {
+            navigate('/patientdashboard/history');
+          }, 5000);
+          return () => clearTimeout(timer);
         } else {
-          setError('Payment verification failed');
+          setError('Payment verification failed. Please contact support.');
         }
       } catch (err) {
         console.error('Verification error:', err);
@@ -41,10 +44,11 @@ export default function PaymentSuccess() {
 
   if (verifying) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-white font-sans">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Verifying your payment with eSewa...</p>
+          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-6" />
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Verifying Payment</h2>
+          <p className="text-gray-500">Securing your transaction with eSewa...</p>
         </div>
       </div>
     );
@@ -52,20 +56,19 @@ export default function PaymentSuccess() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md w-full border border-red-100">
-          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50/50 p-4 font-sans">
+        <div className="bg-white p-10 rounded-3xl shadow-2xl shadow-gray-200/50 text-center max-w-md w-full border border-red-100">
+          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-8">
+            <AlertCircle className="w-10 h-10 text-red-500" strokeWidth={2.5} />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Payment Failed</h2>
-          <p className="text-gray-600 mb-8">{error}</p>
+          <h2 className="text-2xl font-black text-gray-900 mb-3 uppercase tracking-tight">Payment Issue</h2>
+          <p className="text-gray-500 mb-8 leading-relaxed">{error}</p>
           <button
-            onClick={() => navigate('/dashboard')}
-            className="w-full px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors"
+            onClick={() => navigate('/patientdashboard')}
+            className="w-full flex items-center justify-center gap-2 px-8 py-4 bg-gray-900 text-white font-bold rounded-2xl hover:bg-black transition-all active:scale-[0.98]"
           >
-            Back to Dashboard
+            Return to Dashboard
+            <ArrowRight size={18} />
           </button>
         </div>
       </div>
@@ -73,16 +76,31 @@ export default function PaymentSuccess() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md w-full border border-green-100">
-        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-          </svg>
+    <div className="min-h-screen flex items-center justify-center bg-blue-50/30 p-4 font-sans">
+      <div className="bg-white p-10 rounded-3xl shadow-2xl shadow-blue-100/50 text-center max-w-md w-full border border-blue-50">
+        <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-8 relative">
+          <CheckCircle2 className="w-12 h-12 text-green-500" strokeWidth={2.5} />
+          <div className="absolute inset-0 rounded-full border-4 border-green-500/20 animate-ping"></div>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-3">Payment Successful!</h2>
-        <p className="text-gray-600 mb-6">Your appointment has been confirmed securely.</p>
-        <p className="text-sm text-gray-500 font-medium animate-pulse">Redirecting to your appointments...</p>
+        
+        <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">Payment Successful!</h2>
+        <p className="text-gray-500 mb-10 leading-relaxed">
+          Your appointment has been confirmed. You will receive an email shortly with the details.
+        </p>
+
+        <div className="space-y-4">
+          <Link
+            to="/patientdashboard/history"
+            className="w-full flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-[0.98]"
+          >
+            <Calendar size={18} />
+            View My Appointments
+          </Link>
+          
+          <p className="text-xs text-gray-400 font-medium">
+            Auto-redirecting in <span className="text-blue-500">5 seconds</span>...
+          </p>
+        </div>
       </div>
     </div>
   );

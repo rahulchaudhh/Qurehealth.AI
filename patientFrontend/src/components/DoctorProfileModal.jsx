@@ -98,7 +98,7 @@ export default function DoctorProfileModal({ doctor, onClose, onBook, currentUse
               <p className="text-blue-100 text-sm sm:text-base mt-1">{doctor.specialty}</p>
               <div className="flex flex-wrap items-center gap-3 mt-3">
                 {ratingAvg ? (
-                  <span className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm font-bold text-white">
+                  <span className="flex items-center gap-1.5 bg-white/20 px-3 py-1.5 rounded-full text-sm font-bold text-white">
                     <Star size={14} fill="currentColor" className="text-yellow-300" />
                     {ratingAvg}
                     <span className="text-blue-200 font-normal text-xs ml-0.5">({doctor.ratingCount} reviews)</span>
@@ -247,7 +247,7 @@ export default function DoctorProfileModal({ doctor, onClose, onBook, currentUse
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-100/60 p-5">
                   <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Consultation Fee</h4>
                   <p className="text-2xl font-extrabold text-gray-900">{doctor.fee}</p>
-                  <p className="text-[11px] text-gray-400 mt-1">Per consultation · Inclusive of platform fees</p>
+                  <p className="text-[11px] text-gray-400 mt-1">Per consultation</p>
                 </div>
               </div>
             </div>

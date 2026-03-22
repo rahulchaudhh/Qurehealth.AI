@@ -134,7 +134,11 @@ export default function BookingWizard({
   // At this point we create the appointment
   const handleStripeSuccess = async (paymentIntentId) => {
     setShowStripe(false);
-    const result = await onSubmit({ preventDefault: () => {} }, { paymentMethod: 'card' });
+    const result = await onSubmit({ preventDefault: () => {} }, { 
+      paymentMethod: 'card',
+      transactionId: paymentIntentId,
+      paymentStatus: 'paid'
+    });
     const appointmentId = result?._id || result?.appointment?._id || null;
     setBookedAppointmentId(appointmentId);
     setIsConfirmed(true);

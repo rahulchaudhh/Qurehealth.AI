@@ -129,7 +129,7 @@ function Header({
 
                     {/* Search Suggestions Dropdown */}
                     {showSuggestions && totalSuggestions > 0 && (
-                        <div className="absolute top-full right-0 mt-3 w-full bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="absolute top-full right-0 mt-3 w-full bg-white border border-slate-200 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
                             {suggestions.doctors.length > 0 && (
                                 <div className="mb-2">
                                     <div className="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">

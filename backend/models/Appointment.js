@@ -58,7 +58,7 @@ const appointmentSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        default: 'esewa'
+        default: 'pay-at-clinic'
     },
     paidAt: {
         type: Date,
@@ -91,5 +91,9 @@ const appointmentSchema = new mongoose.Schema({
         }
     }
 });
+
+// Compound indexes for optimized lookups and sorting
+appointmentSchema.index({ patient: 1, isVisibleToPatient: 1, date: -1, time: -1 });
+appointmentSchema.index({ doctor: 1, isVisibleToDoctor: 1, date: -1, time: -1 });
 
 module.exports = mongoose.model('Appointment', appointmentSchema);

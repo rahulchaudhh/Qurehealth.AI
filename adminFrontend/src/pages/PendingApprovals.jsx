@@ -8,8 +8,8 @@ function StatusBadge({ status }) {
     const statusConfig = {
         pending: { 
             label: 'Pending', 
-            text: 'text-amber-700', 
-            bg: 'bg-amber-50'
+            text: 'text-gray-600', 
+            bg: 'bg-gray-100'
         },
     };
     const config = statusConfig[status] || statusConfig.pending;
@@ -62,7 +62,7 @@ function DoctorDetailModal({ doctor, onClose, getProfileImage, handleImageError 
     if (!doctor) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
             <div
                 className="bg-white w-full max-w-2xl rounded-xl border border-gray-200 shadow-xl overflow-hidden max-h-[80vh] overflow-y-auto"
                 onClick={e => e.stopPropagation()}

@@ -97,7 +97,7 @@ export default function DoctorProfilePage() {
     return (
         <div className="min-h-screen bg-slate-50 font-sans">
             {/* Top bar */}
-            <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 px-6 py-4">
+            <div className="sticky top-0 z-50 bg-white border-b border-slate-100 px-6 py-4">
                 <div className="max-w-5xl mx-auto flex items-center gap-4">
                     <button
                         onClick={() => navigate(-1)}

@@ -472,7 +472,9 @@ export default function Dashboard() {
         date: finalData.date,
         time: finalData.time,
         reason: finalData.reason.trim(),
-        paymentMethod: finalData.paymentMethod || 'pay-at-clinic'
+        paymentMethod: finalData.paymentMethod || 'pay-at-clinic',
+        transactionId: finalData.transactionId || '',
+        paymentStatus: finalData.paymentStatus || 'pending'
       });
 
       if (finalData.paymentMethod === 'esewa') {
@@ -667,11 +669,11 @@ export default function Dashboard() {
         <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate('/')}>
           <img
             src="/qurehealth-logo.png"
-            alt="QureHealth.AI Logo"
+            alt="Qurehealth.AI Logo"
             className="h-10 w-auto object-contain group-hover:opacity-80 transition-opacity duration-300"
           />
           <span className="text-xl font-bold tracking-tight text-gray-900">
-            QureHealth.AI
+            Qurehealth.AI
           </span>
         </div>
         <nav className="flex gap-8 hidden md:flex">
@@ -1225,7 +1227,7 @@ export default function Dashboard() {
                   </svg>
                 </div>
                 <span className="text-xl font-bold tracking-tight text-gray-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                  QureHealth.AI
+                  Qurehealth.AI
                 </span>
               </div>
               <p className="text-gray-500 text-sm leading-relaxed mb-5">
@@ -1304,7 +1306,7 @@ export default function Dashboard() {
 
           {/* Bottom Bar */}
           <div className="pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-gray-500">© 2025 QureHealth.AI. All rights reserved.</p>
+            <p className="text-sm text-gray-500">© 2025 Qurehealth.AI. All rights reserved.</p>
             <div className="flex gap-6 text-sm text-gray-500">
               <a href="#" className="hover:text-blue-600 transition-colors">Privacy Policy</a>
               <a href="#" className="hover:text-blue-600 transition-colors">Terms of Service</a>

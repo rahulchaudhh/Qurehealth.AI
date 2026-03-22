@@ -1,5 +1,5 @@
 #!/bin/zsh
-# QureHealth AI - Start all services
+# Qurehealth AI - Start all services
 ROOT="/Users/rahulchaudhary/Documents/QurehealthAI"
 
 echo " Stopping old processes..."
@@ -9,7 +9,7 @@ pkill -9 -f "nodemon" 2>/dev/null
 sleep 2
 
 echo " Starting Backend..."
-cd "$ROOT/backend" && nohup npm start > backend.log 2>&1 &
+cd "$ROOT/backend" && nohup npm run dev > backend.log 2>&1 &
 
 echo " Starting Patient Frontend..."
 cd "$ROOT/patientFrontend" && nohup npm run dev > patient.log 2>&1 &

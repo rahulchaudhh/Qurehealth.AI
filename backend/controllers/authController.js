@@ -646,7 +646,7 @@ exports.forgotPassword = async (req, res) => {
     const html = `
       <div style="font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px; background: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb;">
         <div style="text-align: center; margin-bottom: 24px;">
-          <h2 style="color: #1e293b; margin: 0 0 4px;">QureHealth.AI</h2>
+          <h2 style="color: #1e293b; margin: 0 0 4px;">Qurehealth.AI</h2>
           <p style="color: #64748b; font-size: 14px; margin: 0;">Password Reset Request</p>
         </div>
         <p style="color: #334155; font-size: 15px; line-height: 1.6;">
@@ -673,14 +673,18 @@ exports.forgotPassword = async (req, res) => {
 
     await sendEmail({
       to: user.email,
-      subject: 'QureHealth.AI — Password Reset',
+      subject: 'Qurehealth.AI — Password Reset',
       html
     });
 
     res.json({ success: true, message: 'If that email is registered, a reset link has been sent.' });
 
   } catch (error) {
-    console.error('Forgot password error:', error);
+    console.error('Forgot password error detail:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code
+    });
     res.status(500).json({ error: 'Failed to send reset email. Please try again later.' });
   }
 };

@@ -111,6 +111,8 @@ export default function PaymentDetailModal({ appointment, onClose }) {
                         <span className="text-sm font-semibold text-gray-800 flex items-center justify-end gap-2">
                             {method === 'esewa' ? (
                                 <img src="https://esewa.com.np/common/images/esewa_logo.png" alt="eSewa" className="h-4 object-contain" onError={(e) => e.target.style.display='none'} />
+                            ) : method === 'stripe' || method === 'card' ? (
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" alt="Stripe" className="h-4 object-contain grayscale-0" onError={(e) => e.target.style.display='none'} />
                             ) : null}
                             {mc.label}
                         </span>

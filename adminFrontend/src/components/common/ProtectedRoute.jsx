@@ -16,13 +16,13 @@ function ProtectedRoute({ children, allowedRoles }) {
 
     if (!user) {
         // Not authenticated → go to unified landing page
-        window.location.replace('http://localhost:5173');
+        window.location.replace('http://localhost:5173/login?message=unauthorized');
         return null;
     }
 
     if (allowedRoles && !allowedRoles.includes(user.role)) {
         // Wrong role → go to landing page
-        window.location.replace('http://localhost:5173');
+        window.location.replace('http://localhost:5173/login?message=unauthorized');
         return null;
     }
 

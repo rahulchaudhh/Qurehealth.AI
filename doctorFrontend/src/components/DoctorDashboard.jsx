@@ -404,11 +404,11 @@ function DoctorDashboard() {
             {/* Sidebar */}
             <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-gray-100 hidden md:flex flex-col fixed h-full z-20 transition-all duration-300 ease-in-out`}>
                 <div className="h-20 flex items-center px-6 gap-3">
-                    <img src="/qurehealth-logo.png" alt="QureHealth.AI" className="h-9 w-auto object-contain flex-shrink-0" />
+                    <img src="/qurehealth-logo.png" alt="Qurehealth.AI" className="h-9 w-auto object-contain flex-shrink-0" />
                     {sidebarOpen && (
                         <div className="flex flex-col">
                             <span className="text-slate-900 font-black text-xl tracking-tighter leading-none">
-                                QureHealth<span className="text-slate-900">.AI</span>
+                                Qurehealth<span className="text-slate-900">.AI</span>
                             </span>
                         </div>
                     )}
@@ -484,7 +484,7 @@ function DoctorDashboard() {
 
                             {/* Search Suggestions Dropdown */}
                             {showSearchSuggestions && searchSuggestions.length > 0 && (
-                                <div className="absolute top-full left-0 mt-2 w-full bg-white/95 backdrop-blur-xl border border-gray-200 rounded-xl shadow-xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
                                     <div className="space-y-1">
                                         {searchSuggestions.map((suggestion, index) => (
                                             <button

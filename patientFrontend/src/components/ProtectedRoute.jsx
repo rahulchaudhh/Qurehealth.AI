@@ -15,7 +15,7 @@ function ProtectedRoute({ children, allowedRoles }) {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login?message=unauthorized" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {

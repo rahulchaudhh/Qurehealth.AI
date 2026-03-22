@@ -9,7 +9,7 @@ function StatusBadge({ status }) {
     const cfg = {
         approved: { label: 'Approved', text: 'text-purple-700', bg: 'bg-purple-50' },
         rejected: { label: 'Rejected', text: 'text-red-700', bg: 'bg-red-50' },
-        pending: { label: 'Pending', text: 'text-amber-700', bg: 'bg-amber-50' },
+        pending: { label: 'Pending', text: 'text-gray-600', bg: 'bg-gray-100' },
         suspended: { label: 'Suspended', text: 'text-gray-700', bg: 'bg-gray-100' },
     };
     const c = cfg[status] || cfg.pending;
@@ -376,7 +376,7 @@ function DoctorProfileModal({ doctor, mode, onClose, onSaved, getProfileImage, h
 
 function SuspendModal({ doctor, onClose, onConfirm, loading }) {
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
             <div className="bg-white w-full max-w-sm rounded-xl border border-gray-200 shadow-xl overflow-hidden" onClick={e => e.stopPropagation()}>
                 <div className="px-6 pt-6 pb-4 text-center">
                     <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-4">

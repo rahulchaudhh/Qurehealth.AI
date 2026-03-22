@@ -227,10 +227,7 @@ function CheckoutForm({ amountUSD, amountNPR, doctor, bookingData, onSuccess, on
                   <span>Consultation fee</span>
                   <span>NPR {amountNPR.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-xs text-slate-500">
-                  <span>Platform fee</span>
-                  <span className="text-blue-600 font-semibold">Free</span>
-                </div>
+
                 <div className="flex justify-between text-sm font-bold text-slate-900 border-t border-slate-100 pt-2">
                   <span>Total due today</span>
                   <span>NPR {amountNPR.toLocaleString()}</span>

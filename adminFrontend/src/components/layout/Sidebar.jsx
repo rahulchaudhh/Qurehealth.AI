@@ -32,13 +32,13 @@ function Sidebar({ sidebarOpen, pendingCount, handleLogout }) {
             <div className="h-20 flex items-center px-6 gap-3">
                 <img 
                     src="/qurehealth-logo.png" 
-                    alt="QureHealth.AI" 
+                    alt="Qurehealth.AI" 
                     className="h-9 w-auto object-contain flex-shrink-0"
                 />
                 {sidebarOpen && (
                     <div className="flex flex-col">
                         <span className="text-slate-900 font-black text-xl tracking-tighter leading-none">
-                            QureHealth<span className="text-slate-900">.AI</span>
+                            Qurehealth<span className="text-slate-900">.AI</span>
                         </span>
                     </div>
                 )}

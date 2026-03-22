@@ -1,5 +1,5 @@
 """
-rag_engine.py — Phase 1 RAG Engine for QureHealth.AI
+rag_engine.py — Phase 1 RAG Engine for Qurehealth.AI
 ======================================================
 Loads all PDFs from /data/pdfs, chunks them,
 embeds using Sentence Transformers, stores in FAISS,

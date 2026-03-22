@@ -8,7 +8,7 @@ const sendEmail = require('../utils/sendEmail');
 // @access  Private (Patient)
 exports.bookAppointment = async (req, res) => {
     try {
-        const { doctorId, date, time, reason } = req.body;
+        const { doctorId, date, time, reason, paymentMethod, transactionId, paymentStatus } = req.body;
 
         if (!doctorId || !date || !time || !reason) {
             return res.status(400).json({ error: 'doctorId, date, time, and reason are all required.' });
@@ -57,7 +57,11 @@ exports.bookAppointment = async (req, res) => {
             patient: req.user._id,
             date,
             time,
-            reason
+            reason,
+            paymentMethod: paymentMethod || 'pay-at-clinic',
+            transactionId: transactionId || '',
+            paymentStatus: paymentStatus || 'pending',
+            paidAt: paymentStatus === 'paid' ? new Date() : null
         });
 
         // Send booking confirmation email (non-critical)
@@ -69,17 +73,17 @@ exports.bookAppointment = async (req, res) => {
                 });
                 sendEmail({
                     to: patient.email,
-                    subject: `📅 Appointment Request Received — Dr. ${doctor.name}`,
+                    subject: ` Appointment Request Received — Dr. ${doctor.name}`,
                     html: `
                     <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;padding:0;border-radius:16px;overflow:hidden;">
                         <div style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);padding:36px 40px 28px;text-align:center;">
                             <div style="font-size:32px;margin-bottom:8px;">📅</div>
-                            <h1 style="color:#fff;margin:0;font-size:22px;font-weight:700;">QureHealth<span style="font-weight:300;">.AI</span></h1>
+                            <h1 style="color:#fff;margin:0;font-size:22px;font-weight:700;">Qurehealth<span style="font-weight:300;">.AI</span></h1>
                             <p style="color:rgba(255,255,255,0.85);margin:6px 0 0;font-size:13px;">Your Health, Our Priority</p>
                         </div>
                         <div style="background:#fff;padding:36px 40px;">
                             <div style="display:inline-block;background:#fef9c3;color:#a16207;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;margin-bottom:20px;">
-                                ⏳ Pending Confirmation
+                                 Pending Confirmation
                             </div>
                             <h2 style="color:#1e293b;margin:0 0 8px;font-size:20px;">Hi ${patient.name},</h2>
                             <p style="color:#64748b;margin:0 0 24px;font-size:15px;line-height:1.6;">
@@ -97,7 +101,7 @@ exports.bookAppointment = async (req, res) => {
                             <p style="color:#94a3b8;font-size:13px;margin:0;line-height:1.6;">You will receive another email once the doctor confirms your appointment.</p>
                         </div>
                         <div style="background:#f1f5f9;padding:20px 40px;text-align:center;border-top:1px solid #e2e8f0;">
-                            <p style="color:#94a3b8;font-size:12px;margin:0;">© ${new Date().getFullYear()} QureHealth.AI — This is an automated notification.</p>
+                            <p style="color:#94a3b8;font-size:12px;margin:0;">© ${new Date().getFullYear()} Qurehealth.AI — This is an automated notification.</p>
                         </div>
                     </div>`
                 }).catch(err => console.error('Background email failed:', err.message));
@@ -132,6 +136,7 @@ exports.getDoctorAppointments = async (req, res) => {
         })
             .populate('patient', 'name email phone gender dateOfBirth')
             .sort({ date: 1, time: 1 })
+            .lean()
             .maxTimeMS(30000);
 
         res.json({
@@ -184,6 +189,7 @@ exports.getMyAppointments = async (req, res) => {
         })
             .populate('doctor', 'name specialization hospital phone profilePicture fee')
             .sort({ date: 1, time: 1 })
+            .lean()
             .maxTimeMS(30000);
 
         res.json({
@@ -259,20 +265,20 @@ exports.updateAppointmentStatus = async (req, res) => {
 
                         sendEmail({
                             to: patient.email,
-                            subject: `✅ Appointment Confirmed — Dr. ${req.user.name}`,
+                            subject: ` Appointment Confirmed — Dr. ${req.user.name}`,
                             html: `
                             <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;padding:0;border-radius:16px;overflow:hidden;">
                                 <!-- Header -->
                                 <div style="background:linear-gradient(135deg,#0ea5e9 0%,#6366f1 100%);padding:36px 40px 28px;text-align:center;">
                                     <div style="font-size:32px;margin-bottom:8px;">🏥</div>
-                                    <h1 style="color:#fff;margin:0;font-size:22px;font-weight:700;letter-spacing:-0.5px;">QureHealth<span style="font-weight:300;">.AI</span></h1>
+                                    <h1 style="color:#fff;margin:0;font-size:22px;font-weight:700;letter-spacing:-0.5px;">Qurehealth<span style="font-weight:300;">.AI</span></h1>
                                     <p style="color:rgba(255,255,255,0.85);margin:6px 0 0;font-size:13px;">Your Health, Our Priority</p>
                                 </div>
 
                                 <!-- Body -->
                                 <div style="background:#fff;padding:36px 40px;">
                                     <div style="display:inline-block;background:#dcfce7;color:#16a34a;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;margin-bottom:20px;">
-                                        ✅ Appointment Confirmed
+                                         Appointment Confirmed
                                     </div>
                                     <h2 style="color:#1e293b;margin:0 0 8px;font-size:20px;">Hi ${patient.name},</h2>
                                     <p style="color:#64748b;margin:0 0 24px;font-size:15px;line-height:1.6;">
@@ -306,14 +312,14 @@ exports.updateAppointmentStatus = async (req, res) => {
                                     ${meetingButtonHtml}
 
                                     <p style="color:#94a3b8;font-size:13px;margin:24px 0 0;line-height:1.6;">
-                                        Please be available at the scheduled time. If you need to reschedule or have any questions, contact us through the QureHealth.AI platform.
+                                        Please be available at the scheduled time. If you need to reschedule or have any questions, contact us through the Qurehealth.AI platform.
                                     </p>
                                 </div>
 
                                 <!-- Footer -->
                                 <div style="background:#f1f5f9;padding:20px 40px;text-align:center;border-top:1px solid #e2e8f0;">
                                     <p style="color:#94a3b8;font-size:12px;margin:0;">
-                                        © ${new Date().getFullYear()} QureHealth.AI — This is an automated notification, please do not reply to this email.
+                                        © ${new Date().getFullYear()} Qurehealth.AI — This is an automated notification, please do not reply to this email.
                                     </p>
                                 </div>
                             </div>`
@@ -365,12 +371,12 @@ exports.cancelAppointment = async (req, res) => {
                 });
                 sendEmail({
                     to: patient.email,
-                    subject: `❌ Appointment Cancelled — Dr. ${doctor?.name || 'Doctor'}`,
+                    subject: ` Appointment Cancelled — Dr. ${doctor?.name || 'Doctor'}`,
                     html: `
                     <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;padding:0;border-radius:16px;overflow:hidden;">
                         <div style="background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%);padding:36px 40px 28px;text-align:center;">
                             <div style="font-size:32px;margin-bottom:8px;">❌</div>
-                            <h1 style="color:#fff;margin:0;font-size:22px;font-weight:700;">QureHealth<span style="font-weight:300;">.AI</span></h1>
+                            <h1 style="color:#fff;margin:0;font-size:22px;font-weight:700;">Qurehealth<span style="font-weight:300;">.AI</span></h1>
                         </div>
                         <div style="background:#fff;padding:36px 40px;">
                             <h2 style="color:#1e293b;margin:0 0 8px;font-size:20px;">Hi ${patient.name},</h2>
@@ -380,7 +386,7 @@ exports.cancelAppointment = async (req, res) => {
                             <p style="color:#64748b;font-size:14px;line-height:1.6;">To book a new appointment, visit <a href="https://qurehealth.ai" style="color:#6366f1;font-weight:600;">qurehealth.ai</a>.</p>
                         </div>
                         <div style="background:#f1f5f9;padding:20px 40px;text-align:center;border-top:1px solid #e2e8f0;">
-                            <p style="color:#94a3b8;font-size:12px;margin:0;">© ${new Date().getFullYear()} QureHealth.AI — This is an automated notification.</p>
+                            <p style="color:#94a3b8;font-size:12px;margin:0;">© ${new Date().getFullYear()} Qurehealth.AI — This is an automated notification.</p>
                         </div>
                     </div>`
                 }).catch(err => console.error('Background email failed:', err.message));

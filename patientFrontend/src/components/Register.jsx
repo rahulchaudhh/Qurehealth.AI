@@ -236,7 +236,7 @@ function Register() {
               style={{ animation: 'fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}
             >
               {/* Brand */}
-              <p className="text-black font-bold text-base tracking-wide mb-8">QureHealth<span className="font-bold">.AI</span></p>
+              <p className="text-black font-bold text-base tracking-wide mb-8">Qurehealth<span className="font-bold">.AI</span></p>
 
               {/* Success Icon */}
               <div
