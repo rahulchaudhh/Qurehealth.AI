@@ -55,10 +55,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const res = await axios.post('/auth/register', userData);
-      // Token is set as httpOnly cookie by the server
-      if (res.data.data) {
-        setUser(res.data.data);
-      }
+      // DO NOT setUser(res.data.data) here to prevent auto-login
       return { success: true };
     } catch (err) {
       return { success: false, error: err.response?.data?.error || 'Registration failed' };

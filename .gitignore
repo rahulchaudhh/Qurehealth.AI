@@ -4,3 +4,9 @@ node_modules/
 dist/
 build/
 .vscode/
+
+# Unnecessary files
+*.md
+.venv/
+.gemini/
+backend/backend.log

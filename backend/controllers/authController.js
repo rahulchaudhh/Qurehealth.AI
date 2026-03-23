@@ -220,10 +220,17 @@ exports.register = async (req, res) => {
         });
       }
 
+      // Handle file upload for patient
+      let profilePicture = null;
+      if (req.file) {
+        profilePicture = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+      }
+
       const patient = await Patient.create({
         name,
         email,
         password,
+        profilePicture,
         ...otherData
       });
 
